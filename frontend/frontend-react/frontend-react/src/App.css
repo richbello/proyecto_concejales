@@ -1,0 +1,55 @@
+/* Paleta: azul acero, gris claro, blanco perla */
+.dashboard {
+  display: flex;
+  height: 100vh;
+  background: #f5f7fa; /* blanco perla */
+  color: #2c3e50; /* azul acero */
+}
+
+.sidebar {
+  width: 220px;
+  background: #34495e; /* azul acero más oscuro */
+  color: white;
+  padding: 20px;
+}
+
+.sidebar h2 {
+  margin-bottom: 20px;
+  font-size: 18px;
+  text-align: center;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar li {
+  padding: 10px;
+  margin: 8px 0;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background 0.3s;
+}
+
+.sidebar li:hover {
+  background: #3d566e;
+}
+
+.sidebar li.active {
+  background: #1abc9c; /* resalta la sección activa */
+}
+
+.content {
+  flex: 1;
+  padding: 30px;
+  background: #ecf0f1; /* gris claro */
+  overflow-y: auto;
+}
+
+h2 {
+  margin-bottom: 20px;
+  border-bottom: 2px solid #1abc9c;
+  padding-bottom: 5px;
+}
+

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', sans-serif; background: #f5f7fa; color: #2c3e50; }
+.dashboard { display: flex; height: 100vh; }
+.sidebar { width: 220px; background: #34495e; color: white; padding: 20px; }
+.sidebar h2 { margin-bottom: 20px; font-size: 16px; text-align: center; color: #1abc9c; }
+.sidebar ul { list-style: none; }
+.sidebar li { padding: 10px; margin: 6px 0; cursor: pointer; border-radius: 6px; transition: background 0.2s; font-size: 14px; }
+.sidebar li:hover { background: #3d566e; }
+.sidebar li.active { background: #1abc9c; font-weight: 600; }
+.content { flex: 1; padding: 28px; overflow-y: auto; background: #ecf0f1; }
+h2 { margin-bottom: 18px; border-bottom: 2px solid #1abc9c; padding-bottom: 8px; }
+#map { height: 440px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,.15); }
+.item { background: white; border-radius: 8px; padding: 14px 18px; margin-bottom: 10px; box-shadow: 0 1px 5px rgba(0,0,0,.07); }
+.item .fecha { font-size: 11px; color: #1abc9c; font-weight: 700; }
+.item .ciudadano { font-size: 12px; color: #e74c3c; font-weight: 700; margin-bottom: 4px; }
+.chart-wrap { background: white; border-radius: 10px; padding: 20px; max-width: 650px; box-shadow: 0 2px 8px rgba(0,0,0,.07); }
+</style>
+</head>
+<body>
+<div class="dashboard">
+  <aside class="sidebar">
+    <h2>🏛️ Control Político</h2>
+    <ul id="nav">
+      <li class="active" onclick="show('mapa',this)">🗺️ Mapa de Proyectos</li>
+      <li onclick="show('sesiones',this)">📋 Panel Legislativo</li>
+      <li onclick="show('denuncias',this)">📣 Denuncias Ciudadanas</li>
+      <li onclick="show('presupuesto',this)">💰 Análisis Presupuestal</li>
+    </ul>
+  </aside>
+  <main class="content">
+    <div id="sec-mapa">
+      <h2>Mapa de Proyectos</h2>
+      <div id="map"></div>
+    </div>
+    <div id="sec-sesiones" style="display:none">
+      <h2>Panel Legislativo</h2>
+      <div id="list-sesiones"></div>
+    </div>
+    <div id="sec-denuncias" style="display:none">
+      <h2>Denuncias Ciudadanas</h2>
+      <div id="list-denuncias"></div>
+    </div>
+    <div id="sec-presupuesto" style="display:none">
+      <h2>Análisis Presupuestal</h2>
+      <div class="chart-wrap"><canvas id="chartBar"></canvas></div>
+    </div>
+  </main>
+</div>
+<script>
+// Datos (antes venían del backend Express)
+const proyectos = [
+  { nombre: "Parque Central Soacha", estado: "En ejecución", avance: 45, coords: [4.586, -74.214] },
+  { nombre: "Colegio Nuevo Horizonte", estado: "Planeado", avance: 0, coords: [4.61, -74.2] },
+  { nombre: "Hospital Regional", estado: "Finalizado", avance: 100, coords: [4.59, -74.22] }
+];
+const sesiones = [
+  { fecha: "2026-06-01", tema: "Debate sobre presupuesto de salud" },
+  { fecha: "2026-06-03", tema: "Control político a la Secretaría de Educación" },
+  { fecha: "2026-06-05", tema: "Discusión sobre movilidad urbana" }
+];
+const denuncias = [
+  { ciudadano: "María López", descripcion: "Demora en la construcción del colegio en la comuna 3" },
+  { ciudadano: "Carlos Pérez", descripcion: "Falta de iluminación en el parque central" },
+  { ciudadano: "Ana Rodríguez", descripcion: "Contratos de mantenimiento sin ejecución visible" }
+];
+const presupuesto = [
+  { sector: "Salud", monto: 500000000 },
+  { sector: "Educación", monto: 750000000 },
+  { sector: "Infraestructura", monto: 1200000000 }
+];
+
+// Navegación
+function show(sec, el) {
+  ['mapa','sesiones','denuncias','presupuesto'].forEach(s =>
+    document.getElementById('sec-'+s).style.display = 'none');
+  document.querySelectorAll('.sidebar li').forEach(li => li.classList.remove('active'));
+  document.getElementById('sec-'+sec).style.display = '';
+  el.classList.add('active');
+}
+
+// Mapa
+const map = L.map('map').setView([4.595, -74.213], 13);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+const colores = { "En ejecución": "🟡", "Planeado": "🔵", "Finalizado": "🟢" };
+proyectos.forEach(p => {
+  const icon = L.divIcon({ html: `<div style="font-size:22px">${colores[p.estado]}</div>`, className:'', iconAnchor:[11,11] });
+  L.marker(p.coords, {icon}).addTo(map)
+    .bindPopup(`<b>${p.nombre}</b><br>Estado: ${p.estado}<br>Avance: ${p.avance}%`);
+});
+
+// Sesiones
+document.getElementById('list-sesiones').innerHTML =
+  sesiones.map(s => `<div class="item"><div class="fecha">${s.fecha}</div>${s.tema}</div>`).join('');
+
+// Denuncias
+document.getElementById('list-denuncias').innerHTML =
+  denuncias.map(d => `<div class="item"><div class="ciudadano">${d.ciudadano}</div>${d.descripcion}</div>`).join('');
+
+// Gráfica
+new Chart(document.getElementById('chartBar'), {
+  type: 'bar',
+  data: {
+    labels: presupuesto.map(p => p.sector),
+    datasets: [{
+      label: 'Monto COP',
+      data: presupuesto.map(p => p.monto),
+      backgroundColor: ['rgba(26,188,156,.7)','rgba(52,152,219,.7)','rgba(155,89,182,.7)'],
+      borderWidth: 2, borderRadius: 6
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: { y: { ticks: { callback: v => '$' + (v/1e6).toFixed(0)+'M' } } }
+  }
+});
+</script>
+</body>
+</html>
