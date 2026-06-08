@@ -19,8 +19,16 @@ const fmtCOP = (v: number) => {
 };
 const fmtFull = (v: number) =>
   new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(v);
-const toNum = (v: any) => parseFloat(String(v||0).replace(/[^0-9.-]/g,'')) || 0;
+const toNum = (v: any) => {
+  if (v === null || v === undefined || v === '') return 0;
+  const n = parseFloat(String(v).replace(/[^0-9.-]/g, ''));
+  return isNaN(n) ? 0 : n;
+};
 
+const gc = (row: DataRow, variants: string[]): any => {
+  for (const k of variants) if (row[k] !== undefined) return row[k];
+  return 0;
+};
 const AnalisisPresupuestal: React.FC = () => {
   const [data, setData]           = useState<DataRow[]>([]);
   const [fileName, setFileName]   = useState('');
