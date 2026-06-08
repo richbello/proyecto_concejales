@@ -1,5 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   --color-azul: #3A6EA5;
   --color-verde: #2ECC71;
-  --color-dorado: #F1C40F;
-  --color-ro
+  --color-rojo: #E74C3C; /* ejemplo de rojo elegante */
+}
