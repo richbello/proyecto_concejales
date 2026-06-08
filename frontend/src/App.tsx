@@ -1,4 +1,5 @@
 ﻿import { useState, useEffect, useRef } from "react";
+import AnalisisPresupuestal from "./components/AnalisisPresupuestal";
 
 const proyectos = [
   { id:1, nombre:"Parque Ecologico El Uval", localidad:"El Uval", tipo:"Infraestructura", estado:"En Ejecucion", avance:65, coords:[4.478,-74.108], presupuesto:320000000 },
@@ -162,7 +163,7 @@ export default function App() {
   const statCard = (c:string): any => ({ background:c, color:"white", borderRadius:10, padding:"14px 18px", textAlign:"center" });
 
   return (
-    <div style={{display:"flex",height:"100vh",fontFamily:"'Segoe UI',sans-serif",background:"#f0f2f5",color:"#2c3e50"}}>
+    <div className="flex h-screen bg-[#f0f2f5] text-[#2c3e50] font-sans">
       <aside style={{width:230,background:"#1a2742",color:"white",display:"flex",flexDirection:"column",boxShadow:"3px 0 10px rgba(0,0,0,.2)"}}>
         <div style={{padding:"20px 16px",borderBottom:"1px solid rgba(255,255,255,.1)"}}>
           <div style={{fontSize:28}}>M</div>
@@ -316,55 +317,7 @@ export default function App() {
           )}
 
           {tab==="presupuesto" && (
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
-              <div style={card}>
-                <div style={{fontWeight:700,fontSize:14,marginBottom:12,borderBottom:"2px solid #5dade2",paddingBottom:8}}>Ejecucion por Sector</div>
-                <canvas id="chartDona" style={{maxHeight:220}}/>
-              </div>
-              <div style={{display:"flex",flexDirection:"column",gap:12}}>
-                <div style={card}>
-                  <div style={{fontSize:12,color:"#888"}}>Presupuesto Total Asignado</div>
-                  <div style={{fontSize:24,fontWeight:700,color:"#1a2742",margin:"4px 0"}}>{fmt(totalAsignado)}</div>
-                  <div style={{fontSize:12,color:"#888"}}>Ejecutado</div>
-                  <div style={{fontSize:22,fontWeight:700,color:"#1abc9c"}}>{fmt(totalEjecutado)}</div>
-                  <div style={{background:"#eee",borderRadius:4,height:8,margin:"8px 0"}}>
-                    <div style={{background:"#1abc9c",width:pctEjec+"%",height:8,borderRadius:4}}/>
-                  </div>
-                  <div style={{fontSize:12,color:pctEjec<50?"#e74c3c":"#1abc9c",fontWeight:600}}>
-                    Ejecucion: {pctEjec}% {pctEjec<50?"— Baja ejecucion":"— En meta"}
-                  </div>
-                </div>
-                <div style={card}>
-                  <div style={{fontWeight:700,fontSize:13,marginBottom:10}}>Por Sector</div>
-                  {presupuestoSectores.map(p=>(
-                    <div key={p.sector} style={{marginBottom:8}}>
-                      <div style={{display:"flex",justifyContent:"space-between",fontSize:12,marginBottom:3}}>
-                        <span>{p.sector}</span><span style={{fontWeight:600}}>{pct(p.ejecutado,p.asignado)}%</span>
-                      </div>
-                      <div style={{background:"#eee",borderRadius:3,height:6}}>
-                        <div style={{background:pct(p.ejecutado,p.asignado)<40?"#e74c3c":"#1abc9c",width:pct(p.ejecutado,p.asignado)+"%",height:6,borderRadius:3}}/>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div style={card}>
-                <div style={{fontWeight:700,fontSize:14,marginBottom:12,borderBottom:"2px solid #5dade2",paddingBottom:8}}>Comparativo Anual</div>
-                <canvas id="chartBar" style={{maxHeight:200}}/>
-              </div>
-              <div style={card}>
-                <div style={{fontWeight:700,fontSize:14,marginBottom:12,borderBottom:"2px solid #e74c3c",paddingBottom:8}}>Alertas de Sobrecosto</div>
-                {alertasSobrecosto.map((a,i)=>(
-                  <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0",borderBottom:"1px solid #f5f5f5"}}>
-                    <div style={{width:10,height:10,borderRadius:"50%",background:a.color,flexShrink:0}}/>
-                    <div>
-                      <div style={{fontSize:13,fontWeight:600}}>{a.proyecto}</div>
-                      <div style={{fontSize:11,color:a.color}}>{a.tipo}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <AnalisisPresupuestal />
           )}
 
         </div>
