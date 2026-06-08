@@ -4,71 +4,67 @@ import MapaProyectos from "./Components/MapaProyectos";
 import PanelLegislativo from "./Components/PanelLegislativo";
 import Denuncias from "./Components/Denuncias";
 
-// 👉 Datos de ejemplo (puedes moverlos a otro archivo si quieres)
-const proyectos = [
-  { id:1, nombre:"Parque Ecologico El Uval", localidad:"El Uval", tipo:"Infraestructura", estado:"En Ejecucion", avance:65, coords:[4.478,-74.108], presupuesto:320000000 },
-  { id:2, nombre:"Colegio Nuevo Usme IED", localidad:"Usme Centro", tipo:"Educacion", estado:"En Retraso", avance:30, coords:[4.489,-74.126], presupuesto:980000000 },
-  { id:3, nombre:"Centro de Salud La Flora", localidad:"La Flora", tipo:"Salud", estado:"Finalizado", avance:100, coords:[4.501,-74.115], presupuesto:540000000 },
-  { id:4, nombre:"Via Vereda Los Soches", localidad:"Los Soches", tipo:"Vias", estado:"En Ejecucion", avance:48, coords:[4.462,-74.098], presupuesto:210000000 },
-  { id:5, nombre:"Acueducto Veredal Olarte", localidad:"Olarte", tipo:"Servicios", estado:"Planeado", avance:0, coords:[4.445,-74.120], presupuesto:175000000 },
-  { id:6, nombre:"Salon Comunal Alfonso Lopez", localidad:"Alfonso Lopez", tipo:"Infraestructura", estado:"En Retraso", avance:20, coords:[4.510,-74.133], presupuesto:95000000 },
-];
-
-const sesiones = [
-  { fecha:"2026-06-10", tipo:"Sesion Ordinaria", tema:"Control político al IDRD por obras en Usme", acta:"SRT-PN18", sala:"Sala Principal", estado:"Próxima" },
-  { fecha:"2026-06-15", tipo:"Audiencia Pública", tema:"Rendición de cuentas presupuesto 2025", acta:"SRT-PN19", sala:"Sala Comunal", estado:"Próxima" },
-  { fecha:"2026-06-22", tipo:"Debate de Control", tema:"Avance obras viales localidad Usme", acta:"SRT-PN20", sala:"Sala Principal", estado:"Próxima" },
-];
-
-const denuncias = [
-  { id:1, ciudadano:"Jorge Martinez", asunto:"Corrupción en contrato de vías vereda Olarte", fecha:"2026-05-20", estado:"Investigado", avatar:"JM" },
-  { id:2, ciudadano:"Luisa Fernandez", asunto:"Falta de alumbrado público sector La Flora", fecha:"2026-05-28", estado:"En Revisión", avatar:"LF" },
-  { id:3, ciudadano:"Pedro Acosta", asunto:"Basura acumulada parque central Usme", fecha:"2026-06-01", estado:"En Revisión", avatar:"PA" },
-  { id:4, ciudadano:"Carmen Rios", asunto:"Obra incompleta salón comunal Alfonso Lopez", fecha:"2026-06-03", estado:"Recibida", avatar:"CR" },
-  { id:5, ciudadano:"Hector Vargas", asunto:"Contratista no ejecuta obras pactadas", fecha:"2026-06-05", estado:"Recibida", avatar:"HV" },
-];
-
 export default function App() {
   const [tab, setTab] = useState("mapa");
 
   const navItems = [
-    { key: "mapa", label: "🗺️ Mapa de Proyectos" },
-    { key: "sesiones", label: "📋 Panel Legislativo" },
-    { key: "denuncias", label: "📣 Denuncias Ciudadanas" },
-    { key: "presupuesto", label: "💰 Análisis Presupuestal" }
+    { key: "mapa",       label: "Mapa de Proyectos",    icon: "🗺️" },
+    { key: "sesiones",   label: "Panel Legislativo",     icon: "📋" },
+    { key: "denuncias",  label: "Denuncias Ciudadanas",  icon: "📣" },
+    { key: "presupuesto",label: "Análisis Presupuestal", icon: "💰" },
   ];
 
   return (
-    <div style={{ display: "flex", height: "100vh", fontFamily: "'Segoe UI', sans-serif", background: "#f0f2f5", color: "#2c3e50" }}>
-      {/* Sidebar */}
-      <aside style={{ width: 230, background: "#1a2742", color: "white", display: "flex", flexDirection: "column", boxShadow: "3px 0 10px rgba(0,0,0,.2)" }}>
-        <div style={{ padding: "20px 16px", borderBottom: "1px solid rgba(255,255,255,.1)" }}>
-          <div style={{ fontSize: 28 }}>🏛️</div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "#5dade2", textTransform: "uppercase", letterSpacing: 2, marginTop: 8 }}>Control Político</div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,.5)", marginTop: 2 }}>FDL Usme 2026</div>
+    <div style={{ display:"flex", height:"100vh", fontFamily:"'Segoe UI',sans-serif", background:"#f0f2f5", color:"#2c3e50" }}>
+      {/* SIDEBAR */}
+      <aside style={{ width:230, background:"#1a2742", color:"white", display:"flex", flexDirection:"column", boxShadow:"3px 0 10px rgba(0,0,0,.2)", flexShrink:0 }}>
+        <div style={{ padding:"24px 16px", borderBottom:"1px solid rgba(255,255,255,.1)" }}>
+          <div style={{ fontSize:32 }}>🏛️</div>
+          <div style={{ fontSize:11, fontWeight:700, color:"#5dade2", textTransform:"uppercase", letterSpacing:2, marginTop:8 }}>Control Político</div>
+          <div style={{ fontSize:11, color:"rgba(255,255,255,.5)", marginTop:2 }}>FDL Usme · 2026</div>
         </div>
-        <ul style={{ listStyle: "none", padding: 0, margin: 0, flex: 1, paddingTop: 8 }}>
+        <ul style={{ listStyle:"none", padding:0, margin:0, flex:1, paddingTop:8 }}>
           {navItems.map(n => (
-            <li key={n.key} onClick={() => setTab(n.key)}
-              style={{
-                padding: "10px", margin: "6px 0", cursor: "pointer",
-                background: tab === n.key ? "#1abc9c" : "transparent",
-                borderRadius: 6
-              }}>
-              {n.label}
+            <li key={n.key} onClick={() => setTab(n.key)} style={{
+              padding:"12px 16px", cursor:"pointer", display:"flex", alignItems:"center", gap:10, fontSize:13.5,
+              background: tab===n.key ? "rgba(93,173,226,.2)" : "transparent",
+              borderLeft: tab===n.key ? "3px solid #5dade2" : "3px solid transparent",
+              color: tab===n.key ? "#5dade2" : "rgba(255,255,255,.75)",
+              transition:"all 0.2s"
+            }}>
+              <span style={{ fontSize:16 }}>{n.icon}</span>{n.label}
             </li>
           ))}
         </ul>
+        <div style={{ padding:"12px 16px", borderTop:"1px solid rgba(255,255,255,.1)", fontSize:11, color:"rgba(255,255,255,.4)" }}>
+          Alcaldía Local de Usme
+        </div>
       </aside>
 
-      {/* Content */}
-      <main style={{ flex: 1, padding: 28, overflowY: "auto" }}>
-        {tab === "mapa" && <MapaProyectos proyectos={proyectos} />}
-        {tab === "sesiones" && <PanelLegislativo sesiones={sesiones} />}
-        {tab === "denuncias" && <Denuncias denuncias={denuncias} />}
-        {tab === "presupuesto" && <AnalisisPresupuestal />}
-      </main>
+      {/* MAIN */}
+      <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden" }}>
+        {/* HEADER */}
+        <div style={{ background:"#1a2742", color:"white", padding:"14px 24px", display:"flex", alignItems:"center", justifyContent:"space-between", boxShadow:"0 2px 8px rgba(0,0,0,.15)", flexShrink:0 }}>
+          <div>
+            <div style={{ fontWeight:700, fontSize:18 }}>{navItems.find(n=>n.key===tab)?.icon} {navItems.find(n=>n.key===tab)?.label}</div>
+            <div style={{ fontSize:11, color:"rgba(255,255,255,.6)" }}>Localidad de Usme · Bogotá D.C.</div>
+          </div>
+          <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+            <span style={{ fontSize:11, background:"rgba(255,255,255,.1)", padding:"4px 10px", borderRadius:6 }}>
+              📅 {new Date().toLocaleDateString("es-CO")}
+            </span>
+            <div style={{ width:34, height:34, borderRadius:"50%", background:"#5dade2", display:"flex", alignItems:"center", justifyContent:"center", fontWeight:700, fontSize:13 }}>RB</div>
+          </div>
+        </div>
+
+        {/* CONTENT */}
+        <div style={{ flex:1, padding:20, overflowY:"auto" }}>
+          {tab === "mapa"        && <MapaProyectos />}
+          {tab === "sesiones"    && <PanelLegislativo />}
+          {tab === "denuncias"   && <Denuncias />}
+          {tab === "presupuesto" && <AnalisisPresupuestal />}
+        </div>
+      </div>
     </div>
   );
 }
-
