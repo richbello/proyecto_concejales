@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import * as XLSX from 'xlsx';
-import AnomaliasCRP from './AnomaliasCRP';
+import ExportarPDF from './ExportarPDF';
+import AnomaliasCRP, { detectarAnomalias } from './AnomaliasCRP';
 import {
   BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -113,7 +114,7 @@ const AnalisisPresupuestal: React.FC = () => {
     const pctEjec     = valorCRP > 0 ? (giro/valorCRP)*100 : 0;
     return { valorCRP, valorNeto, giro, sinGiro, anulaciones, pctEjec, total: filtrado.length };
   }, [filtrado]);
-
+  const anomaliasDetectadas = useMemo(() => detectarAnomalias(filtrado), [filtrado]);
   const byTipo = useMemo(() => {
     const g: Record<string,number> = {};
     filtrado.forEach(r => {
@@ -191,6 +192,13 @@ const AnalisisPresupuestal: React.FC = () => {
           <Upload className="w-4 h-4" /> Cambiar archivo
           <input type="file" accept=".xlsx,.xls" onChange={handleFile} className="hidden" />
         </label>
+        <ExportarPDF
+            fileName={fileName}
+            totalRegistros={data.length}
+            kpis={kpis}
+            anomalias={anomaliasDetectadas}
+            municipio="Usme"
+          />
       </div>
 
       {/* KPIs */}

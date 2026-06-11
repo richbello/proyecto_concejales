@@ -55,7 +55,7 @@ const severidadConfig = {
   baja:    { color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0', label: 'BAJA',    emoji: '🟢' },
 };
 
-function detectar(data: DataRow[]): AnomaliaDetectada[] {
+export function detectarAnomalias(data: DataRow[]): AnomaliaDetectada[] {
   if (!data || data.length === 0) return [];
   const anomalias: AnomaliaDetectada[] = [];
 
@@ -221,7 +221,7 @@ export default function AnomaliasCRP({ data }: Props) {
   const [filtroSev, setFiltroSev] = useState<string>('todas');
   const [tabRegistros, setTabRegistros] = useState<string | null>(null);
 
-  const anomalias = useMemo(() => detectar(data), [data]);
+  const anomalias = useMemo(() => detectarAnomalias(data), [data]);
 
   const filtradas = anomalias.filter(a => filtroSev === 'todas' || a.severidad === filtroSev);
 
