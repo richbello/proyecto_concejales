@@ -3,20 +3,20 @@ import AnalisisPresupuestal from "./Components/AnalisisPresupuestal";
 import MapaProyectos from "./Components/MapaProyectos";
 import PanelLegislativo from "./Components/PanelLegislativo";
 import Denuncias from "./Components/Denuncias";
+import Politiko from "./Components/Politiko";
 
 export default function App() {
   const [tab, setTab] = useState("mapa");
 
   const navItems = [
-    { key: "mapa",       label: "Mapa de Proyectos",    icon: "🗺️" },
-    { key: "sesiones",   label: "Panel Legislativo",     icon: "📋" },
-    { key: "denuncias",  label: "Denuncias Ciudadanas",  icon: "📣" },
-    { key: "presupuesto",label: "Análisis Presupuestal", icon: "💰" },
+    { key: "mapa",        label: "Mapa de Proyectos",    icon: "🗺️" },
+    { key: "sesiones",    label: "Panel Legislativo",     icon: "📋" },
+    { key: "denuncias",   label: "Denuncias Ciudadanas",  icon: "📣" },
+    { key: "presupuesto", label: "Análisis Presupuestal", icon: "💰" },
   ];
 
   return (
     <div style={{ display:"flex", height:"100vh", fontFamily:"'Segoe UI',sans-serif", background:"#f0f2f5", color:"#2c3e50" }}>
-      {/* SIDEBAR */}
       <aside style={{ width:230, background:"#1a2742", color:"white", display:"flex", flexDirection:"column", boxShadow:"3px 0 10px rgba(0,0,0,.2)", flexShrink:0 }}>
         <div style={{ padding:"24px 16px", borderBottom:"1px solid rgba(255,255,255,.1)" }}>
           <div style={{ fontSize:32 }}>🏛️</div>
@@ -41,9 +41,7 @@ export default function App() {
         </div>
       </aside>
 
-      {/* MAIN */}
       <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden" }}>
-        {/* HEADER */}
         <div style={{ background:"#1a2742", color:"white", padding:"14px 24px", display:"flex", alignItems:"center", justifyContent:"space-between", boxShadow:"0 2px 8px rgba(0,0,0,.15)", flexShrink:0 }}>
           <div>
             <div style={{ fontWeight:700, fontSize:18 }}>{navItems.find(n=>n.key===tab)?.icon} {navItems.find(n=>n.key===tab)?.label}</div>
@@ -57,7 +55,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* CONTENT */}
         <div style={{ flex:1, padding:20, overflowY:"auto" }}>
           {tab === "mapa"        && <MapaProyectos />}
           {tab === "sesiones"    && <PanelLegislativo />}
@@ -65,6 +62,8 @@ export default function App() {
           {tab === "presupuesto" && <AnalisisPresupuestal />}
         </div>
       </div>
+
+      <Politiko data={[]} />
     </div>
   );
 }

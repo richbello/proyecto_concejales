@@ -472,7 +472,7 @@ const AnalisisPresupuestal: React.FC = () => {
           {activeTab==='anomalias' && <AnomaliasCRP data={filtrado ?? []} />}
         </div>
       </div>
-      <Politiko data={filtrado} />
+      
     </div>
   );
 };
