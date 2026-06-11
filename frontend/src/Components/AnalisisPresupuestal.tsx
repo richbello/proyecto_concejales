@@ -55,7 +55,8 @@ const COLS = {
   noComp:       ['No. Compromiso', 'No.Compromiso', 'Numero Compromiso', 'N° Compromiso'],
 };
 
-const AnalisisPresupuestal: React.FC = () => {
+interface Props { onDataLoad?: (data: DataRow[]) => void; }
+const AnalisisPresupuestal: React.FC<Props> = ({ onDataLoad }) => {
   const [data, setData]           = useState<DataRow[]>([]);
   const [fileName, setFileName]   = useState('');
   const [filters, setFilters]     = useState<Record<string,string>>({});
@@ -76,6 +77,7 @@ const AnalisisPresupuestal: React.FC = () => {
       // Debug: ver columnas reales en consola del navegador
       if (json.length > 0) console.log('COLUMNAS CRP:', Object.keys(json[0]));
       setData(json);
+      onDataLoad?.(json);
       setFilters({});
       setBusqueda('');
       setPagina(1);

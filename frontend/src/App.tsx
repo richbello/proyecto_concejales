@@ -5,8 +5,11 @@ import PanelLegislativo from "./Components/PanelLegislativo";
 import Denuncias from "./Components/Denuncias";
 import Politiko from "./Components/Politiko";
 
+interface DataRow { [key: string]: string | number; }
+
 export default function App() {
   const [tab, setTab] = useState("mapa");
+  const [crpData, setCrpData] = useState<DataRow[]>([]);
 
   const navItems = [
     { key: "mapa",        label: "Mapa de Proyectos",    icon: "🗺️" },
@@ -59,11 +62,11 @@ export default function App() {
           {tab === "mapa"        && <MapaProyectos />}
           {tab === "sesiones"    && <PanelLegislativo />}
           {tab === "denuncias"   && <Denuncias />}
-          {tab === "presupuesto" && <AnalisisPresupuestal />}
+          {tab === "presupuesto" && <AnalisisPresupuestal onDataLoad={setCrpData} />}
         </div>
       </div>
 
-      <Politiko data={[]} />
+      <Politiko data={crpData} />
     </div>
   );
 }
