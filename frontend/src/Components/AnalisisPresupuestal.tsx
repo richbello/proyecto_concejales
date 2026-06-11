@@ -2,6 +2,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import ExportarPDF from './ExportarPDF';
 import AnomaliasCRP, { detectarAnomalias } from './AnomaliasCRP';
+import Politiko from './Politiko';
 import {
   BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -471,6 +472,7 @@ const AnalisisPresupuestal: React.FC = () => {
           {activeTab==='anomalias' && <AnomaliasCRP data={filtrado ?? []} />}
         </div>
       </div>
+      <Politiko data={filtrado} />
     </div>
   );
 };
