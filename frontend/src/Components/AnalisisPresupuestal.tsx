@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import * as XLSX from 'xlsx';
+import AnomaliasCRP from './AnomaliasCRP';
 import {
   BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -57,7 +58,7 @@ const AnalisisPresupuestal: React.FC = () => {
   const [fileName, setFileName]   = useState('');
   const [filters, setFilters]     = useState<Record<string,string>>({});
   const [busqueda, setBusqueda]   = useState('');
-  const [activeTab, setActiveTab] = useState<'resumen'|'graficas'|'detalle'>('resumen');
+  const [activeTab, setActiveTab] = useState<'resumen'|'graficas'|'detalle'|'anomalias'>('resumen');
   const [pagina, setPagina]       = useState(1);
   const POR_PAGINA = 12;
 
@@ -266,7 +267,7 @@ const AnalisisPresupuestal: React.FC = () => {
       {/* TABS */}
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         <div className="flex border-b border-slate-100">
-          {([['resumen','📈 Resumen'],['graficas','📊 Gráficas'],['detalle','📋 Detalle']] as const).map(([k,l])=>(
+          {([['resumen','📈 Resumen'],['graficas','📊 Gráficas'],['detalle','📋 Detalle'],['anomalias','🚨 Anomalías']] as const).map(([k,l])=>(
             <button key={k} onClick={()=>setActiveTab(k)}
               className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab===k?'text-blue-600 border-b-2 border-blue-600 bg-blue-50':'text-slate-500 hover:text-slate-700'}`}>
               {l}
@@ -370,6 +371,7 @@ const AnalisisPresupuestal: React.FC = () => {
                       {['No. Compromiso','Beneficiario','Tipo','Modalidad','Rubro','Valor CRP','Valor Neto','Giro','Ejec%'].map(h=>(
                         <th key={h} className="px-3 py-2.5 text-left font-semibold whitespace-nowrap">{h}</th>
                       ))}
+                     
                     </tr>
                   </thead>
                   <tbody>
@@ -457,7 +459,8 @@ const AnalisisPresupuestal: React.FC = () => {
                 </div>
               )}
             </div>
-          )}
+          )} 
+          {activeTab==='anomalias' && <AnomaliasCRP data={filtrado ?? []} />}
         </div>
       </div>
     </div>
