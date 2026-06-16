@@ -6,7 +6,7 @@ import Politiko from './Politiko';
 import {
   BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  ResponsiveContainer, LineChart, Line
+  ResponsiveContainer, LineChart, Line, LabelList
 } from 'recharts';
 import { Upload, Filter, X, TrendingUp, DollarSign, AlertCircle, CheckCircle } from 'lucide-react';
 
@@ -291,14 +291,24 @@ const AnalisisPresupuestal: React.FC<Props> = ({ onDataLoad }) => {
           {activeTab==='resumen' && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
               <div>
+                <div>
                 <h4 className="font-bold text-slate-700 text-sm mb-3">Distribución por Tipo de Compromiso</h4>
-                <ResponsiveContainer width="100%" height={260}>
+                <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
-                    <Pie data={byTipo} cx="50%" cy="50%" innerRadius={55} outerRadius={95} dataKey="value" paddingAngle={2}>
+                    <Pie data={byTipo} cx="50%" cy="45%" innerRadius={60} outerRadius={100} dataKey="value"
+                      paddingAngle={2}
+                      label={({percent}:any) => `${(percent*100).toFixed(0)}%`}
+                      labelLine={false}>
                       {byTipo.map((_,i)=><Cell key={i} fill={COLORS[i%COLORS.length]}/>)}
                     </Pie>
-                    <Tooltip formatter={(v:any)=>fmtFull(v)}/>
-                    <Legend iconSize={10} wrapperStyle={{fontSize:11}}/>
+                    <Tooltip formatter={(v:any, name:any, props:any)=>[fmtFull(v), props.payload.name]}/>
+                    <Legend
+                      layout="vertical"
+                      verticalAlign="bottom"
+                      align="center"
+                      wrapperStyle={{fontSize:11, paddingTop:10}}
+                      formatter={(value, entry:any) => `${entry.payload.name} — ${fmtCOP(entry.payload.value)}`}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -317,20 +327,26 @@ const AnalisisPresupuestal: React.FC<Props> = ({ onDataLoad }) => {
                 </ResponsiveContainer>
               </div>
               <div className="lg:col-span-2">
-                <h4 className="font-bold text-slate-700 text-sm mb-3">Top Rubros — Valor Neto vs % Ejecución</h4>
-                <ResponsiveContainer width="100%" height={240}>
-                  <BarChart data={byRubro} margin={{bottom:20}}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0"/>
-                    <XAxis dataKey="name" angle={-25} textAnchor="end" tick={{fontSize:10}} height={60}/>
-                    <YAxis yAxisId="left" tickFormatter={fmtCOP} tick={{fontSize:10}}/>
-                    <YAxis yAxisId="right" orientation="right" tickFormatter={v=>v+'%'} tick={{fontSize:10}}/>
-                    <Tooltip formatter={(v:any,n:any)=>n==='ejec'?v+'%':fmtFull(v)}/>
-                    <Legend wrapperStyle={{fontSize:11}}/>
-                    <Bar yAxisId="left" dataKey="valor" name="Valor Neto" fill="#5dade2" radius={[4,4,0,0]}/>
-                    <Bar yAxisId="right" dataKey="ejec" name="Ejec%" fill="#1abc9c" radius={[4,4,0,0]}/>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              <h4 className="font-bold text-slate-700 text-sm mb-3">Top Rubros — Valor Neto vs % Ejecución</h4>
+              <ResponsiveContainer width="100%" height={340}>
+                <BarChart data={byRubro} margin={{bottom:95, top:20, right:10}}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0"/>
+                  <XAxis dataKey="name" angle={-40} textAnchor="end" tick={{fontSize:10}} height={100} interval={0}/>
+                  <YAxis yAxisId="left" tickFormatter={fmtCOP} tick={{fontSize:10}}
+                    label={{value:'Valor Neto', angle:-90, position:'insideLeft', fontSize:11, fill:'#64748b'}}/>
+                  <YAxis yAxisId="right" orientation="right" domain={[0,100]} tickFormatter={v=>v+'%'} tick={{fontSize:10}}
+                    label={{value:'% Ejecución', angle:90, position:'insideRight', fontSize:11, fill:'#64748b'}}/>
+                  <Tooltip formatter={(v:any,n:any)=>n==='% Ejecución'?v+'%':fmtFull(v)}/>
+                  <Legend wrapperStyle={{fontSize:11}} verticalAlign="top"/>
+                  <Bar yAxisId="left" dataKey="valor" name="Valor Neto" fill="#5dade2" radius={[4,4,0,0]}>
+                    <LabelList dataKey="valor" position="top" formatter={(v:number)=>fmtCOP(v)} style={{fontSize:9, fill:'#475569', fontWeight:600}}/>
+                  </Bar>
+                  <Bar yAxisId="right" dataKey="ejec" name="% Ejecución" fill="#1abc9c" radius={[4,4,0,0]}>
+                    <LabelList dataKey="ejec" position="top" formatter={(v:number)=>v.toFixed(1)+'%'} style={{fontSize:9, fill:'#0f766e', fontWeight:600}}/>
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
             </div>
           )}
 
