@@ -3,6 +3,7 @@ import AnalisisPresupuestal from "./Components/AnalisisPresupuestal";
 import MapaProyectos from "./Components/MapaProyectos";
 import PanelLegislativo from "./Components/PanelLegislativo";
 import Denuncias from "./Components/Denuncias";
+import SimuladorPresupuestal from "./Components/SimuladorPresupuestal";
 import Politiko from "./Components/Politiko";
 
 interface DataRow { [key: string]: string | number; }
@@ -15,6 +16,7 @@ export default function App() {
     { key: "mapa",        label: "Mapa de Proyectos",    icon: "🗺️" },
     { key: "sesiones",    label: "Panel Legislativo",     icon: "📋" },
     { key: "denuncias",   label: "Denuncias Ciudadanas",  icon: "📣" },
+    { key: "simulador", label: "Simulador Presupuestal", icon: "🧮" },
     { key: "presupuesto", label: "Análisis Presupuestal", icon: "💰" },
   ];
 
@@ -62,6 +64,7 @@ export default function App() {
           {tab === "mapa"        && <MapaProyectos />}
           {tab === "sesiones"    && <PanelLegislativo />}
           {tab === "denuncias"   && <Denuncias />}
+          {tab === "simulador" && <SimuladorPresupuestal data={crpData} />}
           {tab === "presupuesto" && <AnalisisPresupuestal onDataLoad={setCrpData} />}
         </div>
       </div>

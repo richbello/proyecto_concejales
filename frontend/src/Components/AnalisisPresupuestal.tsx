@@ -2,7 +2,6 @@ import React, { useState, useCallback, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import ExportarPDF from './ExportarPDF';
 import AnomaliasCRP, { detectarAnomalias } from './AnomaliasCRP';
-import Politiko from './Politiko';
 import {
   BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -24,14 +23,12 @@ const fmtCOP = (v: number) => {
 const fmtFull = (v: number) =>
   new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(v);
 
-// Convierte cualquier valor a número
 const toNum = (v: any): number => {
   if (v === null || v === undefined || v === '') return 0;
   const n = parseFloat(String(v).replace(/[^0-9.-]/g, ''));
   return isNaN(n) ? 0 : n;
 };
 
-// Busca el valor de una columna probando múltiples nombres posibles
 const gc = (row: DataRow, variants: string[]): any => {
   for (const k of variants) {
     if (row[k] !== undefined && row[k] !== null && row[k] !== '') return row[k];
@@ -39,7 +36,6 @@ const gc = (row: DataRow, variants: string[]): any => {
   return '';
 };
 
-// Definición de columnas con múltiples variantes para manejar diferencias SAP/Excel
 const COLS = {
   valorCRP:     ['Valor CRP'],
   valorNeto:    ['Valor Neto'],
@@ -56,6 +52,7 @@ const COLS = {
 };
 
 interface Props { onDataLoad?: (data: DataRow[]) => void; }
+
 const AnalisisPresupuestal: React.FC<Props> = ({ onDataLoad }) => {
   const [data, setData]           = useState<DataRow[]>([]);
   const [fileName, setFileName]   = useState('');
@@ -74,7 +71,6 @@ const AnalisisPresupuestal: React.FC<Props> = ({ onDataLoad }) => {
       const wb = XLSX.read(ev.target?.result, { type: 'array' });
       const ws = wb.Sheets[wb.SheetNames[0]];
       const json = XLSX.utils.sheet_to_json(ws) as DataRow[];
-      // Debug: ver columnas reales en consola del navegador
       if (json.length > 0) console.log('COLUMNAS CRP:', Object.keys(json[0]));
       setData(json);
       onDataLoad?.(json);
@@ -83,7 +79,7 @@ const AnalisisPresupuestal: React.FC<Props> = ({ onDataLoad }) => {
       setPagina(1);
     };
     reader.readAsArrayBuffer(file);
-  }, []);
+  }, [onDataLoad]);
 
   const uniq = (variants: string[]) =>
     Array.from(new Set(data.map(r => String(gc(r, variants)||'')).filter(Boolean))).sort();
@@ -117,7 +113,9 @@ const AnalisisPresupuestal: React.FC<Props> = ({ onDataLoad }) => {
     const pctEjec     = valorCRP > 0 ? (giro/valorCRP)*100 : 0;
     return { valorCRP, valorNeto, giro, sinGiro, anulaciones, pctEjec, total: filtrado.length };
   }, [filtrado]);
+
   const anomaliasDetectadas = useMemo(() => detectarAnomalias(filtrado), [filtrado]);
+
   const byTipo = useMemo(() => {
     const g: Record<string,number> = {};
     filtrado.forEach(r => {
@@ -196,12 +194,12 @@ const AnalisisPresupuestal: React.FC<Props> = ({ onDataLoad }) => {
           <input type="file" accept=".xlsx,.xls" onChange={handleFile} className="hidden" />
         </label>
         <ExportarPDF
-            fileName={fileName}
-            totalRegistros={data.length}
-            kpis={kpis}
-            anomalias={anomaliasDetectadas}
-            municipio="Usme"
-          />
+          fileName={fileName}
+          totalRegistros={data.length}
+          kpis={kpis}
+          anomalias={anomaliasDetectadas}
+          municipio="Usme"
+        />
       </div>
 
       {/* KPIs */}
@@ -291,7 +289,6 @@ const AnalisisPresupuestal: React.FC<Props> = ({ onDataLoad }) => {
           {activeTab==='resumen' && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
               <div>
-                <div>
                 <h4 className="font-bold text-slate-700 text-sm mb-3">Distribución por Tipo de Compromiso</h4>
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
@@ -301,17 +298,18 @@ const AnalisisPresupuestal: React.FC<Props> = ({ onDataLoad }) => {
                       labelLine={false}>
                       {byTipo.map((_,i)=><Cell key={i} fill={COLORS[i%COLORS.length]}/>)}
                     </Pie>
-                    <Tooltip formatter={(v:any, name:any, props:any)=>[fmtFull(v), props.payload.name]}/>
+                    <Tooltip formatter={(v:any, _name:any, props:any)=>[fmtFull(v), props.payload.name]}/>
                     <Legend
                       layout="vertical"
                       verticalAlign="bottom"
                       align="center"
                       wrapperStyle={{fontSize:11, paddingTop:10}}
-                      formatter={(value, entry:any) => `${entry.payload.name} — ${fmtCOP(entry.payload.value)}`}
+                      formatter={(_value, entry:any) => `${entry.payload.name} — ${fmtCOP(entry.payload.value)}`}
                     />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
+
               <div>
                 <h4 className="font-bold text-slate-700 text-sm mb-3">Valor por Modalidad de Selección</h4>
                 <ResponsiveContainer width="100%" height={260}>
@@ -326,27 +324,28 @@ const AnalisisPresupuestal: React.FC<Props> = ({ onDataLoad }) => {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
+
               <div className="lg:col-span-2">
-              <h4 className="font-bold text-slate-700 text-sm mb-3">Top Rubros — Valor Neto vs % Ejecución</h4>
-              <ResponsiveContainer width="100%" height={340}>
-                <BarChart data={byRubro} margin={{bottom:95, top:20, right:10}}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0"/>
-                  <XAxis dataKey="name" angle={-40} textAnchor="end" tick={{fontSize:10}} height={100} interval={0}/>
-                  <YAxis yAxisId="left" tickFormatter={fmtCOP} tick={{fontSize:10}}
-                    label={{value:'Valor Neto', angle:-90, position:'insideLeft', fontSize:11, fill:'#64748b'}}/>
-                  <YAxis yAxisId="right" orientation="right" domain={[0,100]} tickFormatter={v=>v+'%'} tick={{fontSize:10}}
-                    label={{value:'% Ejecución', angle:90, position:'insideRight', fontSize:11, fill:'#64748b'}}/>
-                  <Tooltip formatter={(v:any,n:any)=>n==='% Ejecución'?v+'%':fmtFull(v)}/>
-                  <Legend wrapperStyle={{fontSize:11}} verticalAlign="top"/>
-                  <Bar yAxisId="left" dataKey="valor" name="Valor Neto" fill="#5dade2" radius={[4,4,0,0]}>
-                    <LabelList dataKey="valor" position="top" formatter={(v:number)=>fmtCOP(v)} style={{fontSize:9, fill:'#475569', fontWeight:600}}/>
-                  </Bar>
-                  <Bar yAxisId="right" dataKey="ejec" name="% Ejecución" fill="#1abc9c" radius={[4,4,0,0]}>
-                    <LabelList dataKey="ejec" position="top" formatter={(v:number)=>v.toFixed(1)+'%'} style={{fontSize:9, fill:'#0f766e', fontWeight:600}}/>
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+                <h4 className="font-bold text-slate-700 text-sm mb-3">Top Rubros — Valor Neto vs % Ejecución</h4>
+                <ResponsiveContainer width="100%" height={340}>
+                  <BarChart data={byRubro} margin={{bottom:95, top:20, right:10}}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0"/>
+                    <XAxis dataKey="name" angle={-40} textAnchor="end" tick={{fontSize:10}} height={100} interval={0}/>
+                    <YAxis yAxisId="left" tickFormatter={fmtCOP} tick={{fontSize:10}}
+                      label={{value:'Valor Neto', angle:-90, position:'insideLeft', fontSize:11, fill:'#64748b'}}/>
+                    <YAxis yAxisId="right" orientation="right" domain={[0,100]} tickFormatter={v=>v+'%'} tick={{fontSize:10}}
+                      label={{value:'% Ejecución', angle:90, position:'insideRight', fontSize:11, fill:'#64748b'}}/>
+                    <Tooltip formatter={(v:any,n:any)=>n==='% Ejecución'?v+'%':fmtFull(v)}/>
+                    <Legend wrapperStyle={{fontSize:11}} verticalAlign="top"/>
+                    <Bar yAxisId="left" dataKey="valor" name="Valor Neto" fill="#5dade2" radius={[4,4,0,0]}>
+                      <LabelList dataKey="valor" position="top" formatter={(v:number)=>fmtCOP(v)} style={{fontSize:9, fill:'#475569', fontWeight:600}}/>
+                    </Bar>
+                    <Bar yAxisId="right" dataKey="ejec" name="% Ejecución" fill="#1abc9c" radius={[4,4,0,0]}>
+                      <LabelList dataKey="ejec" position="top" formatter={(v:number)=>v.toFixed(1)+'%'} style={{fontSize:9, fill:'#0f766e', fontWeight:600}}/>
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           )}
 
@@ -398,7 +397,6 @@ const AnalisisPresupuestal: React.FC<Props> = ({ onDataLoad }) => {
                       {['No. Compromiso','Beneficiario','Tipo','Modalidad','Rubro','Valor CRP','Valor Neto','Giro','Ejec%'].map(h=>(
                         <th key={h} className="px-3 py-2.5 text-left font-semibold whitespace-nowrap">{h}</th>
                       ))}
-                     
                     </tr>
                   </thead>
                   <tbody>
@@ -486,11 +484,12 @@ const AnalisisPresupuestal: React.FC<Props> = ({ onDataLoad }) => {
                 </div>
               )}
             </div>
-          )} 
+          )}
+
+          {/* ANOMALÍAS */}
           {activeTab==='anomalias' && <AnomaliasCRP data={filtrado ?? []} />}
         </div>
       </div>
-      
     </div>
   );
 };
