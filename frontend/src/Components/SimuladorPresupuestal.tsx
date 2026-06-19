@@ -3,7 +3,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   LineChart, Line, ResponsiveContainer
 } from 'recharts';
-import { AlertTriangle, GraduationCap, HeartPulse, Construction, Palette, Trophy, Shield } from 'lucide-react';
+import { AlertTriangle, GraduationCap, HeartPulse, Construction, Palette, Trophy, Shield, Download } from 'lucide-react';
 
 interface DataRow { [key: string]: string | number; }
 interface Props { data?: DataRow[]; }
@@ -135,6 +135,100 @@ export default function SimuladorPresupuestal({ data = [] }: Props) {
 
   const resetear = () => setAjustes({});
 
+  const exportarPDF = () => {
+    const fecha = new Date().toLocaleDateString('es-CO', { year:'numeric', month:'long', day:'numeric' });
+    const html = `<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"/>
+<title>Simulador Presupuestal — FDL Usme</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',sans-serif; color:#1e293b; padding:40px; }
+h1 { font-size:22px; font-weight:800; color:#0f172a; margin-bottom:4px; }
+.sub { font-size:12px; color:#64748b; margin-bottom:24px; }
+.kpi-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px; }
+.kpi { border-radius:12px; padding:16px; text-align:center; }
+table { width:100%; border-collapse:collapse; margin-bottom:24px; font-size:12px; }
+th { background:#0f172a; color:white; padding:9px 12px; text-align:left; }
+td { padding:9px 12px; border-bottom:1px solid #f1f5f9; }
+tr:nth-child(even) { background:#f8fafc; }
+.badge { display:inline-block; padding:2px 8px; border-radius:20px; font-size:10px; font-weight:700; }
+.alert { border-radius:10px; padding:12px 14px; margin-bottom:8px; color:white; }
+.impact-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px; }
+.impact { background:#f8fafc; border-radius:10px; padding:14px; text-align:center; }
+.footer { margin-top:32px; text-align:center; font-size:10px; color:#94a3b8; padding-top:10px; border-top:1px solid #e2e8f0; }
+@media print { body { padding:20px; } }
+</style></head><body>
+<h1>🧮 Simulador Presupuestal — FDL Usme</h1>
+<div class="sub">Generado el ${fecha} · Datos reales del CRP · XBOG Technologies</div>
+
+<div class="kpi-grid">
+  <div class="kpi" style="background:#eff6ff;border:2px solid #bfdbfe">
+    <div style="font-size:10px;color:#64748b;font-weight:600;margin-bottom:6px">PRESUPUESTO BASE</div>
+    <div style="font-size:20px;font-weight:900;color:#1d4ed8">${fmtCOP(totalBase*1e6)}</div>
+  </div>
+  <div class="kpi" style="background:${totalReasignado>=0?'#f0fdf4':'#fef2f2'};border:2px solid ${totalReasignado>=0?'#bbf7d0':'#fecaca'}">
+    <div style="font-size:10px;color:#64748b;font-weight:600;margin-bottom:6px">FONDO ACTUALIZADO</div>
+    <div style="font-size:20px;font-weight:900;color:${totalReasignado>=0?'#16a34a':'#dc2626'}">${fmtCOP(totalSimulado*1e6)}</div>
+  </div>
+  <div class="kpi" style="background:${totalReasignado>=0?'#f0fdf4':'#fef2f2'};border:2px solid ${totalReasignado>=0?'#bbf7d0':'#fecaca'}">
+    <div style="font-size:10px;color:#64748b;font-weight:600;margin-bottom:6px">TOTAL REASIGNADO</div>
+    <div style="font-size:20px;font-weight:900;color:${totalReasignado>=0?'#16a34a':'#dc2626'}">${totalReasignado>=0?'+':''}${totalReasignado.toFixed(1)}%</div>
+  </div>
+</div>
+
+${alertas.length > 0 ? `
+<h3 style="font-size:13px;font-weight:700;margin-bottom:10px">⚠️ Alertas de Riesgo</h3>
+${alertas.map(a => `<div class="alert" style="background:${a.color}">
+  <strong>${a.titulo}</strong><br/><span style="font-size:11px;opacity:.9">${a.detalle}</span>
+</div>`).join('')}
+<div style="margin-bottom:20px"></div>` : ''}
+
+<h3 style="font-size:13px;font-weight:700;margin-bottom:10px">Ajustes por Rubro</h3>
+<table><thead><tr><th>Rubro</th><th>Ejec. Real</th><th>Base</th><th>Simulado</th><th>Ajuste</th></tr></thead>
+<tbody>
+${simulado.map(s => {
+  const val = ajustesActuales[s.key] || 0;
+  return `<tr>
+    <td><strong>${s.nombreCompleto}</strong></td>
+    <td>${s.ejecucion.toFixed(1)}%</td>
+    <td>${fmtCOP(s.base*1e6)}</td>
+    <td style="font-weight:700;color:${val>=0?'#16a34a':'#dc2626'}">${fmtCOP(s.simulado*1e6)}</td>
+    <td><span class="badge" style="background:${val>=0?'#d1fae5':'#fee2e2'};color:${val>=0?'#065f46':'#991b1b'}">${val>=0?'+':''}${val}%</span></td>
+  </tr>`;
+}).join('')}
+<tr style="background:#f1f5f9;font-weight:700">
+  <td colspan="2">TOTAL</td>
+  <td>${fmtCOP(totalBase*1e6)}</td>
+  <td style="color:${totalReasignado>=0?'#16a34a':'#dc2626'}">${fmtCOP(totalSimulado*1e6)}</td>
+  <td><span class="badge" style="background:${totalReasignado>=0?'#d1fae5':'#fee2e2'};color:${totalReasignado>=0?'#065f46':'#991b1b'}">${totalReasignado>=0?'+':''}${totalReasignado.toFixed(1)}%</span></td>
+</tr>
+</tbody></table>
+
+<h3 style="font-size:13px;font-weight:700;margin-bottom:10px">Proyección Financiera a 3 Años</h3>
+<table><thead><tr><th>Año</th><th>Escenario Actual</th><th>Escenario Simulado</th><th>Escenario Pesimista</th></tr></thead>
+<tbody>${proyeccion.map(p => `<tr>
+  <td><strong>${p.año}</strong></td>
+  <td>${fmtCOP(p['Escenario Actual']*1e6)}</td>
+  <td style="color:#16a34a;font-weight:700">${fmtCOP(p['Escenario Simulado']*1e6)}</td>
+  <td style="color:#dc2626">${fmtCOP(p['Escenario Pesimista']*1e6)}</td>
+</tr>`).join('')}</tbody></table>
+
+<h3 style="font-size:13px;font-weight:700;margin-bottom:10px">Impacto Social Estimado</h3>
+<div class="impact-grid">
+  <div class="impact"><div style="font-size:24px">🏠</div><div style="font-size:11px;color:#64748b;margin-top:4px">Nuevas Aulas</div><div style="font-size:20px;font-weight:900;color:#2563eb">+${Math.max(0, Math.round(((ajustesActuales[sectoresBase.find(s=>s.nombreCompleto.toLowerCase().includes('educ'))?.key||'']||0)+5)*1.5))}</div></div>
+  <div class="impact"><div style="font-size:24px">🏥</div><div style="font-size:11px;color:#64748b;margin-top:4px">Camas Hospitalarias</div><div style="font-size:20px;font-weight:900;color:#0ea5e9">+${Math.max(0, Math.round(((ajustesActuales[sectoresBase.find(s=>s.nombreCompleto.toLowerCase().includes('salud'))?.key||'']||0)+8)*6.25))}</div></div>
+  <div class="impact"><div style="font-size:24px">🎭</div><div style="font-size:11px;color:#64748b;margin-top:4px">Eventos Culturales</div><div style="font-size:20px;font-weight:900;color:#dc2626">+${Math.max(0, Math.round(((ajustesActuales[sectoresBase.find(s=>s.nombreCompleto.toLowerCase().includes('cultura'))?.key||'']||0)+6)*1.3))}</div></div>
+</div>
+
+<div class="footer">Simulador Presupuestal · Control Político · XBOG Technologies · richbello.github.io/proyecto_concejales</div>
+<script>window.onload=()=>window.print()</script>
+</body></html>`;
+    const blob = new Blob([html], { type:'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  };
+
   if (data.length === 0) return (
     <div className="flex flex-col items-center justify-center min-h-96">
       <div className="bg-gradient-to-br from-slate-700 to-blue-900 rounded-2xl p-10 text-center text-white max-w-md shadow-2xl">
@@ -156,9 +250,14 @@ export default function SimuladorPresupuestal({ data = [] }: Props) {
             </div>
             <h2 className="text-white font-extrabold text-lg tracking-wide">SIMULADOR PRESUPUESTAL</h2>
           </div>
-          <button onClick={resetear} className="text-xs text-blue-200 hover:text-white border border-white/20 rounded-lg px-3 py-1.5">
-            Resetear
-          </button>
+          <div className="flex gap-2">
+            <button onClick={resetear} className="text-xs text-blue-200 hover:text-white border border-white/20 rounded-lg px-3 py-1.5">
+              Resetear
+            </button>
+            <button onClick={exportarPDF} className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white text-xs font-semibold rounded-lg px-3 py-1.5 transition-colors">
+              <Download className="w-3.5 h-3.5"/> Exportar PDF
+            </button>
+          </div>
         </div>
         <div className="flex border-t border-white/10 px-5">
           {TABS.map(t => (
