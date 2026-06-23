@@ -3,5 +3,82 @@
 @tailwind utilities;
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: #f0f2f5; color: #2c3e50; }
-#root { width: 100%; height: 100vh; }
+
+body {
+  background: #f0f2f5;
+  color: #2c3e50;
+  -webkit-text-size-adjust: 100%;
+}
+
+#root {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh; /* dynamic viewport height en móvil */
+}
+
+/* ── TABLAS RESPONSIVAS ─────────────────────────────── */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── GRÁFICAS RECHARTS EN MÓVIL ─────────────────────── */
+@media (max-width: 767px) {
+  /* Grids de 2 columnas → 1 columna */
+  .lg\:grid-cols-2 { grid-template-columns: 1fr !important; }
+  .lg\:grid-cols-3 { grid-template-columns: 1fr !important; }
+  .lg\:grid-cols-4 { grid-template-columns: repeat(2, 1fr) !important; }
+  .lg\:grid-cols-5 { grid-template-columns: repeat(2, 1fr) !important; }
+  .lg\:col-span-2  { grid-column: span 1 !important; }
+
+  /* Padding reducido en móvil */
+  .p-5 { padding: 12px !important; }
+  .p-4 { padding: 10px !important; }
+  .gap-5 { gap: 10px !important; }
+  .gap-4 { gap: 8px !important; }
+
+  /* Texto más pequeño en KPIs */
+  .text-lg { font-size: 15px !important; }
+  .text-2xl { font-size: 18px !important; }
+
+  /* Tabs de análisis: scroll horizontal en lugar de wrap */
+  .flex.border-b {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .flex.border-b button {
+    white-space: nowrap;
+    min-width: fit-content;
+    flex: none !important;
+    font-size: 12px !important;
+    padding: 10px 12px !important;
+  }
+
+  /* Filtros en columna */
+  .grid.grid-cols-2.lg\:grid-cols-4 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Header KPI cards más compactas */
+  .rounded-xl.p-4.shadow-sm {
+    padding: 10px !important;
+  }
+}
+
+/* ── SCROLLBAR DELGADA ──────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+/* ── INPUTS Y SELECTS EN MÓVIL ──────────────────────── */
+@media (max-width: 767px) {
+  input, select {
+    font-size: 16px !important; /* evita zoom automático en iOS */
+  }
+}
+
+/* ── MAPA LEAFLET RESPONSIVO ────────────────────────── */
+@media (max-width: 767px) {
+  .leaflet-container {
+    height: 280px !important;
+  }
+}
