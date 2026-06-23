@@ -82,3 +82,22 @@ body {
     height: 280px !important;
   }
 }
+cat >> /workspaces/proyecto_concejales/frontend/src/index.css << 'EOF'
+
+/* ── FIX RECHARTS EN MÓVIL ─────────────────────────── */
+.recharts-wrapper {
+  width: 100% !important;
+}
+.recharts-surface {
+  width: 100% !important;
+}
+@media (max-width: 767px) {
+  /* Forzar contenedores de gráficas a tener ancho definido */
+  [class*="recharts"] {
+    max-width: 100vw;
+  }
+  /* Ocultar sidebar cuando está en modo móvil */
+  .recharts-legend-wrapper {
+    font-size: 10px !important;
+  }
+}

@@ -452,7 +452,7 @@ ${simulado.map(s => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="bg-white rounded-xl p-5 shadow-sm">
             <h3 className="font-bold text-slate-800 text-base mb-4">Proyección Financiera a 3 Años</h3>
-            <ResponsiveContainer width="100%" height={280}>
+            <ResponsiveContainer width="99%" height={280}>
               <LineChart data={proyeccion}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/>
                 <XAxis dataKey="año" tick={{fontSize:11}}/>
@@ -468,7 +468,7 @@ ${simulado.map(s => {
 
           <div className="bg-white rounded-xl p-5 shadow-sm">
             <h3 className="font-bold text-slate-800 text-base mb-4">Comparativa de Ejecución por Rubro</h3>
-            <ResponsiveContainer width="100%" height={280}>
+            <ResponsiveContainer width="99%" height={280}>
               <BarChart data={comparativa}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/>
                 <XAxis dataKey="name" tick={{fontSize:10}} angle={-15} textAnchor="end" height={50}/>
@@ -485,7 +485,7 @@ ${simulado.map(s => {
             <h3 className="font-bold text-slate-800 text-base mb-4 flex items-center gap-2">
               <Activity className="w-4 h-4 text-blue-500"/> Balance entre Sectores (Base = 100%)
             </h3>
-            <ResponsiveContainer width="100%" height={280}>
+            <ResponsiveContainer width="99%" height={280}>
               <RadarChart data={radarData}>
                 <PolarGrid stroke="#e2e8f0"/>
                 <PolarAngleAxis dataKey="sector" tick={{fontSize:11}}/>
@@ -567,7 +567,7 @@ ${simulado.map(s => {
                 <span className="text-sm text-slate-400">Active uno o más escenarios para ver el impacto combinado</span>
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height={260}>
+              <ResponsiveContainer width="99%" height={260}>
                 <BarChart data={simulado}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/>
                   <XAxis dataKey="nombre" tick={{fontSize:9}} angle={-20} textAnchor="end" height={60}/>

@@ -290,7 +290,7 @@ const AnalisisPresupuestal: React.FC<Props> = ({ onDataLoad }) => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
               <div>
                 <h4 className="font-bold text-slate-700 text-sm mb-3">Distribución por Tipo de Compromiso</h4>
-                <ResponsiveContainer width="100%" height={300}>
+                <ResponsiveContainer width="99%" height={300}>
                   <PieChart>
                     <Pie data={byTipo} cx="50%" cy="45%" innerRadius={60} outerRadius={100} dataKey="value"
                       paddingAngle={2}
@@ -312,7 +312,7 @@ const AnalisisPresupuestal: React.FC<Props> = ({ onDataLoad }) => {
 
               <div>
                 <h4 className="font-bold text-slate-700 text-sm mb-3">Valor por Modalidad de Selección</h4>
-                <ResponsiveContainer width="100%" height={260}>
+                <ResponsiveContainer width="99%" height={260}>
                   <BarChart data={byModalidad} layout="vertical" margin={{left:10}}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0"/>
                     <XAxis type="number" tickFormatter={fmtCOP} tick={{fontSize:10}}/>
@@ -327,7 +327,7 @@ const AnalisisPresupuestal: React.FC<Props> = ({ onDataLoad }) => {
 
               <div className="lg:col-span-2">
                 <h4 className="font-bold text-slate-700 text-sm mb-3">Top Rubros — Valor Neto vs % Ejecución</h4>
-                <ResponsiveContainer width="100%" height={340}>
+                <ResponsiveContainer width="99%" height={340}>
                   <BarChart data={byRubro} margin={{bottom:95, top:20, right:10}}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0"/>
                     <XAxis dataKey="name" angle={-40} textAnchor="end" tick={{fontSize:10}} height={100} interval={0}/>
@@ -354,7 +354,7 @@ const AnalisisPresupuestal: React.FC<Props> = ({ onDataLoad }) => {
             <div className="grid grid-cols-1 gap-5">
               <div>
                 <h4 className="font-bold text-slate-700 text-sm mb-3">Top 8 Beneficiarios por Valor Neto</h4>
-                <ResponsiveContainer width="100%" height={280}>
+                <ResponsiveContainer width="99%" height={280}>
                   <BarChart data={byBeneficiario} layout="vertical" margin={{left:20}}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0"/>
                     <XAxis type="number" tickFormatter={fmtCOP} tick={{fontSize:10}}/>
@@ -368,7 +368,7 @@ const AnalisisPresupuestal: React.FC<Props> = ({ onDataLoad }) => {
               </div>
               <div>
                 <h4 className="font-bold text-slate-700 text-sm mb-3">% Ejecución por Rubro</h4>
-                <ResponsiveContainer width="100%" height={220}>
+                <ResponsiveContainer width="99%" height={220}>
                   <LineChart data={byRubro} margin={{bottom:20}}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0"/>
                     <XAxis dataKey="name" angle={-25} textAnchor="end" tick={{fontSize:10}} height={60}/>
