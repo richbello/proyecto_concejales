@@ -166,7 +166,7 @@ export default function Politiko({ data }: Props) {
           'Content-Type': 'application/json',
                   },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-haiku-4-5',
           max_tokens: 1000,
           system: `Eres Politiko, asistente experto en control político y análisis presupuestal para concejales municipales de Colombia.
 Tu misión es ayudar a los concejales a entender el presupuesto local, detectar irregularidades y preparar debates de control político efectivos.
