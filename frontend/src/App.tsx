@@ -22,6 +22,7 @@ const NAV_ITEMS = [
 export default function App() {
   const [tab, setTab]         = useState("mapa");
   const [crpData, setCrpData] = useState<DataRow[]>([]);
+  const [planData, setPlanData] = useState<any>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
@@ -165,12 +166,12 @@ export default function App() {
             {tab === "denuncias"   && <Denuncias />}
             {tab === "simulador"   && <SimuladorPresupuestal data={crpData} />}
             {tab === "presupuesto" && <AnalisisPresupuestal onDataLoad={setCrpData} />}
-            {tab === "planeacion"  && <Planeacion />}
+            {tab === "planeacion"  && <Planeacion onDataLoad={setPlanData} />}
           </div>
         </div>
 
         {/* POLITIKO FLOTANTE */}
-        <Politiko data={crpData} />
+        <Politiko data={crpData} planData={planData} />
       </div>
     </AccessGate>
   );

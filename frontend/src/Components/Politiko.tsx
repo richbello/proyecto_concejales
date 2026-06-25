@@ -42,6 +42,13 @@ const COLS = {
   noComp:       ['No. Compromiso', 'No.Compromiso'],
 };
 
+const generarContextoPlan = (plan: any): string => {
+  if (!plan) return "";
+  const { sectores, proyectos, totals } = plan;
+  const top3 = [...proyectos].filter((p:any)=>p.compromisos>0).sort((a:any,b:any)=>b.compromisos-a.compromisos).slice(0,3).map((p:any)=>`${p.nombre} (${(p.pctComp*100).toFixed(1)}% compromisos)`).join(", ");
+  const sinEj = proyectos.filter((p:any)=>p.apropiaciones===0).length;
+  return `\n\nDATOS PDL PLANEACIÓN 2026:\n- POAI: $${(totals.poai/1e9).toFixed(1)}B | Apropiaciones: $${(totals.apropiaciones/1e9).toFixed(1)}B | Compromisos: $${(totals.compromisos/1e9).toFixed(1)}B (${(totals.compromisos/totals.apropiaciones*100).toFixed(1)}%) | Giros: $${(totals.giros/1e9).toFixed(1)}B (${(totals.giros/totals.apropiaciones*100).toFixed(1)}%)\n- Proyectos: ${proyectos.length} total, ${sinEj} sin ejecución\n- Sectores: ${sectores.map((s:any)=>`${s.nombre.split(",")[0]} ${(s.pctComp*100).toFixed(0)}%`).join(", ")}\n- Top compromisos: ${top3}`;
+};
 const generarContexto = (data: DataRow[]): string => {
   if (!data || data.length === 0) return 'No hay datos cargados.';
   const totalCRP  = data.reduce((s,r) => s + toNum(gc(r,COLS.valorCRP)), 0);
@@ -117,9 +124,9 @@ const PREGUNTAS = [
   { texto:"¿Cuáles son las anomalías más graves?",           icono:"🚨" },
 ];
 
-interface Props { data: DataRow[]; }
+interface Props { data: DataRow[]; planData?: any; }
 
-export default function Politiko({ data }: Props) {
+export default function Politiko({ data, planData }: Props) {
   const [mensajes, setMensajes] = useState<Mensaje[]>([{
     id:'0', rol:'assistant', timestamp: new Date().toLocaleTimeString('es-CO'),
     texto: data.length > 0
@@ -173,7 +180,7 @@ Tu misión es ayudar a los concejales a entender el presupuesto local, detectar 
 Responde siempre en español, de forma clara y directa. Usa emojis ocasionalmente. Cuando detectes posibles irregularidades, sé específico con nombres y cifras. Sugiere preguntas concretas que el concejal puede hacer en el Concejo Municipal.
 
 CONTEXTO DEL REPORTE CRP ACTUAL:
-${generarContexto(data)}
+${generarContexto(data)}${generarContextoPlan(planData)}
 
 Responde basándote en estos datos reales.`,
           messages: [

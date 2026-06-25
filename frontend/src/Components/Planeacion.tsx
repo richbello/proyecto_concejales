@@ -280,7 +280,8 @@ const TTip: React.FC<any> = ({ active, payload, label }) => {
 };
 
 // ─── MAIN COMPONENT ──────────────────────────────────────────────────────────
-const Planeacion: React.FC = () => {
+interface PlaneacionProps { onDataLoad?: (data: any) => void; }
+const Planeacion: React.FC<PlaneacionProps> = ({ onDataLoad }) => {
   const [fileName, setFileName] = useState('');
   const [sectores, setSectores] = useState<Sector[]>([]);
   const [proyectos, setProyectos] = useState<Proyecto[]>([]);
@@ -329,6 +330,7 @@ const Planeacion: React.FC = () => {
       setTotals(result.totals);
       setTab('resumen');
       setSectorFilter('TODOS');
+      onDataLoad?.({ sectores: result.sectores, proyectos: result.proyectos, totals: result.totals });
     };
     reader.readAsArrayBuffer(file);
   }, []);
