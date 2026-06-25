@@ -7,6 +7,7 @@ import AccessGate from "./Components/AccessGate";
 import SimuladorPresupuestal from "./Components/SimuladorPresupuestal";
 import Politiko from "./Components/Politiko";
 import Planeacion from "./Components/Planeacion";
+import AlertasML from "./Components/AlertasML/AlertasML";
 
 interface DataRow { [key: string]: string | number; }
 
@@ -16,6 +17,7 @@ const NAV_ITEMS = [
   { key: "denuncias",   label: "Denuncias Ciudadanas",  icon: "📣" },
   { key: "simulador",   label: "Simulador Presupuestal",icon: "🧮" },
   { key: "presupuesto", label: "Análisis Presupuestal", icon: "💰" },
+  { key: "alertas", label: "Alertas IA", icon: "🤖" },
   { key: "planeacion",  label: "Planeación PDL",        icon: "📐" },
 ];
 
@@ -166,6 +168,7 @@ export default function App() {
             {tab === "denuncias"   && <Denuncias />}
             {tab === "simulador"   && <SimuladorPresupuestal data={crpData} />}
             {tab === "presupuesto" && <AnalisisPresupuestal onDataLoad={setCrpData} />}
+            {tab === "alertas" && <AlertasML />}
             {tab === "planeacion"  && <Planeacion onDataLoad={setPlanData} />}
           </div>
         </div>
