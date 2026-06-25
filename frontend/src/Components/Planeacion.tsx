@@ -289,6 +289,7 @@ const Planeacion: React.FC<PlaneacionProps> = ({ onDataLoad }) => {
   const [tab, setTab] = useState<'resumen' | 'sectores' | 'proyectos' | 'indicadores' | 'alertas'>('resumen');
   const [sectorFilter, setSectorFilter] = useState('TODOS');
   const [proyDetail, setProyDetail] = useState<Proyecto | null>(null);
+  const [cargando, setCargando] = useState(false);
 
   const handleFile = useCallback((file: File) => {
     setFileName(file.name);
@@ -334,6 +335,15 @@ const Planeacion: React.FC<PlaneacionProps> = ({ onDataLoad }) => {
     };
     reader.readAsArrayBuffer(file);
   }, []);
+  if (cargando) return (
+      <div style={{ background: '#0B1221', minHeight: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+        <div style={{ width: 48, height: 48, border: '4px solid #243058', borderTop: '4px solid #00C8E0', borderRadius: '50%' }} />
+        <div style={{ color: '#00C8E0', fontSize: 14, fontWeight: 700 }}>Procesando Excel...</div>
+        <div style={{ color: '#64748B', fontSize: 11 }}>Esto puede tomar unos segundos</div>
+      </div>
+    );
+
+
 
   // ── No data → upload screen ──
   if (!sectores.length) return (
