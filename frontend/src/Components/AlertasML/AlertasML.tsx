@@ -100,7 +100,7 @@ export default function AlertasML() {
       setCargandoContratos(true);
       try {
         const res = await fetch(
-          'https://www.datos.gov.co/resource/jbjy-vk9h.json?$where=nombre_entidad%20like%20%27%25USME%25%27&$limit=100&$order=fecha_de_firma_del_contrato%20DESC'
+          'https://cors-anywhere.herokuapp.com/https://www.datos.gov.co/resource/jbjy-vk9h.json?$where=nombre_entidad%20like%20%27%25USME%25%27&$limit=100&$order=fecha_de_firma_del_contrato%20DESC'
         );
         const datos = await res.json();
         const procesos: AnomaliaContrato[] = datos.slice(0, 10).map((d: any, i: number) => ({
