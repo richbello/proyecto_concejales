@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback } from "react";
 import * as XLSX from "xlsx";
 import GeneradorProposicion from "./GeneradorProposicion";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, ReferenceLine, PieChart, Pie, Cell, Legend } from "recharts";
@@ -46,20 +46,17 @@ function procesarPAC(data: any[][]): ResumenPAC {
   }
   const mesActual = Math.max(...Array.from(mesesPresentes));
   const pctGlobal = totalPAC > 0 ? +(totalGirado / totalPAC * 100).toFixed(1) : 0;
-  const alertas: AlertaPAC[] = Object.entries(mapaRubros)
-    .filter(([_, v]) => v.pac > 5_000_000)
-    .map(([rubro, v]) => {
-      const pctEjec = +(v.girado / v.pac * 100).toFixed(1);
-      const pctCierre = Math.min(+(pctEjec / mesActual * 12).toFixed(1), 100);
-      const nivel = pctEjec < 60 ? "ROJO" : pctEjec < 85 ? "AMARILLO" : "VERDE";
-      const conf = pctEjec < 30 ? 95 : pctEjec < 60 ? 88 : pctEjec < 85 ? 75 : 92;
-      let mensaje = "";
-      if (nivel === "ROJO") mensaje = `CRÍTICO: ${pctEjec.toFixed(1)}% a ${MESES_ORDEN[mesActual-1]}. Rezago severo. Requiere informe urgente.`;
-      else if (nivel === "AMARILLO") mensaje = `ATENCIÓN: ${pctEjec.toFixed(1)}% ejecutado. Riesgo moderado.`;
-      else mensaje = `Ejecución al día (${pctEjec.toFixed(1)}%). Sin riesgo.`;
-      return { rubro: rubro.slice(0, 55), codigo: "PAC", pct_ejecucion: pctEjec, pct_cierre_estimado: pctCierre, nivel: nivel as any, confianza: conf, pac_actual: v.pac, girado: v.girado, mensaje };
-    })
-    .sort((a, b) => a.pct_ejecucion - b.pct_ejecucion);
+  const alertas: AlertaPAC[] = Object.entries(mapaRubros).filter(([_, v]) => v.pac > 5_000_000).map(([rubro, v]) => {
+    const pctEjec = +(v.girado / v.pac * 100).toFixed(1);
+    const pctCierre = Math.min(+(pctEjec / mesActual * 12).toFixed(1), 100);
+    const nivel = pctEjec < 60 ? "ROJO" : pctEjec < 85 ? "AMARILLO" : "VERDE";
+    const conf = pctEjec < 30 ? 95 : pctEjec < 60 ? 88 : pctEjec < 85 ? 75 : 92;
+    let mensaje = "";
+    if (nivel === "ROJO") mensaje = `CRÍTICO: ${pctEjec.toFixed(1)}% a ${MESES_ORDEN[mesActual-1]}. Rezago severo.`;
+    else if (nivel === "AMARILLO") mensaje = `ATENCIÓN: ${pctEjec.toFixed(1)}% ejecutado. Riesgo moderado.`;
+    else mensaje = `Ejecución al día (${pctEjec.toFixed(1)}%). Sin riesgo.`;
+    return { rubro: rubro.slice(0, 55), codigo: "PAC", pct_ejecucion: pctEjec, pct_cierre_estimado: pctCierre, nivel: nivel as any, confianza: conf, pac_actual: v.pac, girado: v.girado, mensaje };
+  }).sort((a, b) => a.pct_ejecucion - b.pct_ejecucion);
   const tendencia = MESES_ORDEN.slice(0, 12).map((mes, idx) => {
     const m = idx + 1;
     if (!mesesPresentes.has(m)) return { mes: mes.slice(0,3), pac: null, ejec: null };
@@ -82,47 +79,21 @@ const ScoreBar = ({ score, nivel }: { score:number; nivel:string }) => <div styl
 const KpiCard = ({ emoji, label, valor, color, sub }: { emoji:string; label:string; valor:string|number; color:string; sub?:string }) => <div style={{ background:"white", borderRadius:10, padding:"14px 18px", borderLeft:`3px solid ${color}`, flex:1, minWidth:130, boxShadow:"0 2px 8px rgba(0,0,0,.06)" }}><div style={{ fontSize:22 }}>{emoji}</div><div style={{ fontSize:26, fontWeight:800, color, lineHeight:1, marginTop:4 }}>{valor}</div><div style={{ fontSize:12, fontWeight:600, color:C.texto, marginTop:3 }}>{label}</div>{sub && <div style={{ fontSize:10, color:C.muted, marginTop:2 }}>{sub}</div>}</div>;
 const TooltipCustom = ({ active, payload, label }: any) => { if (!active || !payload?.length) return null; return <div style={{ background:"white", border:`1px solid ${C.border}`, borderRadius:8, padding:"10px 14px", fontSize:12, boxShadow:"0 4px 12px rgba(0,0,0,.1)" }}><div style={{ fontWeight:700, color:C.navy, marginBottom:4 }}>{label}</div>{payload.map((p:any, i:number) => <div key={i} style={{ color:p.color }}>{p.name}: <strong>{typeof p.value==="number"?p.value.toFixed(1)+"%":p.value}</strong></div>)}</div>; };
 
+const CONTRATOS_DEMO: AnomaliaContrato[] = [
+  { id:"USME-001", proveedor:"CONSTRUCTORA ANDINA SAS", nit:"900111222-1", monto:1450000000, modalidad:"Contratación Directa", score:91, nivel:"ROJO", razones:["Monto $1.450M en directa","Tramitado en 2 días","Pago en fin de trimestre"], fecha:"28/06/2026" },
+  { id:"USME-002", proveedor:"SUMINISTROS DISTRITALES SA", nit:"800555666-8", monto:32800000, modalidad:"Mínima Cuantía", score:84, nivel:"ROJO", razones:["Fraccionamiento $32.8M","Mismo proveedor 4 veces en 30 días"], fecha:"15/06/2026" },
+  { id:"USME-003", proveedor:"OBRAS Y PROYECTOS COLOMBIA", nit:"900334455-0", monto:890000000, modalidad:"Selección Abreviada", score:79, nivel:"ROJO", razones:["5 adendas post-firma","Concentra 28% del gasto"], fecha:"02/06/2026" },
+];
+
 export default function AlertasML() {
   const [tab, setTab] = useState<"pac"|"contratos">("pac");
   const [filtro, setFiltro] = useState<"TODOS"|"ROJO"|"AMARILLO"|"VERDE">("TODOS");
   const [detPAC, setDetPAC] = useState<AlertaPAC | null>(null);
   const [detContr, setDetContr] = useState<AnomaliaContrato | null>(null);
   const [pacData, setPacData] = useState<ResumenPAC | null>(null);
-  const [contratos, setContratos] = useState<AnomaliaContrato[]>([]);
-  const [cargandoContratos, setCargandoContratos] = useState(false);
   const [generadorPAC, setGeneradorPAC] = useState<AlertaPAC | null>(null);
   const [generadorContr, setGeneradorContr] = useState<AnomaliaContrato | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  // Cargar contratos SECOP II al montar
-  useEffect(() => {
-    const cargarSECOP = async () => {
-      setCargandoContratos(true);
-      try {
-        const res = await fetch(
-          'https://politiko-proxy.richbello.workers.dev/secop?$where=nombre_entidad%20like%20%27%25USME%25%27&$limit=100&$order=fecha_de_firma_del_contrato%20DESC'
-        );
-        const datos = await res.json();
-        const procesos: AnomaliaContrato[] = datos.slice(0, 10).map((d: any, i: number) => ({
-          id: d.referencia_del_contrato || `USME-${i}`,
-          proveedor: d.proveedor_adjudicado || "N/D",
-          nit: d.documento_proveedor || "N/D",
-          monto: Number(d.cuant_a_contrato) || 0,
-          modalidad: d.modalidad_de_contratacion || "N/D",
-          score: Math.floor(Math.random() * 40) + 30,
-          nivel: Math.random() > 0.7 ? "ROJO" : Math.random() > 0.5 ? "AMARILLO" : "VERDE",
-          razones: ["Contrato detectado por API SECOP II"],
-          fecha: d.fecha_de_firma_del_contrato ? new Date(d.fecha_de_firma_del_contrato).toLocaleDateString() : "N/D"
-        }));
-        setContratos(procesos);
-      } catch (err) {
-        console.error("Error cargando SECOP:", err);
-      } finally {
-        setCargandoContratos(false);
-      }
-    };
-    cargarSECOP();
-  }, []);
 
   const procesar = useCallback((file: File) => {
     const reader = new FileReader();
@@ -143,9 +114,9 @@ export default function AlertasML() {
   const rojosPAC = pacData?.resumen.rojos ?? 0;
   const amarPAC = pacData?.resumen.amarillos ?? 0;
   const verdPAC = pacData?.resumen.verdes ?? 0;
-  const rojosContr = contratos.filter(a=>a.nivel==="ROJO").length;
+  const rojosContr = CONTRATOS_DEMO.filter(a=>a.nivel==="ROJO").length;
   const pacFilt = filtro==="TODOS" ? alertasPAC : alertasPAC.filter(a=>a.nivel===filtro);
-  const contrFilt = filtro==="TODOS" ? contratos : contratos.filter(a=>a.nivel===filtro);
+  const contrFilt = filtro==="TODOS" ? CONTRATOS_DEMO : CONTRATOS_DEMO.filter(a=>a.nivel===filtro);
 
   if (!pacData) {
     return (
@@ -179,14 +150,14 @@ export default function AlertasML() {
           <KpiCard emoji="🔴" label="Críticos PAC" valor={rojosPAC} color={C.rojo} sub="rubros en rezago" />
           <KpiCard emoji="🟡" label="En Riesgo PAC" valor={amarPAC} color={C.amar} />
           <KpiCard emoji="🟢" label="Normal" valor={verdPAC} color={C.verde} />
-          <KpiCard emoji="📋" label="Contratos SECOP" valor={contratos.length} color={C.cyan} sub="en vivo desde API" />
+          <KpiCard emoji="📋" label="Contratos SECOP" valor={CONTRATOS_DEMO.length} color={C.cyan} sub="demo funcional" />
           <KpiCard emoji="🔴" label="Contratos Alerta" valor={rojosContr} color={C.rojo} />
         </div>
       </div>
 
       <div style={{ background:"white", borderRadius:"10px 10px 0 0", borderBottom:`2px solid ${C.border}`, display:"flex", padding:"0 16px" }}>
         <button onClick={() => { setTab("pac"); setDetPAC(null); }} style={{ padding:"12px 16px", background:"transparent", border:"none", borderBottom: tab==="pac"?`2px solid ${C.cyan}`:"2px solid transparent", color: tab==="pac"?C.cyan:C.muted, cursor:"pointer", fontSize:13, fontWeight: tab==="pac"?700:500 }}>📊 Alertas PAC</button>
-        <button onClick={() => { setTab("contratos"); setDetContr(null); }} style={{ padding:"12px 16px", background:"transparent", border:"none", borderBottom: tab==="contratos"?`2px solid ${C.cyan}`:"2px solid transparent", color: tab==="contratos"?C.cyan:C.muted, cursor:"pointer", fontSize:13, fontWeight: tab==="contratos"?700:500 }}>🔍 Contratos SECOP {contratos.length > 0 && <span style={{ background:C.rojo, color:"white", borderRadius:10, padding:"1px 6px", fontSize:10, marginLeft:6 }}>{rojosContr}</span>}</button>
+        <button onClick={() => { setTab("contratos"); setDetContr(null); }} style={{ padding:"12px 16px", background:"transparent", border:"none", borderBottom: tab==="contratos"?`2px solid ${C.cyan}`:"2px solid transparent", color: tab==="contratos"?C.cyan:C.muted, cursor:"pointer", fontSize:13, fontWeight: tab==="contratos"?700:500 }}>🔍 Contratos SECOP {rojosContr > 0 && <span style={{ background:C.rojo, color:"white", borderRadius:10, padding:"1px 6px", fontSize:10, marginLeft:6 }}>{rojosContr}</span>}</button>
       </div>
 
       <div style={{ background:"white", borderRadius:"0 0 10px 10px", padding:"18px 20px", boxShadow:"0 2px 8px rgba(0,0,0,.06)" }}>
@@ -241,10 +212,10 @@ export default function AlertasML() {
             <div style={{ flex:2, minWidth:300 }}>
               <div style={{ border:`1px solid ${C.border}`, borderRadius:10, overflow:"hidden" }}>
                 <div style={{ padding:"12px 18px", background:"#f8fafc", borderBottom:`1px solid ${C.border}`, display:"flex", justifyContent:"space-between" }}>
-                  <span style={{ fontWeight:700, fontSize:13, color:C.navy }}>Contratos SECOP II — API en vivo</span>
-                  <span style={{ fontSize:11, color:C.muted }}>{contratos.length} contratos</span>
+                  <span style={{ fontWeight:700, fontSize:13, color:C.navy }}>Contratos SECOP II — Demo Funcional</span>
+                  <span style={{ fontSize:11, color:C.muted }}>{contrFilt.length} contratos</span>
                 </div>
-                {cargandoContratos ? <div style={{ padding:24, textAlign:"center" as const, color:C.muted }}>⟳ Cargando contratos reales de Usme...</div> : contrFilt.length === 0 ? <div style={{ padding:24, textAlign:"center" as const, color:C.muted }}>Sin contratos en este filtro</div> : contrFilt.map((c,i) => (
+                {contrFilt.map((c,i) => (
                   <div key={i} onClick={() => setDetContr(detContr?.id===c.id?null:c)} style={{ padding:"13px 18px", borderBottom:`1px solid #f0f4f8`, cursor:"pointer", background: detContr?.id===c.id?nBg(c.nivel):"white", borderLeft: detContr?.id===c.id?`3px solid ${nColor(c.nivel)}`:"3px solid transparent", transition:"all .15s" }} onMouseEnter={e=>(e.currentTarget.style.background=`${nBg(c.nivel)}80`)} onMouseLeave={e=>(e.currentTarget.style.background=detContr?.id===c.id?nBg(c.nivel):"white")}>
                     <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
                       <div>
@@ -273,6 +244,14 @@ export default function AlertasML() {
                     <b>Modalidad:</b> {detContr.modalidad}
                   </div>
                   <ScoreBar score={detContr.score} nivel={detContr.nivel}/>
+                  {detContr.razones.length > 0 && (
+                    <div style={{ marginTop:12 }}>
+                      <div style={{ fontSize:11, color:C.muted, fontWeight:700, marginBottom:6 }}>ALERTAS DETECTADAS:</div>
+                      {detContr.razones.map((r,i) => (
+                        <div key={i} style={{ fontSize:11, padding:"5px 8px", marginBottom:4, background:"rgba(0,0,0,.04)", borderLeft:`2px solid ${nColor(detContr.nivel)}`, borderRadius:"0 6px 6px 0" }}>{r}</div>
+                      ))}
+                    </div>
+                  )}
                   <div style={{ display:"flex", gap:8, marginTop:14 }}>
                     <button style={{ flex:1, padding:"8px", background:C.rojo, color:"white", border:"none", borderRadius:8, cursor:"pointer", fontSize:11, fontWeight:700 }}>🚨 Notificar</button>
                     <button onClick={() => setGeneradorContr(detContr)} style={{ flex:1, padding:"8px", background:C.navy, color:"white", border:"none", borderRadius:8, cursor:"pointer", fontSize:11, fontWeight:700 }}>📝 Proposición</button>
