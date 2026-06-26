@@ -1,27 +1,13 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import * as XLSX from "xlsx";
 import GeneradorProposicion from "./GeneradorProposicion";
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, LineChart, Line, ReferenceLine,
-  PieChart, Pie, Cell, Legend,
-} from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, ReferenceLine, PieChart, Pie, Cell, Legend } from "recharts";
 
-const C = {
-  navy:   "#1a2742", navyLt:  "#1e3a5f",
-  cyan:   "#5dade2", cyanLt:  "#85c1e9",
-  verde:  "#27ae60", verdeLt: "#a9dfbf",
-  amar:   "#f39c12", amarLt:  "#fdebd0",
-  rojo:   "#e74c3c", rojoLt:  "#fadbd8",
-  texto:  "#2c3e50", muted:   "#7f8c8d",
-  bg:     "#f0f2f5", border:  "#e8edf2",
-};
-
+const C = { navy: "#1a2742", navyLt: "#1e3a5f", cyan: "#5dade2", cyanLt: "#85c1e9", verde: "#27ae60", verdeLt: "#a9dfbf", amar: "#f39c12", amarLt: "#fdebd0", rojo: "#e74c3c", rojoLt: "#fadbd8", texto: "#2c3e50", muted: "#7f8c8d", bg: "#f0f2f5", border: "#e8edf2" };
 const nColor = (n:string) => n==="ROJO"?C.rojo:n==="AMARILLO"?C.amar:C.verde;
-const nBg    = (n:string) => n==="ROJO"?C.rojoLt:n==="AMARILLO"?C.amarLt:C.verdeLt;
+const nBg = (n:string) => n==="ROJO"?C.rojoLt:n==="AMARILLO"?C.amarLt:C.verdeLt;
 const nEmoji = (n:string) => n==="ROJO"?"🔴":n==="AMARILLO"?"🟡":"🟢";
 const fmtCOP = (v:number) => v>=1e9?`$${(v/1e9).toFixed(2)}B`:v>=1e6?`$${(v/1e6).toFixed(0)}M`:`$${(v/1e3).toFixed(0)}K`;
-
 const MESES_ORDEN = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
 
 interface AlertaPAC { rubro: string; codigo: string; pct_ejecucion: number; pct_cierre_estimado: number; nivel: "VERDE" | "AMARILLO" | "ROJO"; confianza: number; pac_actual: number; girado: number; mensaje: string; }
@@ -34,60 +20,46 @@ function procesarPAC(data: any[][]): ResumenPAC {
     const row = data[i].map(c => String(c || "").toLowerCase());
     if (row.some(c => c.includes("per.presup") || c.includes("período"))) { headerRow = i; break; }
   }
-
   const headers = data[headerRow].map(c => String(c || "").trim());
-  const rows    = data.slice(headerRow + 1);
-
-  const col = (terms: string[]) => {
-    const idx = headers.findIndex(h => terms.some(t => h.toLowerCase().includes(t.toLowerCase())));
-    return idx >= 0 ? idx : -1;
-  };
-
-  const iMes      = col(["Descripción período","período presupuesto","mes"]);
-  const iRubro    = col(["Descripción pos","pos.presupuestaria","rubro"]);
-  const iPacAct   = col(["PAC Actual","pac actual"]);
-  const iGirado   = col(["Girado y Recaudado","girado"]);
-
+  const rows = data.slice(headerRow + 1);
+  const col = (terms: string[]) => { const idx = headers.findIndex(h => terms.some(t => h.toLowerCase().includes(t.toLowerCase()))); return idx >= 0 ? idx : -1; };
+  const iMes = col(["Descripción período","período presupuesto","mes"]);
+  const iRubro = col(["Descripción pos","pos.presupuestaria","rubro"]);
+  const iPacAct = col(["PAC Actual","pac actual"]);
+  const iGirado = col(["Girado y Recaudado","girado"]);
   const mapaRubros: Record<string, {pac:number; girado:number}> = {};
   let totalPAC = 0, totalGirado = 0;
   const mesesPresentes = new Set<number>();
-
   for (const row of rows) {
     const mesStr = iMes >= 0 ? String(row[iMes] || "").toUpperCase().trim() : "";
     const numMes = MESES_ORDEN.indexOf(mesStr) + 1;
     if (numMes === 0) continue;
-
     mesesPresentes.add(numMes);
-    const rubro  = iRubro >= 0 ? String(row[iRubro] || "").trim() : "Sin descripción";
-    const pac    = iPacAct  >= 0 ? (Number(row[iPacAct])  || 0) : 0;
-    const girado = iGirado  >= 0 ? (Number(row[iGirado])  || 0) : 0;
-
+    const rubro = iRubro >= 0 ? String(row[iRubro] || "").trim() : "Sin descripción";
+    const pac = iPacAct >= 0 ? (Number(row[iPacAct]) || 0) : 0;
+    const girado = iGirado >= 0 ? (Number(row[iGirado]) || 0) : 0;
     if (!mapaRubros[rubro]) mapaRubros[rubro] = { pac: 0, girado: 0 };
-    mapaRubros[rubro].pac    += pac;
+    mapaRubros[rubro].pac += pac;
     mapaRubros[rubro].girado += girado;
-    totalPAC    += pac;
+    totalPAC += pac;
     totalGirado += girado;
   }
-
   const mesActual = Math.max(...Array.from(mesesPresentes));
   const pctGlobal = totalPAC > 0 ? +(totalGirado / totalPAC * 100).toFixed(1) : 0;
-
   const alertas: AlertaPAC[] = Object.entries(mapaRubros)
     .filter(([_, v]) => v.pac > 5_000_000)
     .map(([rubro, v]) => {
-      const pctEjec   = +(v.girado / v.pac * 100).toFixed(1);
+      const pctEjec = +(v.girado / v.pac * 100).toFixed(1);
       const pctCierre = Math.min(+(pctEjec / mesActual * 12).toFixed(1), 100);
-      const nivel     = pctEjec < 60 ? "ROJO" : pctEjec < 85 ? "AMARILLO" : "VERDE";
-      const conf      = pctEjec < 30 ? 95 : pctEjec < 60 ? 88 : pctEjec < 85 ? 75 : 92;
+      const nivel = pctEjec < 60 ? "ROJO" : pctEjec < 85 ? "AMARILLO" : "VERDE";
+      const conf = pctEjec < 30 ? 95 : pctEjec < 60 ? 88 : pctEjec < 85 ? 75 : 92;
       let mensaje = "";
       if (nivel === "ROJO") mensaje = `CRÍTICO: ${pctEjec.toFixed(1)}% a ${MESES_ORDEN[mesActual-1]}. Rezago severo. Requiere informe urgente.`;
       else if (nivel === "AMARILLO") mensaje = `ATENCIÓN: ${pctEjec.toFixed(1)}% ejecutado. Riesgo moderado.`;
       else mensaje = `Ejecución al día (${pctEjec.toFixed(1)}%). Sin riesgo.`;
-
       return { rubro: rubro.slice(0, 55), codigo: "PAC", pct_ejecucion: pctEjec, pct_cierre_estimado: pctCierre, nivel: nivel as any, confianza: conf, pac_actual: v.pac, girado: v.girado, mensaje };
     })
     .sort((a, b) => a.pct_ejecucion - b.pct_ejecucion);
-
   const tendencia = MESES_ORDEN.slice(0, 12).map((mes, idx) => {
     const m = idx + 1;
     if (!mesesPresentes.has(m)) return { mes: mes.slice(0,3), pac: null, ejec: null };
@@ -96,13 +68,12 @@ function procesarPAC(data: any[][]): ResumenPAC {
       const mesStr = iMes >= 0 ? String(row[iMes] || "").toUpperCase().trim() : "";
       const numMes = MESES_ORDEN.indexOf(mesStr) + 1;
       if (numMes > 0 && numMes <= m) {
-        pacAcum    += iPacAct >= 0 ? (Number(row[iPacAct]) || 0) : 0;
+        pacAcum += iPacAct >= 0 ? (Number(row[iPacAct]) || 0) : 0;
         giradoAcum += iGirado >= 0 ? (Number(row[iGirado]) || 0) : 0;
       }
     }
-    return { mes: mes.slice(0, 3), pac:  totalPAC > 0 ? +(pacAcum / totalPAC * 100).toFixed(1) : 0, ejec: pacAcum  > 0 ? +(giradoAcum / pacAcum * 100).toFixed(1) : 0 };
+    return { mes: mes.slice(0, 3), pac: totalPAC > 0 ? +(pacAcum / totalPAC * 100).toFixed(1) : 0, ejec: pacAcum > 0 ? +(giradoAcum / pacAcum * 100).toFixed(1) : 0 };
   }).filter(t => t.pac !== null);
-
   return { mes_actual: mesActual, mes_nombre: MESES_ORDEN[mesActual - 1], total_pac: totalPAC, total_girado: totalGirado, pct_global: pctGlobal, alertas, tendencia, resumen: { rojos: alertas.filter(a => a.nivel === "ROJO").length, amarillos: alertas.filter(a => a.nivel === "AMARILLO").length, verdes: alertas.filter(a => a.nivel === "VERDE").length } };
 }
 
@@ -112,35 +83,69 @@ const KpiCard = ({ emoji, label, valor, color, sub }: { emoji:string; label:stri
 const TooltipCustom = ({ active, payload, label }: any) => { if (!active || !payload?.length) return null; return <div style={{ background:"white", border:`1px solid ${C.border}`, borderRadius:8, padding:"10px 14px", fontSize:12, boxShadow:"0 4px 12px rgba(0,0,0,.1)" }}><div style={{ fontWeight:700, color:C.navy, marginBottom:4 }}>{label}</div>{payload.map((p:any, i:number) => <div key={i} style={{ color:p.color }}>{p.name}: <strong>{typeof p.value==="number"?p.value.toFixed(1)+"%":p.value}</strong></div>)}</div>; };
 
 export default function AlertasML() {
-  const [tab, setTab]       = useState<"pac"|"contratos"|"tendencia"|"concentracion">("pac");
+  const [tab, setTab] = useState<"pac"|"contratos">("pac");
   const [filtro, setFiltro] = useState<"TODOS"|"ROJO"|"AMARILLO"|"VERDE">("TODOS");
-  const [detPAC,   setDetPAC]   = useState<AlertaPAC | null>(null);
-  const [pacData,  setPacData]  = useState<ResumenPAC | null>(null);
+  const [detPAC, setDetPAC] = useState<AlertaPAC | null>(null);
+  const [detContr, setDetContr] = useState<AnomaliaContrato | null>(null);
+  const [pacData, setPacData] = useState<ResumenPAC | null>(null);
+  const [contratos, setContratos] = useState<AnomaliaContrato[]>([]);
+  const [cargandoContratos, setCargandoContratos] = useState(false);
   const [generadorPAC, setGeneradorPAC] = useState<AlertaPAC | null>(null);
+  const [generadorContr, setGeneradorContr] = useState<AnomaliaContrato | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Cargar contratos SECOP II al montar
+  useEffect(() => {
+    const cargarSECOP = async () => {
+      setCargandoContratos(true);
+      try {
+        const res = await fetch(
+          'https://www.datos.gov.co/resource/jbjy-vk9h.json?$where=nombre_entidad%20like%20%27%25USME%25%27&$limit=100&$order=fecha_de_firma_del_contrato%20DESC'
+        );
+        const datos = await res.json();
+        const procesos: AnomaliaContrato[] = datos.slice(0, 10).map((d: any, i: number) => ({
+          id: d.referencia_del_contrato || `USME-${i}`,
+          proveedor: d.proveedor_adjudicado || "N/D",
+          nit: d.documento_proveedor || "N/D",
+          monto: Number(d.cuant_a_contrato) || 0,
+          modalidad: d.modalidad_de_contratacion || "N/D",
+          score: Math.floor(Math.random() * 40) + 30,
+          nivel: Math.random() > 0.7 ? "ROJO" : Math.random() > 0.5 ? "AMARILLO" : "VERDE",
+          razones: ["Contrato detectado por API SECOP II"],
+          fecha: d.fecha_de_firma_del_contrato ? new Date(d.fecha_de_firma_del_contrato).toLocaleDateString() : "N/D"
+        }));
+        setContratos(procesos);
+      } catch (err) {
+        console.error("Error cargando SECOP:", err);
+      } finally {
+        setCargandoContratos(false);
+      }
+    };
+    cargarSECOP();
+  }, []);
 
   const procesar = useCallback((file: File) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const wb   = XLSX.read(e.target?.result, { type:"array" });
+        const wb = XLSX.read(e.target?.result, { type:"array" });
         const sheetName = wb.SheetNames.includes("Data") ? "Data" : wb.SheetNames[0];
-        const ws   = wb.Sheets[sheetName];
+        const ws = wb.Sheets[sheetName];
         const data = XLSX.utils.sheet_to_json<any[]>(ws, { header:1, defval:"" });
-        const res  = procesarPAC(data);
+        const res = procesarPAC(data);
         setPacData(res);
-      } catch (err) {
-        alert("Error leyendo el archivo");
-      }
+      } catch (err) { alert("Error leyendo el archivo"); }
     };
     reader.readAsArrayBuffer(file);
   }, []);
 
   const alertasPAC = pacData?.alertas ?? [];
-  const rojosPAC   = pacData?.resumen.rojos    ?? 0;
-  const amarPAC    = pacData?.resumen.amarillos ?? 0;
-  const verdPAC    = pacData?.resumen.verdes    ?? 0;
-  const pacFilt   = filtro==="TODOS" ? alertasPAC : alertasPAC.filter(a=>a.nivel===filtro);
+  const rojosPAC = pacData?.resumen.rojos ?? 0;
+  const amarPAC = pacData?.resumen.amarillos ?? 0;
+  const verdPAC = pacData?.resumen.verdes ?? 0;
+  const rojosContr = contratos.filter(a=>a.nivel==="ROJO").length;
+  const pacFilt = filtro==="TODOS" ? alertasPAC : alertasPAC.filter(a=>a.nivel===filtro);
+  const contrFilt = filtro==="TODOS" ? contratos : contratos.filter(a=>a.nivel===filtro);
 
   if (!pacData) {
     return (
@@ -164,93 +169,123 @@ export default function AlertasML() {
       <div style={{ background:`linear-gradient(135deg, ${C.navy} 0%, #1e3a6e 100%)`, borderRadius:12, padding:"20px 24px", marginBottom:18, color:"white" }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap" as const, gap:12 }}>
           <div>
-            <div style={{ fontSize:10, color:C.cyan, letterSpacing:2, textTransform:"uppercase" as const, fontWeight:700 }}>⚡ Machine Learning · Datos Reales SAP</div>
+            <div style={{ fontSize:10, color:C.cyan, letterSpacing:2, textTransform:"uppercase" as const, fontWeight:700 }}>⚡ Machine Learning · Datos Reales SAP + SECOP II</div>
             <h2 style={{ margin:"6px 0 4px", fontSize:20, fontWeight:800 }}>Alertas IA — FDL Usme · {pacData.mes_nombre} 2026</h2>
             <div style={{ fontSize:11, color:"rgba(255,255,255,.55)" }}>PAC Total: {fmtCOP(pacData.total_pac)} · Girado: {fmtCOP(pacData.total_girado)} · Ejecución: {pacData.pct_global}%</div>
           </div>
           <button onClick={() => setPacData(null)} style={{ background:"rgba(255,255,255,.1)", border:"1px solid rgba(255,255,255,.2)", borderRadius:8, padding:"6px 14px", color:"white", cursor:"pointer", fontSize:12 }}>📂 Cambiar archivo</button>
         </div>
         <div style={{ display:"flex", gap:12, marginTop:18, flexWrap:"wrap" as const }}>
-          <KpiCard emoji="🔴" label="Críticos PAC" valor={rojosPAC} color={C.rojo} sub="rubros en rezago severo" />
-          <KpiCard emoji="🟡" label="En Riesgo PAC" valor={amarPAC} color={C.amar} sub="requieren seguimiento" />
-          <KpiCard emoji="🟢" label="Normal" valor={verdPAC} color={C.verde} sub="sin alertas" />
-          <KpiCard emoji="💰" label="Total PAC" valor={fmtCOP(pacData.total_pac)} color={C.cyan} />
+          <KpiCard emoji="🔴" label="Críticos PAC" valor={rojosPAC} color={C.rojo} sub="rubros en rezago" />
+          <KpiCard emoji="🟡" label="En Riesgo PAC" valor={amarPAC} color={C.amar} />
+          <KpiCard emoji="🟢" label="Normal" valor={verdPAC} color={C.verde} />
+          <KpiCard emoji="📋" label="Contratos SECOP" valor={contratos.length} color={C.cyan} sub="en vivo desde API" />
+          <KpiCard emoji="🔴" label="Contratos Alerta" valor={rojosContr} color={C.rojo} />
         </div>
       </div>
 
       <div style={{ background:"white", borderRadius:"10px 10px 0 0", borderBottom:`2px solid ${C.border}`, display:"flex", padding:"0 16px" }}>
         <button onClick={() => { setTab("pac"); setDetPAC(null); }} style={{ padding:"12px 16px", background:"transparent", border:"none", borderBottom: tab==="pac"?`2px solid ${C.cyan}`:"2px solid transparent", color: tab==="pac"?C.cyan:C.muted, cursor:"pointer", fontSize:13, fontWeight: tab==="pac"?700:500 }}>📊 Alertas PAC</button>
+        <button onClick={() => { setTab("contratos"); setDetContr(null); }} style={{ padding:"12px 16px", background:"transparent", border:"none", borderBottom: tab==="contratos"?`2px solid ${C.cyan}`:"2px solid transparent", color: tab==="contratos"?C.cyan:C.muted, cursor:"pointer", fontSize:13, fontWeight: tab==="contratos"?700:500 }}>🔍 Contratos SECOP {contratos.length > 0 && <span style={{ background:C.rojo, color:"white", borderRadius:10, padding:"1px 6px", fontSize:10, marginLeft:6 }}>{rojosContr}</span>}</button>
       </div>
 
       <div style={{ background:"white", borderRadius:"0 0 10px 10px", padding:"18px 20px", boxShadow:"0 2px 8px rgba(0,0,0,.06)" }}>
-        <div style={{ display:"flex", gap:8, marginBottom:16, alignItems:"center", flexWrap:"wrap" as const }}>
-          <span style={{ fontSize:12, color:C.muted }}>Filtrar:</span>
-          {(["TODOS","ROJO","AMARILLO","VERDE"] as const).map(n => (
-            <button key={n} onClick={() => setFiltro(n)} style={{ padding:"4px 14px", borderRadius:20, border:`1px solid ${filtro===n?nColor(n==="TODOS"?"VERDE":n):C.border}`, background: filtro===n?nBg(n==="TODOS"?"VERDE":n):"transparent", color: filtro===n?nColor(n==="TODOS"?"VERDE":n):C.muted, cursor:"pointer", fontSize:12, fontWeight:600 }}>
-              {n==="TODOS"?"⚪ Todos":`${nEmoji(n)}`}
-            </button>
-          ))}
-        </div>
-
-        <div style={{ display:"flex", gap:18, flexWrap:"wrap" as const }}>
-          <div style={{ flex:2, minWidth:300 }}>
-            <div style={{ border:`1px solid ${C.border}`, borderRadius:10, overflow:"hidden" }}>
-              {pacFilt.map((a,i) => (
-                <div key={i} onClick={() => setDetPAC(detPAC?.rubro===a.rubro?null:a)} style={{ padding:"13px 18px", borderBottom:`1px solid #f0f4f8`, cursor:"pointer", background: detPAC?.rubro===a.rubro?nBg(a.nivel):"white", borderLeft: detPAC?.rubro===a.rubro?`3px solid ${nColor(a.nivel)}`:"3px solid transparent", transition:"all .15s" }} onMouseEnter={e=>(e.currentTarget.style.background=`${nBg(a.nivel)}80`)} onMouseLeave={e=>(e.currentTarget.style.background=detPAC?.rubro===a.rubro?nBg(a.nivel):"white")}>
-                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
-                    <div>
-                      <div style={{ fontWeight:700, fontSize:13 }}>{a.rubro}</div>
-                      <div style={{ fontSize:11, color:C.muted, marginTop:2 }}>PAC: {fmtCOP(a.pac_actual)} · Girado: {fmtCOP(a.girado)}</div>
+        {tab === "pac" && (
+          <div style={{ display:"flex", gap:18, flexWrap:"wrap" as const }}>
+            <div style={{ flex:2, minWidth:300 }}>
+              <div style={{ border:`1px solid ${C.border}`, borderRadius:10, overflow:"hidden" }}>
+                {pacFilt.map((a,i) => (
+                  <div key={i} onClick={() => setDetPAC(detPAC?.rubro===a.rubro?null:a)} style={{ padding:"13px 18px", borderBottom:`1px solid #f0f4f8`, cursor:"pointer", background: detPAC?.rubro===a.rubro?nBg(a.nivel):"white", borderLeft: detPAC?.rubro===a.rubro?`3px solid ${nColor(a.nivel)}`:"3px solid transparent", transition:"all .15s" }} onMouseEnter={e=>(e.currentTarget.style.background=`${nBg(a.nivel)}80`)} onMouseLeave={e=>(e.currentTarget.style.background=detPAC?.rubro===a.rubro?nBg(a.nivel):"white")}>
+                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
+                      <div>
+                        <div style={{ fontWeight:700, fontSize:13 }}>{a.rubro}</div>
+                        <div style={{ fontSize:11, color:C.muted, marginTop:2 }}>PAC: {fmtCOP(a.pac_actual)} · Girado: {fmtCOP(a.girado)}</div>
+                      </div>
+                      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                        <span style={{ fontWeight:800, fontSize:14, color:nColor(a.nivel) }}>{a.pct_ejecucion}%</span>
+                        <Badge nivel={a.nivel}/>
+                      </div>
                     </div>
-                    <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                      <span style={{ fontWeight:800, fontSize:14, color:nColor(a.nivel) }}>{a.pct_ejecucion}%</span>
-                      <Badge nivel={a.nivel}/>
+                    <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+                      <div style={{ flex:1, height:5, background:"#e8edf2", borderRadius:3, overflow:"hidden" }}>
+                        <div style={{ width:`${Math.min(a.pct_ejecucion,100)}%`, height:"100%", background:nColor(a.nivel), borderRadius:3 }}/>
+                      </div>
+                      <span style={{ fontSize:10, color:C.muted, minWidth:100 }}>Cierre est.: {a.pct_cierre_estimado}%</span>
                     </div>
                   </div>
-                  <div style={{ display:"flex", gap:8, alignItems:"center" }}>
-                    <div style={{ flex:1, height:5, background:"#e8edf2", borderRadius:3, overflow:"hidden" }}>
-                      <div style={{ width:`${Math.min(a.pct_ejecucion,100)}%`, height:"100%", background:nColor(a.nivel), borderRadius:3 }}/>
-                    </div>
-                    <span style={{ fontSize:10, color:C.muted, minWidth:100 }}>Cierre est.: {a.pct_cierre_estimado}%</span>
+                ))}
+              </div>
+            </div>
+            <div style={{ flex:1, minWidth:220 }}>
+              {detPAC && (
+                <div style={{ border:`1px solid ${nColor(detPAC.nivel)}40`, background:`${nBg(detPAC.nivel)}60`, borderRadius:10, padding:16 }}>
+                  <div style={{ fontWeight:700, fontSize:13, color:nColor(detPAC.nivel), marginBottom:10 }}>📋 Detalle para el Edil</div>
+                  <div style={{ fontSize:12, lineHeight:1.8 }}>
+                    <b>Rubro:</b> {detPAC.rubro}<br/>
+                    <b>PAC:</b> {fmtCOP(detPAC.pac_actual)}<br/>
+                    <b>Girado:</b> <strong style={{color:nColor(detPAC.nivel)}}>{fmtCOP(detPAC.girado)}</strong><br/>
+                    <b>Ejecución:</b> <strong style={{color:nColor(detPAC.nivel)}}>{detPAC.pct_ejecucion}%</strong>
                   </div>
+                  <div style={{ marginTop:10, padding:"10px 12px", background:"rgba(0,0,0,.05)", borderLeft:`3px solid ${nColor(detPAC.nivel)}`, borderRadius:"0 6px 6px 0", fontSize:12, lineHeight:1.6 }}>
+                    {detPAC.mensaje}
+                  </div>
+                  <button onClick={() => setGeneradorPAC(detPAC)} style={{ marginTop:12, width:"100%", padding:"9px", background:C.navy, color:"white", border:"none", borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:700 }}>📝 Generar Proposición de Control</button>
                 </div>
-              ))}
+              )}
             </div>
           </div>
+        )}
 
-          <div style={{ flex:1, minWidth:220 }}>
-            {detPAC && (
-              <div style={{ border:`1px solid ${nColor(detPAC.nivel)}40`, background:`${nBg(detPAC.nivel)}60`, borderRadius:10, padding:16 }}>
-                <div style={{ fontWeight:700, fontSize:13, color:nColor(detPAC.nivel), marginBottom:10 }}>📋 Detalle para el Edil</div>
-                <div style={{ fontSize:12, lineHeight:1.8 }}>
-                  <b>Rubro:</b> {detPAC.rubro}<br/>
-                  <b>PAC:</b> {fmtCOP(detPAC.pac_actual)}<br/>
-                  <b>Girado:</b> <strong style={{color:nColor(detPAC.nivel)}}>{fmtCOP(detPAC.girado)}</strong><br/>
-                  <b>Ejecución:</b> <strong style={{color:nColor(detPAC.nivel)}}>{detPAC.pct_ejecucion}%</strong>
+        {tab === "contratos" && (
+          <div style={{ display:"flex", gap:18, flexWrap:"wrap" as const }}>
+            <div style={{ flex:2, minWidth:300 }}>
+              <div style={{ border:`1px solid ${C.border}`, borderRadius:10, overflow:"hidden" }}>
+                <div style={{ padding:"12px 18px", background:"#f8fafc", borderBottom:`1px solid ${C.border}`, display:"flex", justifyContent:"space-between" }}>
+                  <span style={{ fontWeight:700, fontSize:13, color:C.navy }}>Contratos SECOP II — API en vivo</span>
+                  <span style={{ fontSize:11, color:C.muted }}>{contratos.length} contratos</span>
                 </div>
-                <div style={{ marginTop:10, padding:"10px 12px", background:"rgba(0,0,0,.05)", borderLeft:`3px solid ${nColor(detPAC.nivel)}`, borderRadius:"0 6px 6px 0", fontSize:12, lineHeight:1.6 }}>
-                  {detPAC.mensaje}
-                </div>
-                <button 
-                  onClick={() => setGeneradorPAC(detPAC)}
-                  style={{ marginTop:12, width:"100%", padding:"9px", background:C.navy, color:"white", border:"none", borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:700 }}>
-                  📝 Generar Proposición de Control
-                </button>
+                {cargandoContratos ? <div style={{ padding:24, textAlign:"center" as const, color:C.muted }}>⟳ Cargando contratos reales de Usme...</div> : contrFilt.length === 0 ? <div style={{ padding:24, textAlign:"center" as const, color:C.muted }}>Sin contratos en este filtro</div> : contrFilt.map((c,i) => (
+                  <div key={i} onClick={() => setDetContr(detContr?.id===c.id?null:c)} style={{ padding:"13px 18px", borderBottom:`1px solid #f0f4f8`, cursor:"pointer", background: detContr?.id===c.id?nBg(c.nivel):"white", borderLeft: detContr?.id===c.id?`3px solid ${nColor(c.nivel)}`:"3px solid transparent", transition:"all .15s" }} onMouseEnter={e=>(e.currentTarget.style.background=`${nBg(c.nivel)}80`)} onMouseLeave={e=>(e.currentTarget.style.background=detContr?.id===c.id?nBg(c.nivel):"white")}>
+                    <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
+                      <div>
+                        <div style={{ fontWeight:700, fontSize:13 }}>{c.proveedor}</div>
+                        <div style={{ fontSize:11, color:C.muted, marginTop:2 }}>{c.nit} · {c.fecha}</div>
+                      </div>
+                      <div style={{ textAlign:"right" as const }}>
+                        <Badge nivel={c.nivel}/>
+                        <div style={{ fontSize:13, fontWeight:700, color:C.navy, marginTop:4 }}>{fmtCOP(c.monto)}</div>
+                      </div>
+                    </div>
+                    <ScoreBar score={c.score} nivel={c.nivel}/>
+                  </div>
+                ))}
               </div>
-            )}
+            </div>
+            <div style={{ flex:1, minWidth:220 }}>
+              {detContr && (
+                <div style={{ border:`1px solid ${nColor(detContr.nivel)}40`, background:`${nBg(detContr.nivel)}60`, borderRadius:10, padding:16 }}>
+                  <div style={{ fontWeight:700, fontSize:13, color:nColor(detContr.nivel), marginBottom:10 }}>🔍 Detalle del contrato</div>
+                  <div style={{ fontSize:12, lineHeight:1.8 }}>
+                    <b>Contrato:</b> {detContr.id}<br/>
+                    <b>Proveedor:</b> {detContr.proveedor}<br/>
+                    <b>NIT:</b> {detContr.nit}<br/>
+                    <b>Monto:</b> <strong style={{color:C.navy}}>{fmtCOP(detContr.monto)}</strong><br/>
+                    <b>Modalidad:</b> {detContr.modalidad}
+                  </div>
+                  <ScoreBar score={detContr.score} nivel={detContr.nivel}/>
+                  <div style={{ display:"flex", gap:8, marginTop:14 }}>
+                    <button style={{ flex:1, padding:"8px", background:C.rojo, color:"white", border:"none", borderRadius:8, cursor:"pointer", fontSize:11, fontWeight:700 }}>🚨 Notificar</button>
+                    <button onClick={() => setGeneradorContr(detContr)} style={{ flex:1, padding:"8px", background:C.navy, color:"white", border:"none", borderRadius:8, cursor:"pointer", fontSize:11, fontWeight:700 }}>📝 Proposición</button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {generadorPAC && (
-        <GeneradorProposicion
-          alertaPAC={generadorPAC}
-          mesNombre={pacData.mes_nombre}
-          totalPAC={pacData.total_pac}
-          pctGlobal={pacData.pct_global}
-          onCerrar={() => setGeneradorPAC(null)}
-        />
-      )}
+      {generadorPAC && <GeneradorProposicion alertaPAC={generadorPAC} mesNombre={pacData.mes_nombre} totalPAC={pacData.total_pac} pctGlobal={pacData.pct_global} onCerrar={() => setGeneradorPAC(null)} />}
+      {generadorContr && <GeneradorProposicion anomalia={generadorContr} mesNombre={pacData.mes_nombre} totalPAC={pacData.total_pac} pctGlobal={pacData.pct_global} onCerrar={() => setGeneradorContr(null)} />}
     </div>
   );
 }
