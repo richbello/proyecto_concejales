@@ -9,6 +9,7 @@ import Politiko from "./Components/Politiko";
 import Planeacion from "./Components/Planeacion";
 import Contratacion from './Components/Contratacion/Contratacion';
 import AlertasML from "./Components/AlertasML/AlertasML";
+import HistoricoPagos from "./Components/HistoricoPagos";
 
 interface DataRow { [key: string]: string | number; }
 
@@ -21,6 +22,7 @@ const NAV_ITEMS = [
   { key: "alertas", label: "Alertas IA", icon: "🤖" },
   { key: 'contratacion', label: '📋 Contratación', icon: '📋' },
   { key: "planeacion",  label: "Planeación PDL",        icon: "📐" },
+  { key: "historico", label: "Histórico de Pagos", icon: "📊" }
 ];
 
 export default function App() {
@@ -173,6 +175,7 @@ export default function App() {
             {tab === "contratacion" && <Contratacion />}
             {tab === "alertas" && <AlertasML />}
             {tab === "planeacion"  && <Planeacion onDataLoad={setPlanData} />}
+            {tab === "historico"    && <HistoricoPagos />}
           </div>
         </div>
 
