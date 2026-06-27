@@ -187,12 +187,20 @@ const Card=({children,full}:{children:React.ReactNode;full?:boolean})=>(
 // ─── Componente principal ─────────────────────────────────────────────────────
 export default function HistoricoPagos() {
   const [datos,   setDatos]   = useState<Datos|null>(null);
-  const [cargando,setCargando]= useState(false);
-  const [busqueda,setBusqueda]= useState("");
-  const [tabBusq, setTabBusq] = useState<"graficas"|"detalle">("graficas");
-  const [pagina,  setPagina]  = useState(0);
+  const [cargando,  setCargando]  = useState(false);
+  const [busqueda,  setBusqueda]  = useState("");
+  const [filtroRef, setFiltroRef] = useState("");
+  const [fechaDesde,setFechaDesde]= useState("");
+  const [fechaHasta,setFechaHasta]= useState("");
+  const [ordenFecha,setOrdenFecha]= useState<"desc"|"asc">("desc");
+  const [tabBusq,   setTabBusq]   = useState<"graficas"|"detalle">("detalle");
+  const [pagina,    setPagina]    = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const FILAS_PAG = 20;
+
+  const resetFiltros = () => {
+    setBusqueda(""); setFiltroRef(""); setFechaDesde(""); setFechaHasta(""); setPagina(0);
+  };
 
   const procesar=useCallback((file:File)=>{
     setCargando(true);
@@ -242,26 +250,46 @@ export default function HistoricoPagos() {
     );
   }
 
-  // ── Filtrado por búsqueda ────────────────────────────────────────────────────
+  // ── Filtrado combinado: contratista + referencia + rango fechas ─────────────
   const q = busqueda.toLowerCase().trim();
-  const filasFiltradas = q
-    ? datos.filas.filter(r=>
-        r.nombre.toLowerCase().includes(q)||
-        r.nroId.includes(q)||
-        r.proveedor.toLowerCase().includes(q)||
-        r.referencia.toLowerCase().includes(q)||
-        r.asignacion.toLowerCase().includes(q)||
-        r.asignacion3.toLowerCase().includes(q)
-      )
-    : datos.filas;
+  const qRef = filtroRef.toLowerCase().trim();
 
-  const datosActivos = q ? {...datos,...calcDatos(filasFiltradas)} : datos;
+  // Convierte dd/mm/yyyy → comparable string yyyymmdd
+  const fechaToSort = (f:string) => {
+    if(!f||!f.includes("/")) return "";
+    const [d,m,y] = f.split("/");
+    return `${y}${m}${d}`;
+  };
+  const fechaDesdeSrt = fechaDesde ? fechaDesde.replace(/-/g,"") : "";
+  const fechaHastaSrt = fechaHasta ? fechaHasta.replace(/-/g,"") : "";
+
+  const filasFiltradas = datos.filas.filter(r=>{
+    const okQ   = !q   || r.nombre.toLowerCase().includes(q)||r.nroId.includes(q)||r.proveedor.toLowerCase().includes(q)||r.asignacion.toLowerCase().includes(q)||r.asignacion3.toLowerCase().includes(q);
+    const okRef = !qRef|| r.referencia.toLowerCase().includes(qRef)||r.asignacion.toLowerCase().includes(qRef)||r.asignacion3.toLowerCase().includes(qRef);
+    const fs    = fechaToSort(r.fechaPago);
+    const okFD  = !fechaDesdeSrt || (fs && fs >= fechaDesdeSrt);
+    const okFH  = !fechaHastaSrt || (fs && fs <= fechaHastaSrt);
+    return okQ && okRef && okFD && okFH;
+  });
+
+  // Ordenar por fecha
+  const filasOrdenadas = [...filasFiltradas].sort((a,b)=>{
+    const fa=fechaToSort(a.fechaPago)||"00000000";
+    const fb=fechaToSort(b.fechaPago)||"00000000";
+    return ordenFecha==="desc" ? fb.localeCompare(fa) : fa.localeCompare(fb);
+  });
+
+  const hayFiltros = q||qRef||fechaDesde||fechaHasta;
+  const datosActivos = hayFiltros ? {...datos,...calcDatos(filasFiltradas)} : datos;
   const {g1,g2,g3,g4,g5,g5nombres,g6,g7,totalBruto,totalRegistros,proveedoresUnicos,ejercicios} = datosActivos;
   const mayorEj = g1.length ? g1.reduce((a,b)=>a.bruto>b.bruto?a:b,g1[0]) : {ejercicio:"-",bruto:0};
 
   // Paginación tabla detalle
-  const paginas = Math.ceil(filasFiltradas.length/FILAS_PAG);
-  const filasPag = filasFiltradas.slice(pagina*FILAS_PAG,(pagina+1)*FILAS_PAG);
+  const paginas = Math.ceil(filasOrdenadas.length/FILAS_PAG);
+  const filasPag = filasOrdenadas.slice(pagina*FILAS_PAG,(pagina+1)*FILAS_PAG);
+
+  // Último pago (más reciente de todas las filas filtradas)
+  const ultimoPagoGlobal = filasOrdenadas.filter(r=>r.fechaPago)[0]?.fechaPago ?? "—";
 
   // Ficha resumen del contratista buscado
   const fichaContratista = q && filasFiltradas.length > 0 ? {
@@ -269,7 +297,7 @@ export default function HistoricoPagos() {
     nit:    filasFiltradas[0].nroId,
     total:  filasFiltradas.reduce((s,r)=>s+r.valorBruto,0),
     count:  filasFiltradas.length,
-    ultimoPago: filasFiltradas.filter(r=>r.fechaPago).sort((a,b)=>b.fechaPago.localeCompare(a.fechaPago))[0]?.fechaPago ?? "—",
+    ultimoPago: ultimoPagoGlobal,
     asignaciones: [...new Set(filasFiltradas.map(r=>r.asignacion).filter(Boolean))].slice(0,3),
     ejerciciosActivos: [...new Set(filasFiltradas.map(r=>r.ejercicio))].sort(),
   } : null;
@@ -297,32 +325,68 @@ export default function HistoricoPagos() {
         </div>
       </div>
 
-      {/* ── BUSCADOR ── */}
+      {/* ── FILTROS ── */}
       <div style={{background:"white",borderRadius:12,padding:"16px 20px",marginBottom:16,boxShadow:"0 2px 10px rgba(0,0,0,.06)"}}>
-        <div style={{fontSize:13,fontWeight:700,color:C.navy,marginBottom:10}}>🔍 Buscar contratista</div>
-        <div style={{display:"flex",gap:10,flexWrap:"wrap" as const,alignItems:"center"}}>
+        <div style={{fontSize:13,fontWeight:700,color:C.navy,marginBottom:10}}>🔍 Filtros de búsqueda</div>
+
+        {/* Fila 1: contratista + referencia/contrato */}
+        <div style={{display:"flex",gap:10,flexWrap:"wrap" as const,alignItems:"center",marginBottom:10}}>
           <input
             value={busqueda}
             onChange={e=>{setBusqueda(e.target.value);setPagina(0);}}
-            placeholder="Nombre, NIT, proveedor, referencia o asignación..."
-            style={{flex:1,minWidth:260,fontSize:13,padding:"9px 14px",borderRadius:8,border:`1.5px solid ${q?C.cyan:C.border}`,color:C.texto,outline:"none",transition:"border .2s"}}
+            placeholder="👤 Contratista — Nombre, NIT o proveedor..."
+            style={{flex:2,minWidth:220,fontSize:12,padding:"9px 12px",borderRadius:8,border:`1.5px solid ${q?C.cyan:C.border}`,color:C.texto,outline:"none"}}
           />
-          {q&&(
-            <button onClick={()=>{setBusqueda("");setPagina(0);}} style={{padding:"9px 14px",borderRadius:8,border:`1px solid ${C.border}`,background:C.rojoLt,color:C.rojo,fontWeight:700,fontSize:12,cursor:"pointer"}}>
-              ✕ Limpiar
+          <input
+            value={filtroRef}
+            onChange={e=>{setFiltroRef(e.target.value);setPagina(0);}}
+            placeholder="📄 Contrato / Referencia / Asignación..."
+            style={{flex:2,minWidth:200,fontSize:12,padding:"9px 12px",borderRadius:8,border:`1.5px solid ${qRef?C.amar:C.border}`,color:C.texto,outline:"none"}}
+          />
+        </div>
+
+        {/* Fila 2: rango fechas + orden + botones */}
+        <div style={{display:"flex",gap:10,flexWrap:"wrap" as const,alignItems:"center"}}>
+          <div style={{display:"flex",alignItems:"center",gap:6}}>
+            <span style={{fontSize:11,color:C.muted,whiteSpace:"nowrap" as const}}>📅 Desde</span>
+            <input type="date" value={fechaDesde} onChange={e=>{setFechaDesde(e.target.value);setPagina(0);}}
+              style={{fontSize:12,padding:"7px 10px",borderRadius:8,border:`1.5px solid ${fechaDesde?C.verde:C.border}`,color:C.texto,outline:"none"}}/>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:6}}>
+            <span style={{fontSize:11,color:C.muted,whiteSpace:"nowrap" as const}}>Hasta</span>
+            <input type="date" value={fechaHasta} onChange={e=>{setFechaHasta(e.target.value);setPagina(0);}}
+              style={{fontSize:12,padding:"7px 10px",borderRadius:8,border:`1.5px solid ${fechaHasta?C.verde:C.border}`,color:C.texto,outline:"none"}}/>
+          </div>
+          <button onClick={()=>setOrdenFecha(o=>o==="desc"?"asc":"desc")}
+            style={{padding:"7px 12px",borderRadius:8,border:`1px solid ${C.border}`,background:C.bg,color:C.navy,fontSize:12,cursor:"pointer",fontWeight:600,whiteSpace:"nowrap" as const}}>
+            {ordenFecha==="desc"?"↓ Más reciente primero":"↑ Más antiguo primero"}
+          </button>
+          {hayFiltros&&(
+            <button onClick={resetFiltros}
+              style={{padding:"7px 14px",borderRadius:8,border:`1px solid ${C.border}`,background:C.rojoLt,color:C.rojo,fontWeight:700,fontSize:12,cursor:"pointer"}}>
+              ✕ Limpiar filtros
             </button>
           )}
-          {q&&(
-            <div style={{display:"flex",gap:6}}>
-              <button onClick={()=>setTabBusq("graficas")} style={{padding:"8px 14px",borderRadius:8,border:`1px solid ${tabBusq==="graficas"?C.cyan:C.border}`,background:tabBusq==="graficas"?C.navy:"white",color:tabBusq==="graficas"?"white":C.muted,fontSize:12,cursor:"pointer",fontWeight:tabBusq==="graficas"?700:400}}>
-                📊 Gráficas
-              </button>
-              <button onClick={()=>setTabBusq("detalle")} style={{padding:"8px 14px",borderRadius:8,border:`1px solid ${tabBusq==="detalle"?C.cyan:C.border}`,background:tabBusq==="detalle"?C.navy:"white",color:tabBusq==="detalle"?"white":C.muted,fontSize:12,cursor:"pointer",fontWeight:tabBusq==="detalle"?700:400}}>
-                📋 Detalle ({fmtNum(filasFiltradas.length)})
-              </button>
-            </div>
-          )}
+          <div style={{marginLeft:"auto",display:"flex",gap:6}}>
+            <button onClick={()=>setTabBusq("graficas")} style={{padding:"7px 12px",borderRadius:8,border:`1px solid ${tabBusq==="graficas"?C.cyan:C.border}`,background:tabBusq==="graficas"?C.navy:"white",color:tabBusq==="graficas"?"white":C.muted,fontSize:12,cursor:"pointer",fontWeight:tabBusq==="graficas"?700:400}}>
+              📊 Gráficas
+            </button>
+            <button onClick={()=>setTabBusq("detalle")} style={{padding:"7px 12px",borderRadius:8,border:`1px solid ${tabBusq==="detalle"?C.cyan:C.border}`,background:tabBusq==="detalle"?C.navy:"white",color:tabBusq==="detalle"?"white":C.muted,fontSize:12,cursor:"pointer",fontWeight:tabBusq==="detalle"?700:400}}>
+              📋 Tabla ({fmtNum(filasOrdenadas.length)})
+            </button>
+          </div>
         </div>
+
+        {/* Resumen de filtros activos */}
+        {hayFiltros&&(
+          <div style={{marginTop:10,padding:"6px 12px",background:C.bg,borderRadius:6,fontSize:11,color:C.muted,display:"flex",gap:12,flexWrap:"wrap" as const}}>
+            <span>📊 <strong style={{color:C.navy}}>{fmtNum(filasOrdenadas.length)}</strong> registros</span>
+            <span>💰 <strong style={{color:C.cyan}}>{fmtCOP(filasOrdenadas.reduce((s,r)=>s+r.valorBruto,0))}</strong></span>
+            {filasOrdenadas.filter(r=>r.fechaPago).length>0&&(
+              <span>📅 Último pago: <strong style={{color:C.verde}}>{filasOrdenadas.filter(r=>r.fechaPago)[0]?.fechaPago}</strong></span>
+            )}
+          </div>
+        )}
 
         {/* Ficha contratista */}
         {fichaContratista&&(
@@ -365,7 +429,7 @@ export default function HistoricoPagos() {
       </div>
 
       {/* ── VISTA DETALLE (tabla con fecha y asignación) ── */}
-      {q&&tabBusq==="detalle"&&(
+      {tabBusq==="detalle"&&(
         <div style={{background:"white",borderRadius:12,padding:"18px 20px",marginBottom:16,boxShadow:"0 2px 10px rgba(0,0,0,.06)"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
             <div style={{fontWeight:700,fontSize:13,color:C.navy}}>{fmtNum(filasFiltradas.length)} registros · {fmtCOP(filasFiltradas.reduce((s,r)=>s+r.valorBruto,0))}</div>
@@ -412,7 +476,7 @@ export default function HistoricoPagos() {
       )}
 
       {/* ── GRÁFICAS ── */}
-      {(!q||tabBusq==="graficas")&&(
+      {tabBusq==="graficas"&&(
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
 
           {/* G1 */}
