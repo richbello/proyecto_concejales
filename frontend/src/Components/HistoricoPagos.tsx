@@ -38,6 +38,30 @@ function gc(headers:string[], terms:string[]) {
   return headers.findIndex(h=>terms.some(t=>h.toLowerCase().includes(t.toLowerCase())));
 }
 
+// Convierte fecha de Excel (serial number, string ISO o texto) a dd/mm/yyyy
+function parseFecha(val:any):string {
+  if(val===null||val===undefined||val==="") return "";
+  if(val instanceof Date){
+    if(isNaN(val.getTime())) return "";
+    const d=String(val.getDate()).padStart(2,"0");
+    const m=String(val.getMonth()+1).padStart(2,"0");
+    return `${d}/${m}/${val.getFullYear()}`;
+  }
+  if(typeof val==="number"){
+    const dt=new Date(Math.round((val-25569)*86400*1000));
+    if(isNaN(dt.getTime())) return "";
+    const d=String(dt.getUTCDate()).padStart(2,"0");
+    const m=String(dt.getUTCMonth()+1).padStart(2,"0");
+    return `${d}/${m}/${dt.getUTCFullYear()}`;
+  }
+  const s=String(val).trim();
+  if(/^d{4}-d{2}-d{2}/.test(s)){
+    const [y,m,d]=s.slice(0,10).split("-");
+    return `${d}/${m}/${y}`;
+  }
+  return s.slice(0,10);
+}
+
 function calcDatos(filas:Fila[]):Omit<Datos,"filas"> {
   const totalBruto     = filas.reduce((s,r)=>s+r.valorBruto,0);
   const ejerciciosSet  = [...new Set(filas.map(r=>r.ejercicio))].filter(Boolean).sort() as number[];
@@ -114,7 +138,7 @@ function procesarExcel(raw:any[][]):Datos {
       valorBruto:bruto,
       ejercicio: Number(row[iEj])||0,
       referencia:String(row[iRef]  ??"").trim(),
-      fechaPago: row[iFecha] ? String(row[iFecha]).slice(0,10) : "",
+      fechaPago: parseFecha(row[iFecha]),
       asignacion:String(row[iAsig] ??"").trim(),
       asignacion3:String(row[iAsig3]??"").trim(),
     });
@@ -175,7 +199,7 @@ export default function HistoricoPagos() {
     const reader=new FileReader();
     reader.onload=(e)=>{
       try{
-        const wb=XLSX.read(e.target?.result,{type:"array"});
+        const wb=XLSX.read(e.target?.result,{type:"array",cellDates:true});
         const ws=wb.Sheets[wb.SheetNames[0]];
         const raw=XLSX.utils.sheet_to_json<any[]>(ws,{header:1,defval:""});
         setDatos(procesarExcel(raw));
