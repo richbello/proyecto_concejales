@@ -1,157 +1,180 @@
-import React, { useState, useEffect } from 'react';
-import { Lock, Eye, EyeOff, Building2 } from 'lucide-react';
+import { useState, useEffect, ReactNode } from "react";
 
-// ───────────────────────────────────────────────────────────────
-// CONFIGURACIÓN: cambia aquí la(s) clave(s) de acceso.
-// Puedes tener una clave por municipio si quieres diferenciarlas.
-// ───────────────────────────────────────────────────────────────
-const CLAVES_VALIDAS: Record<string, string> = {
-  'concejo2026': 'Concejo de Usme',
-  // 'sopo2026': 'Concejo de Sopó',
-  // 'chia2026': 'Concejo de Chía',
-};
+const WORKER_URL = "https://controlia-licencias.richbello.workers.dev";
+const STORAGE_KEY = "cp_licencia_v1";
 
-const STORAGE_KEY = 'control_politico_auth';
-const SESSION_HOURS = 720; // 30 días — dura el mes de prueba
-
-interface Props {
-  children: React.ReactNode;
+interface LicenciaData {
+  ok: boolean;
+  plan: string;
+  planKey: string;
+  modulos: string[];
+  cliente: string;
+  localidad: string;
+  expira: string | null;
+  diasRestantes: number | null;
 }
 
-export default function AccessGate({ children }: Props) {
-  const [autorizado, setAutorizado] = useState(false);
-  const [clave, setClave] = useState('');
-  const [mostrarClave, setMostrarClave] = useState(false);
-  const [error, setError] = useState('');
-  const [cargando, setCargando] = useState(true);
+interface Props {
+  children: ReactNode;
+  onLicencia?: (data: LicenciaData) => void;
+}
+
+export let licenciaActual: LicenciaData | null = null;
+
+export default function AccessGate({ children, onLicencia }: Props) {
+  const [licencia, setLicencia] = useState<LicenciaData | null>(null);
+  const [clave, setClave] = useState("");
+  const [error, setError] = useState("");
+  const [cargando, setCargando] = useState(false);
+  const [verClave, setVerClave] = useState(false);
+  const [validando, setValidando] = useState(true);
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       try {
-        const { timestamp, municipio } = JSON.parse(stored);
-        const horasTranscurridas = (Date.now() - timestamp) / (1000 * 60 * 60);
-        if (horasTranscurridas < SESSION_HOURS && municipio) {
-          setAutorizado(true);
-        } else {
-          localStorage.removeItem(STORAGE_KEY);
-        }
+        const data = JSON.parse(stored);
+        // Revalidar contra el worker
+        fetch(WORKER_URL + "/validar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ clave: data.clave }),
+        })
+          .then(r => r.json())
+          .then(res => {
+            if (res.ok) {
+              licenciaActual = { ...res, clave: data.clave };
+              setLicencia(res);
+              onLicencia?.(res);
+            } else {
+              localStorage.removeItem(STORAGE_KEY);
+            }
+            setValidando(false);
+          })
+          .catch(() => {
+            // Sin conexión — usar cache local
+            setLicencia(data);
+            licenciaActual = data;
+            setValidando(false);
+          });
       } catch {
         localStorage.removeItem(STORAGE_KEY);
+        setValidando(false);
       }
+    } else {
+      setValidando(false);
     }
-    setCargando(false);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const claveNormalizada = clave.trim().toLowerCase();
-    const municipio = CLAVES_VALIDAS[claveNormalizada];
-
-    if (municipio) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        timestamp: Date.now(),
-        municipio,
-      }));
-      setAutorizado(true);
-      setError('');
-    } else {
-      setError('Clave de acceso incorrecta. Verifique el oficio recibido o contacte a XBOG Technologies.');
+  const validar = async () => {
+    if (!clave.trim()) { setError("Ingresa tu clave de licencia."); return; }
+    setCargando(true); setError("");
+    try {
+      const res = await fetch(WORKER_URL + "/validar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clave: clave.trim().toUpperCase() }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        const stored = { ...data, clave: clave.trim().toUpperCase() };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+        licenciaActual = stored;
+        setLicencia(data);
+        onLicencia?.(data);
+      } else {
+        setError(data.error || "Licencia no válida.");
+      }
+    } catch {
+      setError("Error de conexión. Verifica tu internet.");
     }
+    setCargando(false);
   };
 
-  if (cargando) return null;
+  const cerrar = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    licenciaActual = null;
+    setLicencia(null);
+    setClave("");
+  };
 
-  if (autorizado) return <>{children}</>;
+  if (validando) {
+    return (
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:"100vh", background:"#0a0f1e" }}>
+        <div style={{ color:"#5dade2", fontSize:14, fontFamily:"'Segoe UI',sans-serif" }}>⏳ Verificando licencia...</div>
+      </div>
+    );
+  }
 
-  return (
-    <div style={{
-      minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'linear-gradient(135deg, #0f172a 0%, #1a2742 50%, #1e3a5f 100%)',
-      padding: 20, fontFamily: "'Segoe UI', sans-serif",
-    }}>
-      <div style={{
-        background: 'white', borderRadius: 20, padding: '44px 36px',
-        maxWidth: 420, width: '100%', boxShadow: '0 25px 60px rgba(0,0,0,.4)',
-      }}>
-        <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <div style={{
-            width: 64, height: 64, borderRadius: 16, margin: '0 auto 16px',
-            background: 'linear-gradient(135deg, #1a2742, #2563eb)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <Building2 size={30} color="white" />
-          </div>
-          <h1 style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', margin: 0 }}>
-            Control Político
-          </h1>
-          <p style={{ fontSize: 12.5, color: '#64748b', marginTop: 6, lineHeight: 1.5 }}>
-            Sistema de Inteligencia Presupuestal para Concejales Municipales
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit}>
-          <label style={{ fontSize: 12, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 8 }}>
-            <Lock size={13} style={{ display: 'inline', marginRight: 6, marginBottom: -1 }} />
-            Clave de acceso de su Concejo
-          </label>
-          <div style={{ position: 'relative', marginBottom: 14 }}>
-            <input
-              type={mostrarClave ? 'text' : 'password'}
-              value={clave}
-              onChange={e => { setClave(e.target.value); setError(''); }}
-              placeholder="Ingrese la clave recibida en el oficio"
-              autoFocus
-              style={{
-                width: '100%', padding: '12px 42px 12px 14px', borderRadius: 10,
-                border: error ? '1.5px solid #dc2626' : '1.5px solid #e2e8f0',
-                fontSize: 14, outline: 'none', boxSizing: 'border-box',
-              }}
-            />
-            <button type="button" onClick={() => setMostrarClave(v => !v)}
-              style={{
-                position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
-                background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8',
-                display: 'flex', alignItems: 'center',
-              }}>
-              {mostrarClave ? <EyeOff size={17} /> : <Eye size={17} />}
-            </button>
+  if (!licencia) {
+    return (
+      <div style={{ minHeight:"100vh", background:"radial-gradient(ellipse at top, #0d1b2a 0%, #0a0f1e 100%)", display:"flex", alignItems:"center", justifyContent:"center", padding:24, fontFamily:"'Segoe UI',sans-serif" }}>
+        <div style={{ width:"100%", maxWidth:440 }}>
+          <div style={{ textAlign:"center" as const, marginBottom:32 }}>
+            <div style={{ fontSize:56, marginBottom:12 }}>🏛️</div>
+            <div style={{ fontSize:10, color:"#5dade2", letterSpacing:4, fontWeight:700, textTransform:"uppercase" as const }}>XBOG Technologies</div>
+            <h1 style={{ color:"#e2e8f0", fontSize:26, fontWeight:900, margin:"10px 0 6px" }}>ControlIA</h1>
+            <div style={{ color:"#94a3b8", fontSize:12 }}>Plataforma de Control Político · FDL Usme</div>
           </div>
 
-          {error && (
-            <div style={{
-              background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8,
-              padding: '8px 12px', fontSize: 12, color: '#dc2626', marginBottom: 14,
-            }}>
-              {error}
+          <div style={{ background:"#161d2e", borderRadius:16, padding:32, border:"1px solid #1e2a40", boxShadow:"0 24px 48px rgba(0,0,0,.5)" }}>
+            <div style={{ fontSize:13, fontWeight:700, color:"#e2e8f0", marginBottom:20, textAlign:"center" as const }}>🔑 Ingresa tu clave de licencia</div>
+
+            <div style={{ marginBottom:16 }}>
+              <label style={{ display:"block", fontSize:10, color:"#94a3b8", fontWeight:700, textTransform:"uppercase" as const, letterSpacing:1, marginBottom:6 }}>Clave de licencia</label>
+              <div style={{ position:"relative" as const }}>
+                <input
+                  value={clave}
+                  onChange={e => setClave(e.target.value.toUpperCase())}
+                  onKeyDown={e => e.key === "Enter" && validar()}
+                  type={verClave ? "text" : "password"}
+                  placeholder="CP-PRO-XXXX-XXXX-XXXX-XXXX"
+                  style={{ width:"100%", background:"#0a0f1e", border:`1.5px solid ${error ? "#ff3d5a" : "#1e2a40"}`, borderRadius:10, padding:"12px 44px 12px 16px", color:"#e2e8f0", fontSize:13, outline:"none", boxSizing:"border-box" as const, fontFamily:"monospace", letterSpacing:1 }}
+                />
+                <button onClick={() => setVerClave(v => !v)} style={{ position:"absolute" as const, right:12, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:"#4a5568", fontSize:16 }}>
+                  {verClave ? "🙈" : "👁️"}
+                </button>
+              </div>
             </div>
-          )}
 
-          <button type="submit" style={{
-            width: '100%', padding: '13px', borderRadius: 10, border: 'none',
-            background: 'linear-gradient(135deg, #1a2742, #2563eb)', color: 'white',
-            fontWeight: 700, fontSize: 14, cursor: 'pointer', marginTop: 4,
-          }}>
-            Ingresar al sistema
-          </button>
-        </form>
+            {error && (
+              <div style={{ background:"#ff3d5a22", border:"1px solid #ff3d5a44", borderRadius:8, padding:"10px 14px", marginBottom:16, fontSize:12, color:"#ff3d5a", fontWeight:600 }}>
+                ⚠️ {error}
+              </div>
+            )}
 
-        <p style={{ fontSize: 11, color: '#94a3b8', textAlign: 'center', marginTop: 22, lineHeight: 1.5 }}>
-          Acceso exclusivo para concejales autorizados.<br />
-          ¿No tiene una clave?{' '}
-          <a href="https://wa.me/573208303847" target="_blank" rel="noopener noreferrer"
-            style={{ color: '#2563eb', fontWeight: 600, textDecoration: 'none' }}>
-            Contáctenos por WhatsApp
-          </a>
-        </p>
+            <button onClick={validar} disabled={cargando} style={{ width:"100%", background:cargando ? "#4a5568" : "linear-gradient(135deg,#00d4ff 0%,#0099bb 100%)", border:"none", borderRadius:10, padding:"13px", color:"#0a0f1e", fontWeight:800, fontSize:14, cursor:cargando ? "default" : "pointer" }}>
+              {cargando ? "⏳ Verificando..." : "🚀 Activar plataforma"}
+            </button>
 
-        <div style={{
-          marginTop: 20, paddingTop: 16, borderTop: '1px solid #f1f5f9',
-          textAlign: 'center', fontSize: 10.5, color: '#cbd5e1',
-        }}>
-          XBOG Technologies · Control Político 2026
+            <div style={{ marginTop:20, padding:"12px 14px", background:"#0a0f1e", borderRadius:8, fontSize:11, color:"#4a5568", textAlign:"center" as const }}>
+              ¿No tienes licencia? Contacta a XBOG Technologies<br/>
+              <span style={{ color:"#5dade2" }}>gerencia@gestionyreclamoscolombia.org</span>
+            </div>
+          </div>
+
+          <div style={{ textAlign:"center" as const, marginTop:16, fontSize:10, color:"#4a5568" }}>
+            🔒 Conexión segura · XBOG Technologies © 2026
+          </div>
         </div>
       </div>
-    </div>
+    );
+  }
+
+  return (
+    <>
+      {/* Banner licencia activa */}
+      {licencia.diasRestantes !== null && licencia.diasRestantes <= 5 && (
+        <div style={{ background:"#ff3d5a", color:"white", textAlign:"center" as const, padding:"6px", fontSize:12, fontWeight:700 }}>
+          ⚠️ Tu licencia {licencia.plan} vence en {licencia.diasRestantes} días · Contacta a XBOG para renovar
+        </div>
+      )}
+      {licencia.plan === "DEMO" && (
+        <div style={{ background:"#f39c12", color:"#0a0f1e", textAlign:"center" as const, padding:"6px", fontSize:12, fontWeight:700 }}>
+          🎯 Modo DEMO · {licencia.diasRestantes} días restantes · <span style={{ textDecoration:"underline", cursor:"pointer" }} onClick={cerrar}>Activar licencia completa</span>
+        </div>
+      )}
+      {children}
+    </>
   );
 }

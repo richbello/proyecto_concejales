@@ -1,0 +1,7 @@
+name = "controlia-licencias"
+main = "index.js"
+compatibility_date = "2024-01-01"
+
+[[kv_namespaces]]
+binding = "LICENCIAS"
+id = "6aeb3711fc6641a69c355f22c09dbcda"
