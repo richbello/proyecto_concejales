@@ -155,7 +155,7 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
     const pendGiro   = filtrado.reduce((s,r)=>s+toNum(gc(r,COLS.pendGiro)),0);
     const anulac     = filtrado.reduce((s,r)=>s+toNum(gc(r,COLS.anulaciones)),0);
     const reint      = filtrado.reduce((s,r)=>s+toNum(gc(r,COLS.reintegros)),0);
-    const ejecutado  = filtrado.reduce((s,r)=>s+toNum(gc(r,COLS.ejecutado)),0);
+    const ejecutado  = valorCRP>0?(giro/valorCRP)*100:0;
     const pctEjec    = valorCRP>0?(giro/valorCRP)*100:0;
     return {valorCRP,valorNeto,giro,pendGiro,anulac,reint,ejecutado,pctEjec,total:filtrado.length,sinGiro:pendGiro,anulaciones:anulac};
   },[filtrado]);
@@ -535,7 +535,7 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
                 </thead>
                 <tbody>
                   {pageData.map((r,i)=>{
-                    const ejec=toNum(gc(r,COLS.ejecutado));
+                    const vCRP=toNum(gc(r,COLS.valorCRP)); const vGiro=toNum(gc(r,COLS.giro)); const ejec=vCRP>0?parseFloat(((vGiro/vCRP)*100).toFixed(2)):0;
                     const ec=ejec>=80?C.verde:ejec>=50?C.amar:C.rojo;
                     return(
                       <tr key={i} style={{borderBottom:`1px solid ${C.border}`,
@@ -600,7 +600,7 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
                                 background:ec,borderRadius:4}}/>
                             </div>
                             <span style={{fontSize:10,fontWeight:700,color:ec,minWidth:32}}>
-                              {ejec.toFixed(0)}%
+                              {ejec.toFixed(2)}%
                             </span>
                           </div>
                         </td>
