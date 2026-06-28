@@ -10,24 +10,26 @@ import Planeacion from "./Components/Planeacion";
 import Contratacion from './Components/Contratacion/Contratacion';
 import AlertasML from "./Components/AlertasML/AlertasML";
 import HistoricoPagos from "./Components/HistoricoPagos";
+import Ciberseguridad from "./Components/Ciberseguridad";
 
 interface DataRow { [key: string]: string | number; }
 
 const NAV_ITEMS = [
-  { key: "mapa",        label: "Mapa de Proyectos",    icon: "🗺️" },
-  { key: "sesiones",    label: "Panel Legislativo",     icon: "📋" },
-  { key: "denuncias",   label: "Denuncias Ciudadanas",  icon: "📣" },
-  { key: "simulador",   label: "Simulador Presupuestal",icon: "🧮" },
-  { key: "presupuesto", label: "Análisis Presupuestal", icon: "💰" },
-  { key: "alertas", label: "Alertas IA", icon: "🤖" },
-  { key: 'contratacion', label: '📋 Contratación', icon: '📋' },
-  { key: "planeacion",  label: "Planeación PDL",        icon: "📐" },
-  { key: "historico", label: "Histórico de Pagos", icon: "📊" }
+  { key: "mapa",           label: "Mapa de Proyectos",     icon: "🗺️"  },
+  { key: "sesiones",       label: "Panel Legislativo",      icon: "📋"  },
+  { key: "denuncias",      label: "Denuncias Ciudadanas",   icon: "📣"  },
+  { key: "simulador",      label: "Simulador Presupuestal", icon: "🧮"  },
+  { key: "presupuesto",    label: "Análisis Presupuestal",  icon: "💰"  },
+  { key: "alertas",        label: "Alertas IA",             icon: "🤖"  },
+  { key: "contratacion",   label: "Contratación",           icon: "📋"  },
+  { key: "planeacion",     label: "Planeación PDL",         icon: "📐"  },
+  { key: "historico",      label: "Histórico de Pagos",     icon: "📊"  },
+  { key: "ciberseguridad", label: "Ciberseguridad",         icon: "🔐"  },
 ];
 
 export default function App() {
-  const [tab, setTab]         = useState("mapa");
-  const [crpData, setCrpData] = useState<DataRow[]>([]);
+  const [tab,      setTab]      = useState("mapa");
+  const [crpData,  setCrpData]  = useState<DataRow[]>([]);
   const [planData, setPlanData] = useState<any>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -67,7 +69,7 @@ export default function App() {
               </div>
               <div style={{ fontSize: 10, color: "rgba(255,255,255,.4)", marginTop: 2 }}>FDL Usme · 2026</div>
             </div>
-            <ul style={{ listStyle: "none", padding: 0, margin: 0, flex: 1, paddingTop: 6 }}>
+            <ul style={{ listStyle: "none", padding: 0, margin: 0, flex: 1, paddingTop: 6, overflowY: "auto" }}>
               {NAV_ITEMS.map(n => (
                 <li key={n.key} onClick={() => handleTabChange(n.key)} style={{
                   padding: "11px 14px", cursor: "pointer", display: "flex", alignItems: "center",
@@ -99,7 +101,6 @@ export default function App() {
             boxShadow: "0 2px 8px rgba(0,0,0,.15)", flexShrink: 0, gap: 10,
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-              {/* BOTÓN HAMBURGUESA (solo móvil) */}
               {isMobile && (
                 <button onClick={() => setMenuOpen(v => !v)} style={{
                   background: "rgba(255,255,255,.1)", border: "none", color: "white",
@@ -167,15 +168,16 @@ export default function App() {
             flex: 1, padding: isMobile ? 10 : 18,
             overflowY: "auto", overflowX: "hidden",
           }}>
-            {tab === "mapa"        && <MapaProyectos />}
-            {tab === "sesiones"    && <PanelLegislativo />}
-            {tab === "denuncias"   && <Denuncias />}
-            {tab === "simulador"   && <SimuladorPresupuestal data={crpData} />}
-            {tab === "presupuesto" && <AnalisisPresupuestal onDataLoad={setCrpData} />}
-            {tab === "contratacion" && <Contratacion />}
-            {tab === "alertas" && <AlertasML />}
-            {tab === "planeacion"  && <Planeacion onDataLoad={setPlanData} />}
-            {tab === "historico"    && <HistoricoPagos />}
+            {tab === "mapa"           && <MapaProyectos />}
+            {tab === "sesiones"       && <PanelLegislativo />}
+            {tab === "denuncias"      && <Denuncias />}
+            {tab === "simulador"      && <SimuladorPresupuestal data={crpData} />}
+            {tab === "presupuesto"    && <AnalisisPresupuestal onDataLoad={setCrpData} />}
+            {tab === "contratacion"   && <Contratacion />}
+            {tab === "alertas"        && <AlertasML />}
+            {tab === "planeacion"     && <Planeacion onDataLoad={setPlanData} />}
+            {tab === "historico"      && <HistoricoPagos />}
+            {tab === "ciberseguridad" && <Ciberseguridad />}
           </div>
         </div>
 
