@@ -21,7 +21,7 @@ const TODOS_MODULOS = [
   { key:"denuncias",      label:"Denuncias Ciudadanas",   icon:"📣"  },
   { key:"simulador",      label:"Simulador Presupuestal", icon:"🧮"  },
   { key:"presupuesto",    label:"Análisis Presupuestal",  icon:"💰"  },
-  { key:"alertas",        label:"Alertas IA",             icon:"🤖"  },
+  { key:"alertas",        label:"Alertas PAC FDL",             icon:"🤖"  },
   { key:"contratacion",   label:"Contratación",           icon:"📋"  },
   { key:"planeacion",     label:"Planeación PDL",         icon:"📐"  },
   { key:"historico",      label:"Histórico de Pagos",     icon:"📊"  },
