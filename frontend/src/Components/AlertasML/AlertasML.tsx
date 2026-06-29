@@ -210,7 +210,7 @@ export default function AlertasML() {
       <div style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center", minHeight: 400, padding: 24 }}>
         <div style={{ background: `linear-gradient(135deg, ${C.navy} 0%, #1e3a6e 100%)`, borderRadius: 16, padding: "32px 40px", textAlign: "center" as const, color: "white", maxWidth: 540, width: "100%" }}>
           <div style={{ fontSize: 48, marginBottom: 16 }}>📂</div>
-          <h3 style={{ margin: "0 0 8px", fontSize: 20, fontWeight: 800 }}>Análisis PAC — ControlIA</h3>
+          <h3 style={{ margin: "0 0 8px", fontSize: 20, fontWeight: 800 }}>Alertas PAC FDL — ControlIA</h3>
           <p style={{ margin: "0 0 28px", fontSize: 13, color: "rgba(255,255,255,.65)", lineHeight: 1.6 }}>
             Carga el reporte PAC exportado de SAP.<br />
             <span style={{ color: C.cyanLt, fontSize: 11 }}>PAC Inicial · PAC Reprogramado · PAC Actual · Disponibilidad · Girado · EJECUTADO</span>
@@ -346,7 +346,7 @@ export default function AlertasML() {
       <div style={{ background: `linear-gradient(135deg, ${C.navy} 0%, #1e3a6e 100%)`, borderRadius: 12, padding: "20px 24px", marginBottom: 18, color: "white" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap" as const, gap: 12, marginBottom: 16 }}>
           <div>
-            <div style={{ fontSize: 10, color: C.cyan, letterSpacing: 2, textTransform: "uppercase" as const, fontWeight: 700 }}>⚡ Análisis PAC · SAP · ControlIA</div>
+            <div style={{ fontSize: 10, color: C.cyan, letterSpacing: 2, textTransform: "uppercase" as const, fontWeight: 700 }}>⚡ Control Presupuestal · Reporte SAP</div>
             <h2 style={{ margin: "6px 0 4px", fontSize: 20, fontWeight: 800 }}>Control PAC — {mesActual} 2026</h2>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,.55)" }}>
               PAC Actual: {fmtCOP(con.pacActual)} · Girado: {fmtCOP(con.girado)} · Ejecución global: {fmtPct(pctGlobal)}
