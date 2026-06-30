@@ -54,6 +54,16 @@ const generarContextoPAC = (p: any): string => {
   return `\n\nDATOS DE ALERTAS PAC FDL (mes actual: ${p.mesActual}):\n- PAC Actual: $${(c.pacActual/1e9).toFixed(2)}B | Girado: $${(c.girado/1e9).toFixed(2)}B (${(c.ejecutado*100).toFixed(1)}%) | Disponible: $${(c.disponibilidad/1e9).toFixed(2)}B\n- Rezago: ${p.rezago ? "$"+(p.rezago.pacActual/1e9).toFixed(2)+"B" : "sin datos"}`;
 };
 
+const generarContextoMapa = (m: any[]): string => {
+  if (!m || m.length === 0) return "";
+  const total = m.length;
+  const enEjecucion = m.filter((p:any) => p.estado.includes("EJECUCION")).length;
+  const enRetraso = m.filter((p:any) => p.estado.includes("RETRASO")).length;
+  const finalizados = m.filter((p:any) => p.estado.includes("FINALIZADO")).length;
+  const top3 = [...m].sort((a:any,b:any)=>b.presupuesto-a.presupuesto).slice(0,3).map((p:any)=>`${p.nombre} (${p.localidad}, ${p.avance}% avance, $${(p.presupuesto/1e6).toFixed(0)}M)`).join("; ");
+  return `\n\nDATOS MAPA DE PROYECTOS:\n- Total: ${total} proyectos | En ejecucion: ${enEjecucion} | En retraso: ${enRetraso} | Finalizados: ${finalizados}\n- Top 3 por presupuesto: ${top3}`;
+};
+
 const generarContextoPlan = (plan: any): string => {
   if (!plan) return "";
   const { sectores, proyectos, totals } = plan;
@@ -136,9 +146,9 @@ const PREGUNTAS = [
   { texto:"¿Cuáles son las anomalías más graves?",           icono:"🚨" },
 ];
 
-interface Props { data: DataRow[]; planData?: any; contratosData?: any; pacData?: any; }
+interface Props { data: DataRow[]; planData?: any; contratosData?: any; pacData?: any; mapaData?: any[]; }
 
-export default function Politiko({ data, planData, contratosData, pacData }: Props) {
+export default function Politiko({ data, planData, contratosData, pacData, mapaData }: Props) {
   const [mensajes, setMensajes] = useState<Mensaje[]>([{
     id:'0', rol:'assistant', timestamp: new Date().toLocaleTimeString('es-CO'),
     texto: data.length > 0
@@ -211,7 +221,7 @@ Si el usuario pregunta sobre un módulo para el cual NO tienes datos cargados en
 Responde siempre en español, de forma clara y directa. Usa emojis ocasionalmente. Cuando detectes posibles irregularidades, sé específico con nombres y cifras. Sugiere preguntas concretas que el concejal puede hacer en el Concejo Municipal.
 
 CONTEXTO DEL REPORTE CRP ACTUAL:
-${generarContexto(data)}${generarContextoPlan(planData)}${generarContextoContratos(contratosData)}${generarContextoPAC(pacData)}
+${generarContexto(data)}${generarContextoPlan(planData)}${generarContextoContratos(contratosData)}${generarContextoPAC(pacData)}${generarContextoMapa(mapaData ?? [])}
 
 Responde basándote en estos datos reales cuando la pregunta sea sobre presupuesto. Para otros temas, usa tu conocimiento general de control político en Colombia.`,
           messages: [
