@@ -33,6 +33,7 @@ export default function App() {
   const [tab,       setTab]       = useState("mapa");
   const [crpData,   setCrpData]   = useState<DataRow[]>([]);
   const [planData,  setPlanData]  = useState<any>(null);
+  const [contratosData, setContratosData] = useState<any>(null);
   const [menuOpen,  setMenuOpen]  = useState(false);
   const [isMobile,  setIsMobile]  = useState(window.innerWidth < 768);
   const [modulos,   setModulos]   = useState<string[]>(TODOS_MODULOS.map(m => m.key));
@@ -75,7 +76,7 @@ export default function App() {
       case "denuncias":      return <Denuncias />;
       case "simulador":      return <SimuladorPresupuestal data={crpData} />;
       case "presupuesto":    return <AnalisisPresupuestal onDataLoad={setCrpData} />;
-      case "contratacion":   return <Contratacion />;
+      case "contratacion":   return <Contratacion onDataLoad={setContratosData} />;
       case "alertas":        return <AlertasML />;
       case "planeacion":     return <Planeacion onDataLoad={setPlanData} />;
       case "historico":      return <HistoricoPagos />;
@@ -157,7 +158,7 @@ export default function App() {
           </div>
         </div>
 
-        <Politiko data={crpData} planData={planData} />
+        <Politiko data={crpData} planData={planData} contratosData={contratosData} />
       </div>
     </AccessGate>
   );

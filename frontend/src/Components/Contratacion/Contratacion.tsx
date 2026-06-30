@@ -213,7 +213,9 @@ const BadgeEstado=({estado}:{estado:string})=>(
 );
 
 // ─── Componente principal ─────────────────────────────────────────────────────
-export default function Contratacion() {
+interface Props { onDataLoad?: (data: Resumen) => void; }
+
+export default function Contratacion({ onDataLoad }: Props) {
   const [tab,         setTab]         = useState<"resumen"|"contratos"|"contratistas"|"estado"|"tabla">("resumen");
   const [datos,       setDatos]       = useState<Resumen|null>(null);
   const [cargando,    setCargando]    = useState(false);
@@ -235,7 +237,9 @@ export default function Contratacion() {
         const wb=XLSX.read(e.target?.result,{type:"array",cellDates:true});
         const ws=wb.Sheets[wb.SheetNames[0]];
         const raw=XLSX.utils.sheet_to_json<any[]>(ws,{header:1,defval:""});
-        setDatos(procesarContratos(raw));
+        const resumen = procesarContratos(raw);
+        setDatos(resumen);
+        onDataLoad?.(resumen);
         setBusqueda(""); setFiltroEst("TODOS"); setFiltroTipoId("TODOS");
         setFechaDesde(""); setFechaHasta(""); setPagina(0);
       }catch(err){console.error(err);alert("Error leyendo archivo. Verifica columnas.");}

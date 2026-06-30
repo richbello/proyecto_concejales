@@ -42,6 +42,12 @@ const COLS = {
   noComp:       ['No. Compromiso', 'No.Compromiso'],
 };
 
+const generarContextoContratos = (c: any): string => {
+  if (!c) return "";
+  const top3 = c.topContratistas.slice(0,3).map((t:any)=>`${t.nombre} ($${(t.valor/1e6).toFixed(0)}M, ${t.count} contratos)`).join(", ");
+  return `\n\nDATOS DE CONTRATACIÓN ACTUAL:\n- Total contratos: ${c.totalContratos} | Valor final: $${(c.valorFinalTotal/1e9).toFixed(2)}B | Sobrecostos: ${c.contratosSobrecosto} contratos (${c.pctVariacionGlobal.toFixed(1)}% variación global)\n- Estados: ${c.porEstado.map((e:any)=>`${e.estado} (${e.count})`).join(", ")}\n- Top contratistas por valor: ${top3}`;
+};
+
 const generarContextoPlan = (plan: any): string => {
   if (!plan) return "";
   const { sectores, proyectos, totals } = plan;
@@ -124,9 +130,9 @@ const PREGUNTAS = [
   { texto:"¿Cuáles son las anomalías más graves?",           icono:"🚨" },
 ];
 
-interface Props { data: DataRow[]; planData?: any; }
+interface Props { data: DataRow[]; planData?: any; contratosData?: any; }
 
-export default function Politiko({ data, planData }: Props) {
+export default function Politiko({ data, planData, contratosData }: Props) {
   const [mensajes, setMensajes] = useState<Mensaje[]>([{
     id:'0', rol:'assistant', timestamp: new Date().toLocaleTimeString('es-CO'),
     texto: data.length > 0
@@ -194,7 +200,7 @@ Si el usuario pregunta sobre un módulo para el cual NO tienes datos cargados en
 Responde siempre en español, de forma clara y directa. Usa emojis ocasionalmente. Cuando detectes posibles irregularidades, sé específico con nombres y cifras. Sugiere preguntas concretas que el concejal puede hacer en el Concejo Municipal.
 
 CONTEXTO DEL REPORTE CRP ACTUAL:
-${generarContexto(data)}${generarContextoPlan(planData)}
+${generarContexto(data)}${generarContextoPlan(planData)}${generarContextoContratos(contratosData)}
 
 Responde basándote en estos datos reales cuando la pregunta sea sobre presupuesto. Para otros temas, usa tu conocimiento general de control político en Colombia.`,
           messages: [
