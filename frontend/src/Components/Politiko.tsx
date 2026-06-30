@@ -130,8 +130,8 @@ export default function Politiko({ data, planData }: Props) {
   const [mensajes, setMensajes] = useState<Mensaje[]>([{
     id:'0', rol:'assistant', timestamp: new Date().toLocaleTimeString('es-CO'),
     texto: data.length > 0
-      ? `¡Hola! Soy **Politiko**, tu asistente de inteligencia presupuestal. 🏛️\n\nHe analizado **${data.length} registros** del reporte CRP. ¿Qué quieres saber?`
-      : `¡Hola! Soy **Politiko** 🏛️\n\nCarga un reporte Excel CRP en **Análisis Presupuestal** para comenzar.`,
+      ? `¡Hola! Soy **Politiko**, tu asistente de control político integral. 🏛️\n\nHe analizado **${data.length} registros** del reporte CRP. Pregúntame sobre presupuesto, contratación, anomalías, mapa de proyectos o cualquier otro tema de control político.\n\n¿Qué quieres saber?`
+      : `¡Hola! Soy **Politiko** 🏛️\n\nPuedo ayudarte con presupuesto, contratación SECOP II, anomalías, mapa de proyectos, agenda legislativa y más.\n\nCarga un reporte Excel CRP en **Análisis Presupuestal** para análisis con datos reales, o pregúntame lo que necesites.`
   }]);
   const [input, setInput]       = useState('');
   const [cargando, setCargando] = useState(false);
