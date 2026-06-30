@@ -48,6 +48,12 @@ const generarContextoContratos = (c: any): string => {
   return `\n\nDATOS DE CONTRATACIÓN ACTUAL:\n- Total contratos: ${c.totalContratos} | Valor final: $${(c.valorFinalTotal/1e9).toFixed(2)}B | Sobrecostos: ${c.contratosSobrecosto} contratos (${c.pctVariacionGlobal.toFixed(1)}% variación global)\n- Estados: ${c.porEstado.map((e:any)=>`${e.estado} (${e.count})`).join(", ")}\n- Top contratistas por valor: ${top3}`;
 };
 
+const generarContextoPAC = (p: any): string => {
+  if (!p) return "";
+  const c = p.consolidado;
+  return `\n\nDATOS DE ALERTAS PAC FDL (mes actual: ${p.mesActual}):\n- PAC Actual: $${(c.pacActual/1e9).toFixed(2)}B | Girado: $${(c.girado/1e9).toFixed(2)}B (${(c.ejecutado*100).toFixed(1)}%) | Disponible: $${(c.disponibilidad/1e9).toFixed(2)}B\n- Rezago: ${p.rezago ? "$"+(p.rezago.pacActual/1e9).toFixed(2)+"B" : "sin datos"}`;
+};
+
 const generarContextoPlan = (plan: any): string => {
   if (!plan) return "";
   const { sectores, proyectos, totals } = plan;
@@ -130,9 +136,9 @@ const PREGUNTAS = [
   { texto:"¿Cuáles son las anomalías más graves?",           icono:"🚨" },
 ];
 
-interface Props { data: DataRow[]; planData?: any; contratosData?: any; }
+interface Props { data: DataRow[]; planData?: any; contratosData?: any; pacData?: any; }
 
-export default function Politiko({ data, planData, contratosData }: Props) {
+export default function Politiko({ data, planData, contratosData, pacData }: Props) {
   const [mensajes, setMensajes] = useState<Mensaje[]>([{
     id:'0', rol:'assistant', timestamp: new Date().toLocaleTimeString('es-CO'),
     texto: data.length > 0
@@ -200,7 +206,7 @@ Si el usuario pregunta sobre un módulo para el cual NO tienes datos cargados en
 Responde siempre en español, de forma clara y directa. Usa emojis ocasionalmente. Cuando detectes posibles irregularidades, sé específico con nombres y cifras. Sugiere preguntas concretas que el concejal puede hacer en el Concejo Municipal.
 
 CONTEXTO DEL REPORTE CRP ACTUAL:
-${generarContexto(data)}${generarContextoPlan(planData)}${generarContextoContratos(contratosData)}
+${generarContexto(data)}${generarContextoPlan(planData)}${generarContextoContratos(contratosData)}${generarContextoPAC(pacData)}
 
 Responde basándote en estos datos reales cuando la pregunta sea sobre presupuesto. Para otros temas, usa tu conocimiento general de control político en Colombia.`,
           messages: [
@@ -380,7 +386,7 @@ Responde basándote en estos datos reales cuando la pregunta sea sobre presupues
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key==='Enter' && !e.shiftKey && enviar(input)}
                 placeholder={data.length > 0 ? "Pregunta sobre el presupuesto..." : "Carga un Excel primero..."}
-                disabled={cargando || (data.length === 0 && !planData && !contratosData)}
+                disabled={cargando || (data.length === 0 && !planData && !contratosData && !pacData)}
                 style={{
                   flex:1, border:'1px solid #e2e8f0', borderRadius:10,
                   padding:'8px 12px', fontSize:13, outline:'none',
@@ -390,11 +396,11 @@ Responde basándote en estos datos reales cuando la pregunta sea sobre presupues
               />
               <button
                 onClick={() => enviar(input)}
-                disabled={cargando || !input.trim() || (data.length === 0 && !planData && !contratosData)}
+                disabled={cargando || !input.trim() || (data.length === 0 && !planData && !contratosData && !pacData)}
                 style={{
                   width:38, height:38, borderRadius:10, border:'none', cursor:'pointer',
-                  background: (cargando || !input.trim() || (data.length===0 && !planData && !contratosData)) ? '#e2e8f0' : '#2563eb',
-                  color: (cargando || !input.trim() || (data.length===0 && !planData && !contratosData)) ? '#94a3b8' : 'white',
+                  background: (cargando || !input.trim() || (data.length===0 && !planData && !contratosData && !pacData)) ? '#e2e8f0' : '#2563eb',
+                  color: (cargando || !input.trim() || (data.length===0 && !planData && !contratosData && !pacData)) ? '#94a3b8' : 'white',
                   display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0,
                 }}>
                 <Send size={16}/>

@@ -182,7 +182,9 @@ const TooltipPct = ({ active, payload, label }: any) => {
 
 /* ─── COMPONENTE PRINCIPAL ─── */
 
-export default function AlertasML() {
+interface Props { onDataLoad?: (data: DatosPAC) => void; }
+
+export default function AlertasML({ onDataLoad }: Props) {
   const [tab, setTab] = useState<"consolidado" | "meses" | "ritmo" | "tabla">("consolidado");
   const [datos, setDatos] = useState<DatosPAC | null>(null);
   const [generador, setGenerador] = useState<any>(null);
@@ -196,7 +198,9 @@ export default function AlertasML() {
         const sheetName = wb.SheetNames.includes("Data") ? "Data" : wb.SheetNames[0];
         const ws = wb.Sheets[sheetName];
         const data = XLSX.utils.sheet_to_json<any[]>(ws, { header: 1, defval: "" });
-        setDatos(parsearArchivo(data));
+        const resumen = parsearArchivo(data);
+        setDatos(resumen);
+        onDataLoad?.(resumen);
       } catch {
         alert("Error leyendo el archivo Excel");
       }
