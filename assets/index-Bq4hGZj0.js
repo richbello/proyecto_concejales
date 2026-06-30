@@ -718,11 +718,15 @@ ${Object.entries(l).sort((g,m)=>m[1]-g[1]).map(([g,m])=>`- ${g}: ${m} contratos 
 TOP RUBROS PRESUPUESTALES:
 ${f.map(([g,m])=>`- ${g}: ${ms(m.valor)} (ejec: ${(m.ejec/m.cnt*100).toFixed(1)}%)`).join(`
 `)}
-`.trim()},jO=[{texto:"¿Cuáles son los contratos más sospechosos?",icono:"⚠️"},{texto:"¿Qué contratistas tienen más contratos?",icono:"👥"},{texto:"¿Qué rubros tienen menor ejecución?",icono:"📉"},{texto:"¿Cuánto dinero no se ha ejecutado?",icono:"💰"},{texto:"¿Hay indicios de fraccionamiento de contratos?",icono:"🔍"},{texto:"Dame un resumen ejecutivo del presupuesto",icono:"📊"},{texto:"¿Qué preguntas puedo hacer en el debate?",icono:"✨"},{texto:"¿Cuáles son las anomalías más graves?",icono:"🚨"}];function Tye({data:e,planData:t}){const[r,n]=X.useState([{id:"0",rol:"assistant",timestamp:new Date().toLocaleTimeString("es-CO"),texto:e.length>0?`¡Hola! Soy **Politiko**, tu asistente de inteligencia presupuestal. 🏛️
+`.trim()},jO=[{texto:"¿Cuáles son los contratos más sospechosos?",icono:"⚠️"},{texto:"¿Qué contratistas tienen más contratos?",icono:"👥"},{texto:"¿Qué rubros tienen menor ejecución?",icono:"📉"},{texto:"¿Cuánto dinero no se ha ejecutado?",icono:"💰"},{texto:"¿Hay indicios de fraccionamiento de contratos?",icono:"🔍"},{texto:"Dame un resumen ejecutivo del presupuesto",icono:"📊"},{texto:"¿Qué preguntas puedo hacer en el debate?",icono:"✨"},{texto:"¿Cuáles son las anomalías más graves?",icono:"🚨"}];function Tye({data:e,planData:t}){const[r,n]=X.useState([{id:"0",rol:"assistant",timestamp:new Date().toLocaleTimeString("es-CO"),texto:e.length>0?`¡Hola! Soy **Politiko**, tu asistente de control político integral. 🏛️
 
-He analizado **${e.length} registros** del reporte CRP. ¿Qué quieres saber?`:`¡Hola! Soy **Politiko** 🏛️
+He analizado **${e.length} registros** del reporte CRP. Pregúntame sobre presupuesto, contratación, anomalías, mapa de proyectos o cualquier otro tema de control político.
 
-Carga un reporte Excel CRP en **Análisis Presupuestal** para comenzar.`}]),[i,a]=X.useState(""),[o,s]=X.useState(!1),[l,c]=X.useState(!1),f=X.useRef(null),d=X.useRef(null);X.useEffect(()=>{var m;(m=f.current)==null||m.scrollIntoView({behavior:"smooth"})},[r]),X.useEffect(()=>{l&&setTimeout(()=>{var m;return(m=d.current)==null?void 0:m.focus()},100)},[l]),X.useEffect(()=>{e.length>0&&n([{id:"0",rol:"assistant",timestamp:new Date().toLocaleTimeString("es-CO"),texto:`¡Hola! Soy **Politiko** 🏛️
+¿Qué quieres saber?`:`¡Hola! Soy **Politiko** 🏛️
+
+Puedo ayudarte con presupuesto, contratación SECOP II, anomalías, mapa de proyectos, agenda legislativa y más.
+
+Carga un reporte Excel CRP en **Análisis Presupuestal** para análisis con datos reales, o pregúntame lo que necesites.`}]),[i,a]=X.useState(""),[o,s]=X.useState(!1),[l,c]=X.useState(!1),f=X.useRef(null),d=X.useRef(null);X.useEffect(()=>{var m;(m=f.current)==null||m.scrollIntoView({behavior:"smooth"})},[r]),X.useEffect(()=>{l&&setTimeout(()=>{var m;return(m=d.current)==null?void 0:m.focus()},100)},[l]),X.useEffect(()=>{e.length>0&&n([{id:"0",rol:"assistant",timestamp:new Date().toLocaleTimeString("es-CO"),texto:`¡Hola! Soy **Politiko** 🏛️
 
 He analizado **${e.length} registros** del reporte CRP. Puedo ayudarte a detectar irregularidades y preparar preguntas para tus debates.
 
