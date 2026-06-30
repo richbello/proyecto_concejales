@@ -380,7 +380,7 @@ Responde basándote en estos datos reales cuando la pregunta sea sobre presupues
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key==='Enter' && !e.shiftKey && enviar(input)}
                 placeholder={data.length > 0 ? "Pregunta sobre el presupuesto..." : "Carga un Excel primero..."}
-                disabled={cargando || data.length === 0}
+                disabled={cargando || (data.length === 0 && !planData && !contratosData)}
                 style={{
                   flex:1, border:'1px solid #e2e8f0', borderRadius:10,
                   padding:'8px 12px', fontSize:13, outline:'none',
@@ -390,11 +390,11 @@ Responde basándote en estos datos reales cuando la pregunta sea sobre presupues
               />
               <button
                 onClick={() => enviar(input)}
-                disabled={cargando || !input.trim() || data.length === 0}
+                disabled={cargando || !input.trim() || (data.length === 0 && !planData && !contratosData)}
                 style={{
                   width:38, height:38, borderRadius:10, border:'none', cursor:'pointer',
-                  background: (cargando || !input.trim() || data.length===0) ? '#e2e8f0' : '#2563eb',
-                  color: (cargando || !input.trim() || data.length===0) ? '#94a3b8' : 'white',
+                  background: (cargando || !input.trim() || (data.length===0 && !planData && !contratosData)) ? '#e2e8f0' : '#2563eb',
+                  color: (cargando || !input.trim() || (data.length===0 && !planData && !contratosData)) ? '#94a3b8' : 'white',
                   display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0,
                 }}>
                 <Send size={16}/>
