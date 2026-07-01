@@ -38,6 +38,13 @@ function gc(headers:string[], terms:string[]) {
   return headers.findIndex(h=>terms.some(t=>h.toLowerCase().includes(t.toLowerCase())));
 }
 
+// Busca coincidencia EXACTA del encabezado primero (ej. "Nombre" vs "Nombre segmento").
+// Si no hay match exacto, cae al metodo por inclusion de gc().
+function gcExacto(headers:string[], terms:string[]) {
+  const exacto = headers.findIndex(h=>terms.some(t=>h.trim().toLowerCase()===t.toLowerCase()));
+  return exacto>=0 ? exacto : gc(headers,terms);
+}
+
 // Convierte fecha de Excel (serial number, string ISO o texto) a dd/mm/yyyy
 function parseFecha(val:any):string {
   if(val===null||val===undefined||val==="") return "";
@@ -117,7 +124,7 @@ function calcDatos(filas:Fila[]):Omit<Datos,"filas"> {
 function procesarExcel(raw:any[][]):Datos {
   const headers=raw[0].map((c:any)=>String(c??"").trim());
   const rows=raw.slice(1);
-  const iNombre =gc(headers,["nombre"]);
+  const iNombre =gcExacto(headers,["nombre"]);
   const iNroId  =gc(headers,["nº identificación","identificacion","nro id"]);
   const iProv   =gc(headers,["proveedor"]);
   const iBruto  =gc(headers,["valor bruto"]);
