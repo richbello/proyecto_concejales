@@ -251,8 +251,9 @@ export default function HistoricoPagos() {
   }
 
   // ── Filtrado combinado: contratista + referencia + rango fechas ─────────────
-  const q = busqueda.toLowerCase().trim();
-  const qRef = filtroRef.toLowerCase().trim();
+  const norm = (s:string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
+  const q = norm(busqueda);
+  const qRef = norm(filtroRef);
 
   // Convierte dd/mm/yyyy → comparable string yyyymmdd
   const fechaToSort = (f:string) => {
@@ -264,8 +265,8 @@ export default function HistoricoPagos() {
   const fechaHastaSrt = fechaHasta ? fechaHasta.replace(/-/g,"") : "";
 
   const filasFiltradas = datos.filas.filter(r=>{
-    const okQ   = !q   || r.nombre.toLowerCase().includes(q)||r.nroId.includes(q)||r.proveedor.toLowerCase().includes(q)||r.asignacion.toLowerCase().includes(q)||r.asignacion3.toLowerCase().includes(q);
-    const okRef = !qRef|| r.referencia.toLowerCase().includes(qRef)||r.asignacion.toLowerCase().includes(qRef)||r.asignacion3.toLowerCase().includes(qRef);
+    const okQ   = !q   || norm(r.nombre).includes(q)||norm(r.nroId).includes(q)||norm(r.proveedor).includes(q)||norm(r.asignacion).includes(q)||norm(r.asignacion3).includes(q);
+    const okRef = !qRef|| norm(r.referencia).includes(qRef)||norm(r.asignacion).includes(qRef)||norm(r.asignacion3).includes(qRef);
     const fs    = fechaToSort(r.fechaPago);
     const okFD  = !fechaDesdeSrt || (fs && fs >= fechaDesdeSrt);
     const okFH  = !fechaHastaSrt || (fs && fs <= fechaHastaSrt);
