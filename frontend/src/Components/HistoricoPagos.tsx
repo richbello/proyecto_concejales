@@ -265,8 +265,10 @@ export default function HistoricoPagos() {
   const fechaHastaSrt = fechaHasta ? fechaHasta.replace(/-/g,"") : "";
 
   const filasFiltradas = datos.filas.filter(r=>{
-    const okQ   = !q   || norm(r.nombre).includes(q)||norm(r.nroId).includes(q)||norm(r.proveedor).includes(q)||norm(r.asignacion).includes(q)||norm(r.asignacion3).includes(q);
-    const okRef = !qRef|| norm(r.referencia).includes(qRef)||norm(r.asignacion).includes(qRef)||norm(r.asignacion3).includes(qRef);
+    const campoQ   = norm(`${r.nombre} ${r.nroId} ${r.proveedor} ${r.asignacion} ${r.asignacion3}`);
+    const campoRef = norm(`${r.referencia} ${r.asignacion} ${r.asignacion3}`);
+    const okQ   = !q   || q.split(/\s+/).every(palabra=>campoQ.includes(palabra));
+    const okRef = !qRef|| qRef.split(/\s+/).every(palabra=>campoRef.includes(palabra));
     const fs    = fechaToSort(r.fechaPago);
     const okFD  = !fechaDesdeSrt || (fs && fs >= fechaDesdeSrt);
     const okFH  = !fechaHastaSrt || (fs && fs <= fechaHastaSrt);
