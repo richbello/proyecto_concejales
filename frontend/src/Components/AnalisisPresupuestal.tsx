@@ -5,18 +5,20 @@ import AnomaliasCRP, { detectarAnomalias } from './AnomaliasCRP';
 import {
   BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  ResponsiveContainer, LineChart, Line, LabelList, ComposedChart, Area,
+  ResponsiveContainer, LabelList, Treemap,
+  RadialBarChart, RadialBar, PolarAngleAxis,
 } from 'recharts';
 
 interface DataRow { [key: string]: string | number; }
 
-// ─── Paleta ───────────────────────────────────────────────────────────────────
+// ─── Paleta XBOG (navy / cyan) + acentos ───────────────────────────────────────
 const C = {
-  navy:"#1a2742", cyan:"#5dade2", verde:"#27ae60", amar:"#f39c12",
-  rojo:"#e74c3c", muted:"#7f8c8d", bg:"#f0f2f5", border:"#e8edf2",
-  violet:"#8e44ad", teal:"#1abc9c", orange:"#e67e22",
+  navy:"#1B3A6B", navyDark:"#12294d", cyan:"#00AEEF", cyanSoft:"#5dade2",
+  verde:"#10b981", amar:"#f59e0b", rojo:"#ef4444", muted:"#64748b",
+  bg:"#f1f5f9", border:"#e2e8f0",
+  violet:"#8b5cf6", teal:"#14b8a6", orange:"#f97316", rosa:"#ec4899",
 };
-const PAL = [C.cyan,C.verde,C.amar,C.rojo,C.violet,C.teal,C.orange,"#d63031","#0984e3","#e84393"];
+const PAL = [C.cyan,C.verde,C.violet,C.amar,C.teal,C.rosa,C.orange,C.rojo,"#0984e3","#00b894"];
 
 const fmtCOP = (v:number) =>
   v>=1e9?`$${(v/1e9).toFixed(2)}B`:v>=1e6?`$${(v/1e6).toFixed(1)}M`:v>=1e3?`$${(v/1e3).toFixed(0)}K`:`$${v.toFixed(0)}`;
@@ -30,44 +32,52 @@ const toNum = (v:any):number => {
   return isNaN(n)?0:n;
 };
 
-// ─── Buscador de columna flexible ─────────────────────────────────────────────
-const gc = (row:DataRow, variants:string[]):any => {
-  for(const k of variants){
-    if(row[k]!==undefined&&row[k]!==null&&row[k]!=='') return row[k];
+// ─── Normalizador (minúsculas, sin acentos, sin puntuación) ────────────────────
+const norm = (s:any):string => String(s)
+  .toLowerCase()
+  .normalize('NFD').replace(/[\u0300-\u036f]/g,'')   // quita acentos
+  .replace(/[^a-z0-9]+/g,' ')                          // puntos, comas, etc → espacio
+  .trim();
+
+// ─── Buscador de columna EXACTO (evita colisiones tipo "Compromiso" vs "No. Compromiso") ─
+// 1) intenta match exacto normalizado; 2) si no, cae a substring. Prioriza siempre el exacto.
+const gcExacto = (row:DataRow, variants:string[]):any => {
+  const keys = Object.keys(row);
+  for(const v of variants){                      // paso 1: exacto
+    const nv = norm(v);
+    const hit = keys.find(k => norm(k) === nv);
+    if(hit !== undefined) return row[hit];
+  }
+  for(const v of variants){                      // paso 2: substring fallback
+    const nv = norm(v);
+    const hit = keys.find(k => norm(k).includes(nv));
+    if(hit !== undefined) return row[hit];
   }
   return '';
 };
 
-// ─── Mapa de columnas con las 20 variables exactas ───────────────────────────
+// ─── Mapa de columnas: LAS 12 VARIABLES EXACTAS ────────────────────────────────
 const COLS = {
-  ejercicio:    ['Ejercicio','EJERCICIO'],
-  periodo:      ['Período','Periodo','PERÍODO','PERIODO'],
-  fechaReg:     ['Fecha Registro','Fecha de Registro','FECHA REGISTRO','FechaRegistro'],
-  compromiso:   ['Compromiso','COMPROMISO'],
-  noComp:       ['No. Compromiso','No.Compromiso','Numero Compromiso','N° Compromiso','NO. COMPROMISO'],
-  noCDP:        ['Número de CDP','Numero de CDP','No. CDP','N° CDP','NumeroCDP'],
-  noCRP:        ['Número de CRP','Numero de CRP','No. CRP','N° CRP','NumeroCRP'],
-  objeto:       ['Objeto','OBJETO'],
-  descripcion:  ['Descripcion','Descripción','DESCRIPCION','DESCRIPCIÓN'],
-  modSelec:     ['Mod. Selec','Descripcion Mod. Selec','Descripción Mod. Selec','Modalidad','Mod Selec'],
-  tipoDoc:      ['Tipo Doc.','Tipo de Documento','Tipo Doc','TIPO DOC'],
-  tipoDocBP:    ['BP Beneficiario','Tipo Doc. BP Beneficiario','Tipo Doc BP'],
-  beneficiario: ['Nombre BP Beneficiario','Nombre Beneficiario','NombreBP','Nombre BP'],
-  valorCRP:     ['Valor CRP','VALOR CRP'],
-  anulaciones:  ['Anulaciones','ANULACIONES'],
-  reintegros:   ['Reintegros','REINTEGROS'],
-  valorNeto:    ['Valor Neto','VALOR NETO'],
-  giro:         ['Autorizacion giro','Autorización giro','Autorizacion Giro','AUTORIZACION GIRO'],
-  pendGiro:     ['Pendiente de Giro','Pendiente Giro','PENDIENTE DE GIRO','PendienteGiro'],
-  ejecutado:    ['Ejecutado','EJECUTADO','Ejecucion %','EJECUCION %','Ejecución %'],
+  ejercicio:    ['Ejercicio'],
+  compromiso:   ['Compromiso'],                                   // objeto / descripción del compromiso
+  noComp:       ['No. Compromiso','No.Compromiso','Numero Compromiso','N° Compromiso'],
+  rubro:        ['Rubro'],
+  modSelec:     ['Descripcion Mod. Selec','Descripción Mod. Selec','Desc Mod Selec'],
+  beneficiario: ['Nombre BP Beneficiario','Nombre Beneficiario'],
+  valorCRP:     ['Valor CRP'],
+  anulaciones:  ['Anulaciones'],
+  reintegros:   ['Reintegros'],
+  valorNeto:    ['Valor Neto'],
+  giro:         ['Autorizacion giro','Autorización giro','Autorizacion Giro'],
+  sinGiro:      ['Com.Sin.Aut.Giro','Com. Sin. Aut. Giro','Com Sin Aut Giro','Compromiso Sin Autorizacion Giro'],
 };
 
 interface Props { onDataLoad?: (data:DataRow[]) => void; }
 
 // ─── KPI card ─────────────────────────────────────────────────────────────────
 const KpiCard = ({emoji,label,valor,color,sub}:{emoji:string;label:string;valor:string;color:string;sub?:string}) => (
-  <div style={{background:"white",borderRadius:10,padding:"14px 16px",borderLeft:`3px solid ${color}`,
-    flex:1,minWidth:120,boxShadow:"0 2px 8px rgba(0,0,0,.06)"}}>
+  <div style={{background:"white",borderRadius:12,padding:"14px 16px",borderLeft:`4px solid ${color}`,
+    flex:1,minWidth:130,boxShadow:"0 4px 14px rgba(27,58,107,.07)"}}>
     <div style={{fontSize:20}}>{emoji}</div>
     <div style={{fontSize:18,fontWeight:800,color,lineHeight:1,marginTop:4}}>{valor}</div>
     <div style={{fontSize:11,fontWeight:600,color:C.navy,marginTop:3}}>{label}</div>
@@ -79,14 +89,37 @@ const TT = ({active,payload,label}:any) => {
   if(!active||!payload?.length) return null;
   return(
     <div style={{background:"white",border:`1px solid ${C.border}`,borderRadius:8,padding:"10px 14px",
-      fontSize:12,boxShadow:"0 4px 12px rgba(0,0,0,.12)"}}>
-      <div style={{fontWeight:700,color:C.navy,marginBottom:5}}>{label}</div>
+      fontSize:12,boxShadow:"0 8px 24px rgba(27,58,107,.15)"}}>
+      {label!==undefined&&<div style={{fontWeight:700,color:C.navy,marginBottom:5}}>{label}</div>}
       {payload.map((p:any,i:number)=>(
-        <div key={i} style={{color:p.color??C.cyan}}>{p.name}: <strong>
-          {typeof p.value==="number"?fmtCOP(p.value):p.value}
+        <div key={i} style={{color:p.color??p.payload?.fill??C.cyan}}>{p.name}: <strong>
+          {typeof p.value==="number"?fmtFull(p.value):p.value}
         </strong></div>
       ))}
     </div>
+  );
+};
+
+// ─── Celda de Treemap (colorida) ───────────────────────────────────────────────
+const TreemapCell = (props:any) => {
+  const {x,y,width,height,index,name,value} = props;
+  if(width<=0||height<=0) return null;
+  const color = PAL[index % PAL.length];
+  return(
+    <g>
+      <rect x={x} y={y} width={width} height={height} rx={4}
+        style={{fill:color,stroke:"#fff",strokeWidth:2}}/>
+      {width>70&&height>30&&(
+        <>
+          <text x={x+8} y={y+18} fill="#fff" fontSize={11} fontWeight={700}>
+            {String(name).slice(0,Math.max(2,Math.floor(width/7)))}
+          </text>
+          <text x={x+8} y={y+33} fill="rgba(255,255,255,.9)" fontSize={10}>
+            {fmtCOP(value)}
+          </text>
+        </>
+      )}
+    </g>
   );
 };
 
@@ -97,12 +130,11 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
   const [activeTab, setActiveTab] = useState<'resumen'|'graficas'|'detalle'|'anomalias'>('resumen');
 
   // Filtros
-  const [busqueda,    setBusqueda]    = useState('');
-  const [filtroEj,    setFiltroEj]    = useState('Todos');
-  const [filtroPer,   setFiltroPer]   = useState('Todos');
-  const [filtroMod,   setFiltroMod]   = useState('Todos');
-  const [filtroTipo,  setFiltroTipo]  = useState('Todos');
-  const [pagina,      setPagina]      = useState(1);
+  const [busqueda,   setBusqueda]   = useState('');
+  const [filtroEj,   setFiltroEj]   = useState('Todos');
+  const [filtroRubro,setFiltroRubro]= useState('Todos');
+  const [filtroMod,  setFiltroMod]  = useState('Todos');
+  const [pagina,     setPagina]     = useState(1);
   const POR_PAG = 15;
 
   const handleFile = useCallback((e:React.ChangeEvent<HTMLInputElement>) => {
@@ -114,147 +146,153 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
       const wb = XLSX.read(ev.target?.result,{type:'array'});
       const ws = wb.Sheets[wb.SheetNames[0]];
       const json = XLSX.utils.sheet_to_json(ws) as DataRow[];
-      if(json.length>0) console.log('COLUMNAS CRP:',Object.keys(json[0]));
+      if(json.length>0) console.log('COLUMNAS DETECTADAS:',Object.keys(json[0]));
       setData(json);
       onDataLoad?.(json);
-      setBusqueda(''); setFiltroEj('Todos'); setFiltroPer('Todos');
-      setFiltroMod('Todos'); setFiltroTipo('Todos'); setPagina(1);
+      setBusqueda(''); setFiltroEj('Todos'); setFiltroRubro('Todos');
+      setFiltroMod('Todos'); setPagina(1);
     };
     reader.readAsArrayBuffer(file);
   },[onDataLoad]);
 
   const uniq = (col:string[]) =>
-    Array.from(new Set(data.map(r=>String(gc(r,col)||'')).filter(Boolean))).sort();
+    Array.from(new Set(data.map(r=>String(gcExacto(r,col)||'')).filter(Boolean))).sort();
 
   // ── Datos filtrados ──────────────────────────────────────────────────────────
   const filtrado = useMemo(()=>{
     let f = data;
-    if(filtroEj!=='Todos')  f=f.filter(r=>String(gc(r,COLS.ejercicio)||'')=== filtroEj);
-    if(filtroPer!=='Todos') f=f.filter(r=>String(gc(r,COLS.periodo)||'')  === filtroPer);
-    if(filtroMod!=='Todos') f=f.filter(r=>String(gc(r,COLS.modSelec)||'')=== filtroMod);
-    if(filtroTipo!=='Todos')f=f.filter(r=>String(gc(r,COLS.tipoDoc)||'') === filtroTipo);
+    if(filtroEj!=='Todos')    f=f.filter(r=>String(gcExacto(r,COLS.ejercicio)||'')===filtroEj);
+    if(filtroRubro!=='Todos') f=f.filter(r=>String(gcExacto(r,COLS.rubro)||'')    ===filtroRubro);
+    if(filtroMod!=='Todos')   f=f.filter(r=>String(gcExacto(r,COLS.modSelec)||'') ===filtroMod);
     if(busqueda.trim()){
-      const q=busqueda.toLowerCase();
+      const q=norm(busqueda);
       f=f.filter(r=>
-        String(gc(r,COLS.beneficiario)||'').toLowerCase().includes(q)||
-        String(gc(r,COLS.noComp)||'').toLowerCase().includes(q)||
-        String(gc(r,COLS.noCDP)||'').toLowerCase().includes(q)||
-        String(gc(r,COLS.noCRP)||'').toLowerCase().includes(q)||
-        String(gc(r,COLS.objeto)||'').toLowerCase().includes(q)||
-        String(gc(r,COLS.descripcion)||'').toLowerCase().includes(q)
+        norm(gcExacto(r,COLS.beneficiario)).includes(q)||
+        norm(gcExacto(r,COLS.noComp)).includes(q)||
+        norm(gcExacto(r,COLS.compromiso)).includes(q)||
+        norm(gcExacto(r,COLS.rubro)).includes(q)
       );
     }
     return f;
-  },[data,busqueda,filtroEj,filtroPer,filtroMod,filtroTipo]);
+  },[data,busqueda,filtroEj,filtroRubro,filtroMod]);
 
   // ── KPIs ────────────────────────────────────────────────────────────────────
   const kpis = useMemo(()=>{
-    const valorCRP   = filtrado.reduce((s,r)=>s+toNum(gc(r,COLS.valorCRP)),0);
-    const valorNeto  = filtrado.reduce((s,r)=>s+toNum(gc(r,COLS.valorNeto)),0);
-    const giro       = filtrado.reduce((s,r)=>s+toNum(gc(r,COLS.giro)),0);
-    const pendGiro   = filtrado.reduce((s,r)=>s+toNum(gc(r,COLS.pendGiro)),0);
-    const anulac     = filtrado.reduce((s,r)=>s+toNum(gc(r,COLS.anulaciones)),0);
-    const reint      = filtrado.reduce((s,r)=>s+toNum(gc(r,COLS.reintegros)),0);
-    const ejecutado  = valorCRP>0?(giro/valorCRP)*100:0;
-    const pctEjec    = valorCRP>0?(giro/valorCRP)*100:0;
-    return {valorCRP,valorNeto,giro,pendGiro,anulac,reint,ejecutado,pctEjec,total:filtrado.length,sinGiro:pendGiro,anulaciones:anulac};
+    const valorCRP  = filtrado.reduce((s,r)=>s+toNum(gcExacto(r,COLS.valorCRP)),0);
+    const valorNeto = filtrado.reduce((s,r)=>s+toNum(gcExacto(r,COLS.valorNeto)),0);
+    const giro      = filtrado.reduce((s,r)=>s+toNum(gcExacto(r,COLS.giro)),0);
+    const sinGiro   = filtrado.reduce((s,r)=>s+toNum(gcExacto(r,COLS.sinGiro)),0);
+    const anulac    = filtrado.reduce((s,r)=>s+toNum(gcExacto(r,COLS.anulaciones)),0);
+    const reint     = filtrado.reduce((s,r)=>s+toNum(gcExacto(r,COLS.reintegros)),0);
+    const pctEjec   = valorCRP>0?(giro/valorCRP)*100:0;
+    // alias legacy para no romper ExportarPDF (pendGiro/anulaciones/reintegros)
+    return {valorCRP,valorNeto,giro,sinGiro,anulac,reint,pctEjec,total:filtrado.length,
+            pendGiro:sinGiro,anulaciones:anulac,reintegros:reint,ejecutado:pctEjec};
   },[filtrado]);
 
   const anomaliasDetectadas = useMemo(()=>detectarAnomalias(filtrado),[filtrado]);
 
-  // ── Agrupaciones para gráficas ───────────────────────────────────────────────
-  // Por período
-  const byPeriodo = useMemo(()=>{
-    const g:Record<string,{valorCRP:number;giro:number;pendGiro:number;count:number}>={};
+  // ── Agrupación por RUBRO (eje analítico principal) ─────────────────────────────
+  const byRubro = useMemo(()=>{
+    const g:Record<string,{valorCRP:number;giro:number;sinGiro:number;neto:number;anul:number;rein:number;count:number}>={};
     filtrado.forEach(r=>{
-      const k=String(gc(r,COLS.periodo)||'Sin período');
-      if(!g[k]) g[k]={valorCRP:0,giro:0,pendGiro:0,count:0};
-      g[k].valorCRP +=toNum(gc(r,COLS.valorCRP));
-      g[k].giro     +=toNum(gc(r,COLS.giro));
-      g[k].pendGiro +=toNum(gc(r,COLS.pendGiro));
-      g[k].count    +=1;
+      const k=String(gcExacto(r,COLS.rubro)||'Sin rubro');
+      if(!g[k]) g[k]={valorCRP:0,giro:0,sinGiro:0,neto:0,anul:0,rein:0,count:0};
+      g[k].valorCRP+=toNum(gcExacto(r,COLS.valorCRP));
+      g[k].giro    +=toNum(gcExacto(r,COLS.giro));
+      g[k].sinGiro +=toNum(gcExacto(r,COLS.sinGiro));
+      g[k].neto    +=toNum(gcExacto(r,COLS.valorNeto));
+      g[k].anul    +=toNum(gcExacto(r,COLS.anulaciones));
+      g[k].rein    +=toNum(gcExacto(r,COLS.reintegros));
+      g[k].count   +=1;
     });
-    return Object.entries(g).map(([periodo,v])=>({periodo,...v})).sort((a,b)=>a.periodo.localeCompare(b.periodo));
+    return Object.entries(g)
+      .map(([rubro,v])=>({rubro,rubroCorto:rubro.length>26?rubro.slice(0,26)+'…':rubro,...v}))
+      .sort((a,b)=>b.valorCRP-a.valorCRP);
   },[filtrado]);
 
-  // Por modalidad
+  const topRubros = useMemo(()=>byRubro.slice(0,10),[byRubro]);
+  const treeRubros = useMemo(()=>byRubro.slice(0,14).map(d=>({name:d.rubro,value:d.valorCRP})),[byRubro]);
+
+  // Anulaciones + Reintegros por rubro
+  const byAnulRein = useMemo(()=>
+    byRubro.map(d=>({rubro:d.rubro.length>18?d.rubro.slice(0,18)+'…':d.rubro,Anulaciones:d.anul,Reintegros:d.rein}))
+      .filter(d=>d.Anulaciones>0||d.Reintegros>0)
+      .sort((a,b)=>(b.Anulaciones+b.Reintegros)-(a.Anulaciones+a.Reintegros)).slice(0,8)
+  ,[byRubro]);
+
+  // Por modalidad (Valor Neto)
   const byMod = useMemo(()=>{
     const g:Record<string,number>={};
     filtrado.forEach(r=>{
-      const k=String(gc(r,COLS.modSelec)||'Sin modalidad');
-      g[k]=(g[k]||0)+toNum(gc(r,COLS.valorNeto));
+      const k=String(gcExacto(r,COLS.modSelec)||'Sin modalidad');
+      g[k]=(g[k]||0)+toNum(gcExacto(r,COLS.valorNeto));
     });
-    return Object.entries(g).map(([name,value])=>({name:name.slice(0,24),value}))
+    return Object.entries(g).map(([name,value])=>({name:name.length>24?name.slice(0,24)+'…':name,value}))
       .sort((a,b)=>b.value-a.value).slice(0,8);
   },[filtrado]);
 
-  // Por beneficiario top 10
+  // Top 10 beneficiarios (Valor CRP vs Giro)
   const byBenef = useMemo(()=>{
     const g:Record<string,{valorCRP:number;giro:number;count:number}>={};
     filtrado.forEach(r=>{
-      const k=String(gc(r,COLS.beneficiario)||'Sin nombre');
+      const k=String(gcExacto(r,COLS.beneficiario)||'Sin nombre');
       if(!g[k]) g[k]={valorCRP:0,giro:0,count:0};
-      g[k].valorCRP+=toNum(gc(r,COLS.valorCRP));
-      g[k].giro    +=toNum(gc(r,COLS.giro));
+      g[k].valorCRP+=toNum(gcExacto(r,COLS.valorCRP));
+      g[k].giro    +=toNum(gcExacto(r,COLS.giro));
       g[k].count   +=1;
     });
-    return Object.entries(g).map(([nombre,v])=>({nombre:nombre.slice(0,28),...v}))
+    return Object.entries(g).map(([nombre,v])=>({nombre:nombre.length>30?nombre.slice(0,30)+'…':nombre,...v}))
       .sort((a,b)=>b.valorCRP-a.valorCRP).slice(0,10);
   },[filtrado]);
 
-  // Valor CRP vs Giro vs Pendiente por período (líneas)
-  const evolucion = useMemo(()=>byPeriodo.map(d=>({
-    periodo:d.periodo,
-    'Valor CRP':d.valorCRP,
-    'Giro':d.giro,
-    'Pendiente Giro':d.pendGiro,
-  })),[byPeriodo]);
+  // Composición del CRP (Girado vs Com. Sin Aut. Giro)
+  const composicion = useMemo(()=>[
+    {name:'Girado',              value:kpis.giro,    fill:C.verde},
+    {name:'Com. Sin Aut. Giro',  value:kpis.sinGiro, fill:C.amar},
+  ],[kpis]);
 
-  // Por tipo doc
-  const byTipoDoc = useMemo(()=>{
-    const g:Record<string,number>={};
-    filtrado.forEach(r=>{
-      const k=String(gc(r,COLS.tipoDoc)||'Sin tipo');
-      g[k]=(g[k]||0)+toNum(gc(r,COLS.valorCRP));
-    });
-    return Object.entries(g).map(([name,value])=>({name:name.slice(0,20),value}))
-      .sort((a,b)=>b.value-a.value);
-  },[filtrado]);
+  const hayFiltros = busqueda||filtroEj!=='Todos'||filtroRubro!=='Todos'||filtroMod!=='Todos';
+  const totalPag = Math.ceil(filtrado.length/POR_PAG);
+  const pageData = filtrado.slice((pagina-1)*POR_PAG,pagina*POR_PAG);
+  const pctColor = (p:number)=>p>=80?C.verde:p>=50?C.amar:C.rojo;
+  const limpiar = ()=>{setBusqueda('');setFiltroEj('Todos');setFiltroRubro('Todos');setFiltroMod('Todos');setPagina(1);};
 
-  // Anulaciones + Reintegros por período
-  const byAnulRein = useMemo(()=>byPeriodo.map(d=>{
-    const anul=filtrado.filter(r=>String(gc(r,COLS.periodo)||'')===d.periodo).reduce((s,r)=>s+toNum(gc(r,COLS.anulaciones)),0);
-    const rein=filtrado.filter(r=>String(gc(r,COLS.periodo)||'')===d.periodo).reduce((s,r)=>s+toNum(gc(r,COLS.reintegros)),0);
-    return {periodo:d.periodo,Anulaciones:anul,Reintegros:rein};
-  }),[byPeriodo,filtrado]);
-
-  const hayFiltros=busqueda||filtroEj!=='Todos'||filtroPer!=='Todos'||filtroMod!=='Todos'||filtroTipo!=='Todos';
-  const totalPag=Math.ceil(filtrado.length/POR_PAG);
-  const pageData=filtrado.slice((pagina-1)*POR_PAG,pagina*POR_PAG);
-  const pctColor=(p:number)=>p>=80?C.verde:p>=50?C.amar:C.rojo;
+  // Defs de gradientes reutilizables
+  const Gradients = () => (
+    <defs>
+      {[['gCyan',C.cyan],['gVerde',C.verde],['gAmar',C.amar],['gRojo',C.rojo],['gViolet',C.violet],['gTeal',C.teal]].map(([id,col])=>(
+        <linearGradient key={id} id={id} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor={col} stopOpacity={0.95}/>
+          <stop offset="100%" stopColor={col} stopOpacity={0.5}/>
+        </linearGradient>
+      ))}
+    </defs>
+  );
 
   // ── Pantalla vacía ───────────────────────────────────────────────────────────
   if(data.length===0) return(
     <div style={{display:"flex",flexDirection:"column" as const,alignItems:"center",justifyContent:"center",minHeight:420,padding:24}}>
-      <div style={{background:`linear-gradient(135deg,${C.navy} 0%,#1e3a6e 100%)`,borderRadius:16,
-        padding:"36px 44px",textAlign:"center" as const,color:"white",maxWidth:560,width:"100%"}}>
+      <div style={{background:`linear-gradient(135deg,${C.navy} 0%,${C.navyDark} 100%)`,borderRadius:16,
+        padding:"36px 44px",textAlign:"center" as const,color:"white",maxWidth:600,width:"100%"}}>
         <div style={{fontSize:52,marginBottom:16}}>📊</div>
         <h3 style={{margin:"0 0 8px",fontSize:22,fontWeight:800}}>Análisis Presupuestal CRP</h3>
         <p style={{margin:"0 0 12px",fontSize:13,color:"rgba(255,255,255,.65)",lineHeight:1.7}}>
-          Carga el reporte SAP para visualizar análisis completo.<br/>
-          <strong style={{color:"#85c1e9"}}>20 variables · filtros dinámicos · 6 gráficas</strong>
+          Carga el reporte SAP para visualizar el análisis completo.<br/>
+          <strong style={{color:C.cyan}}>12 variables · filtros dinámicos · gráficas avanzadas</strong>
         </p>
         <div style={{display:"flex",flexWrap:"wrap" as const,gap:5,justifyContent:"center",marginBottom:28}}>
-          {["Ejercicio","Período","Fecha Registro","Compromiso","No. Compromiso","No. CDP","No. CRP",
-            "Objeto","Descripción","Mod. Selec","Tipo Doc.","BP Beneficiario","Nombre BP",
-            "Valor CRP","Anulaciones","Reintegros","Valor Neto","Autorización Giro","Pendiente Giro","Ejecutado"
+          {["Ejercicio","Compromiso","No. Compromiso","Rubro","Descripcion Mod. Selec","Nombre BP Beneficiario",
+            "Valor CRP","Anulaciones","Reintegros","Valor Neto","Autorizacion giro","Com.Sin.Aut.Giro"
           ].map(v=>(
-            <span key={v} style={{background:"rgba(93,173,226,.25)",border:"1px solid rgba(93,173,226,.4)",
-              borderRadius:20,padding:"2px 10px",fontSize:10,color:"#85c1e9",fontWeight:600}}>{v}</span>
+            <span key={v} style={{background:"rgba(0,174,239,.22)",border:"1px solid rgba(0,174,239,.45)",
+              borderRadius:20,padding:"2px 10px",fontSize:10,color:C.cyan,fontWeight:600}}>{v}</span>
           ))}
         </div>
-        <label style={{display:"inline-flex",alignItems:"center",gap:10,background:C.cyan,
-          borderRadius:10,padding:"12px 28px",cursor:"pointer",fontWeight:700,fontSize:13}}>
+        <label style={{display:"inline-flex",alignItems:"center",gap:10,
+          background:`linear-gradient(135deg,${C.cyan},#0284c7)`,
+          borderRadius:10,padding:"12px 28px",cursor:"pointer",fontWeight:700,fontSize:13,
+          boxShadow:"0 6px 18px rgba(0,174,239,.35)"}}>
           📂 Cargar archivo Excel (.xlsx)
           <input type="file" accept=".xlsx,.xls" onChange={handleFile} style={{display:"none"}}/>
         </label>
@@ -266,15 +304,15 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
     <div style={{fontFamily:"'Segoe UI',sans-serif",color:C.navy}}>
 
       {/* Header */}
-      <div style={{background:`linear-gradient(135deg,${C.navy} 0%,#1e3a6e 100%)`,borderRadius:12,
+      <div style={{background:`linear-gradient(135deg,${C.navy} 0%,${C.navyDark} 100%)`,borderRadius:12,
         padding:"16px 22px",marginBottom:16,color:"white",display:"flex",
         justifyContent:"space-between",alignItems:"center",flexWrap:"wrap" as const,gap:10}}>
         <div>
           <div style={{fontSize:10,color:C.cyan,letterSpacing:2,fontWeight:700,textTransform:"uppercase" as const}}>
-            📊 SAP Distrital · FDL Usme
+            📊 SAP Distrital · FDL
           </div>
           <h2 style={{margin:"4px 0",fontSize:18,fontWeight:800}}>Análisis Presupuestal CRP</h2>
-          <div style={{fontSize:11,color:"rgba(255,255,255,.5)"}}>
+          <div style={{fontSize:11,color:"rgba(255,255,255,.55)"}}>
             📁 {fileName} · {fmtNum(data.length)} registros · {fmtNum(filtrado.length)} filtrados
           </div>
         </div>
@@ -286,71 +324,70 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
             <input type="file" accept=".xlsx,.xls" onChange={handleFile} style={{display:"none"}}/>
           </label>
           <ExportarPDF fileName={fileName} totalRegistros={data.length} kpis={kpis}
-            anomalias={anomaliasDetectadas} municipio="Usme"/>
+            anomalias={anomaliasDetectadas} municipio="FDL"/>
         </div>
       </div>
 
       {/* KPIs */}
       <div style={{display:"flex",gap:12,flexWrap:"wrap" as const,marginBottom:16}}>
-        <KpiCard emoji="💰" label="Valor CRP Total"    valor={fmtCOP(kpis.valorCRP)}   color={C.cyan}/>
-        <KpiCard emoji="✅" label="Valor Neto"          valor={fmtCOP(kpis.valorNeto)}  color={C.verde}/>
-        <KpiCard emoji="🏦" label="Autorización Giro"  valor={fmtCOP(kpis.giro)}       color={C.teal}/>
-        <KpiCard emoji="⏳" label="Pendiente de Giro"  valor={fmtCOP(kpis.pendGiro)}   color={C.amar}/>
-        <KpiCard emoji="❌" label="Anulaciones"         valor={fmtCOP(kpis.anulac)}     color={C.rojo}/>
-        <KpiCard emoji="↩️" label="Reintegros"          valor={fmtCOP(kpis.reint)}      color={C.violet}/>
+        <KpiCard emoji="💰" label="Valor CRP Total"     valor={fmtCOP(kpis.valorCRP)}  color={C.cyan}/>
+        <KpiCard emoji="✅" label="Valor Neto"           valor={fmtCOP(kpis.valorNeto)} color={C.verde}/>
+        <KpiCard emoji="🏦" label="Autorización Giro"   valor={fmtCOP(kpis.giro)}      color={C.teal}/>
+        <KpiCard emoji="⏳" label="Com. Sin Aut. Giro"  valor={fmtCOP(kpis.sinGiro)}   color={C.amar}/>
+        <KpiCard emoji="❌" label="Anulaciones"          valor={fmtCOP(kpis.anulac)}    color={C.rojo}/>
+        <KpiCard emoji="↩️" label="Reintegros"           valor={fmtCOP(kpis.reint)}     color={C.violet}/>
       </div>
 
       {/* Barra ejecución */}
       <div style={{background:"white",borderRadius:12,padding:"14px 20px",marginBottom:16,
-        boxShadow:"0 2px 8px rgba(0,0,0,.06)"}}>
+        boxShadow:"0 4px 14px rgba(27,58,107,.07)"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-          <span style={{fontWeight:700,fontSize:13,color:C.navy}}>Nivel de Ejecución — Giro / Valor CRP</span>
+          <span style={{fontWeight:700,fontSize:13,color:C.navy}}>Nivel de Ejecución — Autorización Giro / Valor CRP</span>
           <span style={{fontSize:26,fontWeight:900,color:pctColor(kpis.pctEjec)}}>
             {kpis.pctEjec.toFixed(1)}%
           </span>
         </div>
         <div style={{background:C.bg,borderRadius:20,height:16,overflow:"hidden"}}>
           <div style={{height:"100%",borderRadius:20,transition:"width .7s",
-            background:pctColor(kpis.pctEjec),width:`${Math.min(kpis.pctEjec,100)}%`}}/>
+            background:`linear-gradient(90deg,${pctColor(kpis.pctEjec)},${C.cyan})`,
+            width:`${Math.min(kpis.pctEjec,100)}%`}}/>
         </div>
         <div style={{display:"flex",justifyContent:"space-between",fontSize:11,color:C.muted,marginTop:6}}>
           <span>Girado: {fmtFull(kpis.giro)}</span>
-          <span>Pendiente: {fmtFull(kpis.pendGiro)}</span>
+          <span>Sin Aut. Giro: {fmtFull(kpis.sinGiro)}</span>
           <span>CRP Total: {fmtFull(kpis.valorCRP)}</span>
         </div>
       </div>
 
       {/* Filtros */}
       <div style={{background:"white",borderRadius:12,padding:"14px 20px",marginBottom:16,
-        boxShadow:"0 2px 8px rgba(0,0,0,.06)"}}>
+        boxShadow:"0 4px 14px rgba(27,58,107,.07)"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
           <span style={{fontWeight:700,fontSize:13,color:C.navy}}>🔍 Filtros</span>
           {hayFiltros&&(
-            <button onClick={()=>{setBusqueda('');setFiltroEj('Todos');setFiltroPer('Todos');
-              setFiltroMod('Todos');setFiltroTipo('Todos');setPagina(1);}}
+            <button onClick={limpiar}
               style={{fontSize:11,padding:"4px 12px",borderRadius:6,border:`1px solid ${C.border}`,
-                cursor:"pointer",background:"#fadbd8",color:C.rojo,fontWeight:700}}>
+                cursor:"pointer",background:"#fee2e2",color:C.rojo,fontWeight:700}}>
               ✕ Limpiar filtros
             </button>
           )}
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr 1fr",gap:10,flexWrap:"wrap" as const}}>
+        <div style={{display:"grid",gridTemplateColumns:"2fr 1fr 1.4fr 1.4fr",gap:10}}>
           <input value={busqueda} onChange={e=>{setBusqueda(e.target.value);setPagina(1);}}
-            placeholder="🔎 Beneficiario, No. Compromiso, CDP, CRP, objeto..."
+            placeholder="🔎 Beneficiario, No. Compromiso, Compromiso, Rubro..."
             style={{fontSize:12,padding:"8px 12px",borderRadius:8,
               border:`1.5px solid ${busqueda?C.cyan:C.border}`,outline:"none",color:C.navy}}/>
           {([
-            {val:filtroEj,  set:setFiltroEj,  col:COLS.ejercicio, label:"Ejercicio"},
-            {val:filtroPer, set:setFiltroPer, col:COLS.periodo,    label:"Período"},
-            {val:filtroMod, set:setFiltroMod, col:COLS.modSelec,   label:"Mod. Selec"},
-            {val:filtroTipo,set:setFiltroTipo,col:COLS.tipoDoc,    label:"Tipo Doc."},
+            {val:filtroEj,   set:setFiltroEj,   col:COLS.ejercicio, label:"Ejercicio"},
+            {val:filtroRubro,set:setFiltroRubro,col:COLS.rubro,     label:"Rubro"},
+            {val:filtroMod,  set:setFiltroMod,  col:COLS.modSelec,  label:"Mod. Selec"},
           ] as any[]).map((f:any,i:number)=>(
             <select key={i} value={f.val} onChange={e=>{f.set(e.target.value);setPagina(1);}}
               style={{fontSize:12,padding:"8px 10px",borderRadius:8,
                 border:`1.5px solid ${f.val!=='Todos'?C.amar:C.border}`,background:"white",color:C.navy}}>
               <option value="Todos">{f.label}: Todos</option>
               {uniq(f.col).map((v:string)=>(
-                <option key={v} value={v}>{v.slice(0,30)}</option>
+                <option key={v} value={v}>{v.slice(0,40)}</option>
               ))}
             </select>
           ))}
@@ -382,31 +419,32 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
       </div>
 
       <div style={{background:"white",borderRadius:"0 0 10px 10px",padding:"20px",
-        boxShadow:"0 2px 8px rgba(0,0,0,.06)"}}>
+        boxShadow:"0 4px 14px rgba(27,58,107,.07)"}}>
 
         {/* ── RESUMEN ── */}
         {activeTab==='resumen'&&(
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
 
-            {/* G1: CRP vs Giro vs Pendiente por período */}
+            {/* G1: Top Rubros — CRP vs Giro vs Sin Aut. Giro (barras horizontales) */}
             <div style={{gridColumn:"1/-1"}}>
               <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:4}}>
-                Valor CRP vs Giro vs Pendiente de Giro · por Período
+                Top 10 Rubros · Valor CRP vs Autorización Giro vs Com. Sin Aut. Giro
               </div>
               <div style={{fontSize:11,color:C.muted,marginBottom:12}}>
-                Variables: Período · Valor CRP · Autorización Giro · Pendiente de Giro
+                Variables: Rubro · Valor CRP · Autorización giro · Com.Sin.Aut.Giro
               </div>
-              <ResponsiveContainer width="99%" height={260}>
-                <ComposedChart data={evolucion} margin={{top:4,right:16,left:4,bottom:4}}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
-                  <XAxis dataKey="periodo" tick={{fontSize:10}}/>
-                  <YAxis tickFormatter={fmtCOP} tick={{fontSize:9}} width={68}/>
+              <ResponsiveContainer width="99%" height={330}>
+                <BarChart data={topRubros} layout="vertical" margin={{top:4,right:24,left:4,bottom:4}}>
+                  <Gradients/>
+                  <CartesianGrid strokeDasharray="3 3" stroke={C.border} horizontal={false}/>
+                  <XAxis type="number" tickFormatter={fmtCOP} tick={{fontSize:9}}/>
+                  <YAxis type="category" dataKey="rubroCorto" width={190} tick={{fontSize:9}}/>
                   <Tooltip content={<TT/>}/>
                   <Legend wrapperStyle={{fontSize:11}}/>
-                  <Area type="monotone" dataKey="Valor CRP"      fill={C.cyan+"33"}    stroke={C.cyan}   strokeWidth={2} fillOpacity={1}/>
-                  <Area type="monotone" dataKey="Giro"           fill={C.verde+"33"}   stroke={C.verde}  strokeWidth={2} fillOpacity={1}/>
-                  <Area type="monotone" dataKey="Pendiente Giro" fill={C.amar+"33"}    stroke={C.amar}   strokeWidth={2} fillOpacity={1}/>
-                </ComposedChart>
+                  <Bar dataKey="valorCRP" name="Valor CRP"          fill="url(#gCyan)"  radius={[0,4,4,0]}/>
+                  <Bar dataKey="giro"     name="Autorización Giro"  fill="url(#gVerde)" radius={[0,4,4,0]}/>
+                  <Bar dataKey="sinGiro"  name="Com. Sin Aut. Giro" fill="url(#gAmar)"  radius={[0,4,4,0]}/>
+                </BarChart>
               </ResponsiveContainer>
             </div>
 
@@ -415,36 +453,53 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
               <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:4}}>
                 Distribución por Modalidad de Selección
               </div>
-              <div style={{fontSize:11,color:C.muted,marginBottom:12}}>Variable: Mod. Selec · Valor Neto</div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:12}}>Variable: Descripcion Mod. Selec · Valor Neto</div>
               <ResponsiveContainer width="99%" height={260}>
                 <PieChart>
                   <Pie data={byMod} dataKey="value" nameKey="name" cx="50%" cy="50%"
-                    outerRadius={95} innerRadius={48}
+                    outerRadius={95} innerRadius={50} paddingAngle={2}
                     label={({percent})=>`${(percent*100).toFixed(0)}%`} labelLine={false} fontSize={9}>
                     {byMod.map((_,i)=><Cell key={i} fill={PAL[i%PAL.length]}/>)}
                   </Pie>
-                  <Tooltip formatter={(v:number)=>fmtCOP(v)}/>
+                  <Tooltip formatter={(v:number)=>fmtFull(v)}/>
                   <Legend wrapperStyle={{fontSize:10}}/>
                 </PieChart>
               </ResponsiveContainer>
             </div>
 
-            {/* G3: Anulaciones + Reintegros por período */}
+            {/* G3: Gauge radial de ejecución */}
             <div>
-              <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:4}}>
-                Anulaciones y Reintegros · por Período
+              <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:4}}>Nivel de Ejecución (Gauge)</div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:12}}>Autorización Giro / Valor CRP</div>
+              <div style={{position:"relative" as const}}>
+                <ResponsiveContainer width="99%" height={260}>
+                  <RadialBarChart innerRadius="68%" outerRadius="100%"
+                    data={[{name:'Ejecución',value:Math.min(kpis.pctEjec,100),fill:pctColor(kpis.pctEjec)}]}
+                    startAngle={220} endAngle={-40}>
+                    <PolarAngleAxis type="number" domain={[0,100]} angleAxisId={0} tick={false}/>
+                    <RadialBar background={{fill:C.bg}} dataKey="value" cornerRadius={14} angleAxisId={0}/>
+                  </RadialBarChart>
+                </ResponsiveContainer>
+                <div style={{position:"absolute" as const,top:0,left:0,right:0,bottom:0,
+                  display:"flex",flexDirection:"column" as const,alignItems:"center",justifyContent:"center",pointerEvents:"none" as const}}>
+                  <div style={{fontSize:34,fontWeight:900,color:pctColor(kpis.pctEjec),lineHeight:1}}>
+                    {kpis.pctEjec.toFixed(1)}%
+                  </div>
+                  <div style={{fontSize:11,color:C.muted,marginTop:4}}>ejecutado</div>
+                </div>
               </div>
-              <div style={{fontSize:11,color:C.muted,marginBottom:12}}>Variables: Período · Anulaciones · Reintegros</div>
-              <ResponsiveContainer width="99%" height={260}>
-                <BarChart data={byAnulRein} margin={{top:4,right:16,left:4,bottom:4}}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
-                  <XAxis dataKey="periodo" tick={{fontSize:10}}/>
-                  <YAxis tickFormatter={fmtCOP} tick={{fontSize:9}} width={64}/>
+            </div>
+
+            {/* G4: Treemap de rubros */}
+            <div style={{gridColumn:"1/-1"}}>
+              <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:4}}>
+                Mapa de Rubros por Valor CRP (Treemap)
+              </div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:12}}>Tamaño proporcional al Valor CRP · top 14 rubros</div>
+              <ResponsiveContainer width="99%" height={300}>
+                <Treemap data={treeRubros} dataKey="value" stroke="#fff" content={<TreemapCell/>}>
                   <Tooltip content={<TT/>}/>
-                  <Legend wrapperStyle={{fontSize:11}}/>
-                  <Bar dataKey="Anulaciones" fill={C.rojo}   radius={[4,4,0,0]}/>
-                  <Bar dataKey="Reintegros"  fill={C.violet} radius={[4,4,0,0]}/>
-                </BarChart>
+                </Treemap>
               </ResponsiveContainer>
             </div>
           </div>
@@ -454,56 +509,77 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
         {activeTab==='graficas'&&(
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
 
-            {/* G4: Top beneficiarios */}
+            {/* G5: Top beneficiarios */}
             <div style={{gridColumn:"1/-1"}}>
               <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:4}}>
-                Top 10 Beneficiarios · Valor CRP vs Giro
+                Top 10 Beneficiarios · Valor CRP vs Autorización Giro
               </div>
               <div style={{fontSize:11,color:C.muted,marginBottom:12}}>
-                Variables: Nombre BP Beneficiario · Valor CRP · Autorización Giro
+                Variables: Nombre BP Beneficiario · Valor CRP · Autorización giro
               </div>
-              <ResponsiveContainer width="99%" height={280}>
+              <ResponsiveContainer width="99%" height={300}>
                 <BarChart data={byBenef} layout="vertical" margin={{top:4,right:70,left:4,bottom:4}}>
+                  <Gradients/>
                   <CartesianGrid strokeDasharray="3 3" stroke={C.border} horizontal={false}/>
                   <XAxis type="number" tickFormatter={fmtCOP} tick={{fontSize:9}}/>
-                  <YAxis type="category" dataKey="nombre" width={175} tick={{fontSize:9}}/>
+                  <YAxis type="category" dataKey="nombre" width={200} tick={{fontSize:9}}/>
                   <Tooltip content={<TT/>}/>
                   <Legend wrapperStyle={{fontSize:11}}/>
-                  <Bar dataKey="valorCRP" name="Valor CRP" fill={C.cyan}  radius={[0,4,4,0]}
-                    label={{position:"right",formatter:(v:number)=>fmtCOP(v),fontSize:9,fill:C.muted}}/>
-                  <Bar dataKey="giro"     name="Giro"      fill={C.verde} radius={[0,4,4,0]}/>
+                  <Bar dataKey="valorCRP" name="Valor CRP" fill="url(#gCyan)"  radius={[0,4,4,0]}>
+                    <LabelList dataKey="valorCRP" position="right" formatter={(v:number)=>fmtCOP(v)} style={{fontSize:9,fill:C.muted}}/>
+                  </Bar>
+                  <Bar dataKey="giro"     name="Giro"      fill="url(#gVerde)" radius={[0,4,4,0]}/>
                 </BarChart>
               </ResponsiveContainer>
             </div>
 
-            {/* G5: Tipo Doc */}
+            {/* G6: Anulaciones + Reintegros por rubro */}
             <div>
-              <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:4}}>Distribución por Tipo de Documento</div>
-              <div style={{fontSize:11,color:C.muted,marginBottom:12}}>Variable: Tipo Doc. · Valor CRP</div>
-              <ResponsiveContainer width="99%" height={240}>
+              <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:4}}>Anulaciones y Reintegros por Rubro</div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:12}}>Variables: Rubro · Anulaciones · Reintegros</div>
+              <ResponsiveContainer width="99%" height={260}>
+                <BarChart data={byAnulRein} margin={{top:4,right:16,left:4,bottom:40}}>
+                  <Gradients/>
+                  <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
+                  <XAxis dataKey="rubro" tick={{fontSize:9}} angle={-25} textAnchor="end" height={50} interval={0}/>
+                  <YAxis tickFormatter={fmtCOP} tick={{fontSize:9}} width={60}/>
+                  <Tooltip content={<TT/>}/>
+                  <Legend wrapperStyle={{fontSize:11}}/>
+                  <Bar dataKey="Anulaciones" fill="url(#gRojo)"   radius={[4,4,0,0]}/>
+                  <Bar dataKey="Reintegros"  fill="url(#gViolet)" radius={[4,4,0,0]}/>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* G7: Composición del CRP (girado vs sin aut. giro) */}
+            <div>
+              <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:4}}>Composición del CRP</div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:12}}>Autorización Giro vs Com. Sin Aut. Giro</div>
+              <ResponsiveContainer width="99%" height={260}>
                 <PieChart>
-                  <Pie data={byTipoDoc} dataKey="value" nameKey="name" cx="50%" cy="50%"
-                    outerRadius={90} innerRadius={44}
-                    label={({name,percent})=>`${name}: ${(percent*100).toFixed(0)}%`} labelLine={false} fontSize={9}>
-                    {byTipoDoc.map((_,i)=><Cell key={i} fill={PAL[i%PAL.length]}/>)}
+                  <Pie data={composicion} dataKey="value" nameKey="name" cx="50%" cy="50%"
+                    outerRadius={95} innerRadius={55} paddingAngle={3}
+                    label={({percent})=>`${(percent*100).toFixed(1)}%`} labelLine={false} fontSize={11}>
+                    {composicion.map((c,i)=><Cell key={i} fill={c.fill}/>)}
                   </Pie>
-                  <Tooltip formatter={(v:number)=>fmtCOP(v)}/>
+                  <Tooltip formatter={(v:number)=>fmtFull(v)}/>
+                  <Legend wrapperStyle={{fontSize:11}}/>
                 </PieChart>
               </ResponsiveContainer>
             </div>
 
-            {/* G6: N° compromisos por período */}
-            <div>
-              <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:4}}>N° Compromisos por Período</div>
-              <div style={{fontSize:11,color:C.muted,marginBottom:12}}>Variables: Período · No. Compromiso</div>
-              <ResponsiveContainer width="99%" height={240}>
-                <BarChart data={byPeriodo} margin={{top:4,right:16,left:4,bottom:4}}>
+            {/* G8: N° compromisos por rubro */}
+            <div style={{gridColumn:"1/-1"}}>
+              <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:4}}>N° de Compromisos por Rubro (Top 12)</div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:12}}>Variables: Rubro · No. Compromiso</div>
+              <ResponsiveContainer width="99%" height={260}>
+                <BarChart data={byRubro.slice(0,12)} margin={{top:4,right:16,left:4,bottom:60}}>
                   <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
-                  <XAxis dataKey="periodo" tick={{fontSize:10}}/>
+                  <XAxis dataKey="rubroCorto" tick={{fontSize:9}} angle={-30} textAnchor="end" height={70} interval={0}/>
                   <YAxis tick={{fontSize:10}}/>
                   <Tooltip formatter={(v:any)=>[fmtNum(v)+" compromisos","N°"]}/>
                   <Bar dataKey="count" name="N° Compromisos" radius={[4,4,0,0]}>
-                    {byPeriodo.map((_,i)=><Cell key={i} fill={PAL[i%PAL.length]}/>)}
+                    {byRubro.slice(0,12).map((_,i)=><Cell key={i} fill={PAL[i%PAL.length]}/>)}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
@@ -524,9 +600,8 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
                 <thead>
                   <tr style={{background:C.navy,color:"white",position:"sticky" as const,top:0}}>
                     {[
-                      "Ejercicio","Período","Fecha Reg.","No. Comp","No. CDP","No. CRP",
-                      "BP Benef.","Nombre Beneficiario","Mod. Selec","Tipo Doc",
-                      "Valor CRP","Anulaciones","Reintegros","Valor Neto","Giro","Pend. Giro","Ejecutado"
+                      "Ejercicio","No. Compromiso","Compromiso","Rubro","Mod. Selec","Nombre Beneficiario",
+                      "Valor CRP","Anulaciones","Reintegros","Valor Neto","Autoriz. Giro","Sin Aut. Giro","Ejecutado"
                     ].map(h=>(
                       <th key={h} style={{padding:"8px 8px",textAlign:"left" as const,
                         whiteSpace:"nowrap" as const,fontWeight:600,fontSize:10}}>{h}</th>
@@ -535,80 +610,63 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
                 </thead>
                 <tbody>
                   {pageData.map((r,i)=>{
-                    const vCRP=toNum(gc(r,COLS.valorCRP)); const vGiro=toNum(gc(r,COLS.giro)); const ejec=vCRP>0?parseFloat(((vGiro/vCRP)*100).toFixed(2)):0;
+                    const vCRP=toNum(gcExacto(r,COLS.valorCRP));
+                    const vGiro=toNum(gcExacto(r,COLS.giro));
+                    const ejec=vCRP>0?parseFloat(((vGiro/vCRP)*100).toFixed(2)):0;
                     const ec=ejec>=80?C.verde:ejec>=50?C.amar:C.rojo;
                     return(
-                      <tr key={i} style={{borderBottom:`1px solid ${C.border}`,
-                        background:i%2===0?"white":C.bg}}>
-                        <td style={{padding:"6px 8px",color:C.muted}}>{String(gc(r,COLS.ejercicio)||'')}</td>
-                        <td style={{padding:"6px 8px",color:C.muted}}>{String(gc(r,COLS.periodo)||'')}</td>
-                        <td style={{padding:"6px 8px",whiteSpace:"nowrap" as const,color:C.muted,fontSize:10}}>
-                          {String(gc(r,COLS.fechaReg)||'').slice(0,10)}
-                        </td>
+                      <tr key={i} style={{borderBottom:`1px solid ${C.border}`,background:i%2===0?"white":C.bg}}>
+                        <td style={{padding:"6px 8px",color:C.muted}}>{String(gcExacto(r,COLS.ejercicio)||'')}</td>
                         <td style={{padding:"6px 8px",fontWeight:700,color:C.cyan,whiteSpace:"nowrap" as const}}>
-                          {String(gc(r,COLS.noComp)||'')}
+                          {String(gcExacto(r,COLS.noComp)||'')}
                         </td>
-                        <td style={{padding:"6px 8px",color:C.muted,fontFamily:"monospace"}}>
-                          {String(gc(r,COLS.noCDP)||'')}
+                        <td style={{padding:"6px 8px",maxWidth:180,overflow:"hidden",textOverflow:"ellipsis",
+                          whiteSpace:"nowrap" as const,color:C.muted}} title={String(gcExacto(r,COLS.compromiso)||'')}>
+                          {String(gcExacto(r,COLS.compromiso)||'')}
                         </td>
-                        <td style={{padding:"6px 8px",color:C.muted,fontFamily:"monospace"}}>
-                          {String(gc(r,COLS.noCRP)||'')}
+                        <td style={{padding:"6px 8px",maxWidth:140,overflow:"hidden",textOverflow:"ellipsis",
+                          whiteSpace:"nowrap" as const,fontWeight:600}} title={String(gcExacto(r,COLS.rubro)||'')}>
+                          {String(gcExacto(r,COLS.rubro)||'')}
                         </td>
-                        <td style={{padding:"6px 8px",color:C.muted}}>
-                          {String(gc(r,COLS.tipoDocBP)||'')}
+                        <td style={{padding:"6px 8px",maxWidth:110,overflow:"hidden",textOverflow:"ellipsis",
+                          whiteSpace:"nowrap" as const,color:C.muted,fontSize:10}} title={String(gcExacto(r,COLS.modSelec)||'')}>
+                          {String(gcExacto(r,COLS.modSelec)||'')}
                         </td>
-                        <td style={{padding:"6px 8px",maxWidth:160,overflow:"hidden",
-                          textOverflow:"ellipsis",whiteSpace:"nowrap" as const,fontWeight:600}}
-                          title={String(gc(r,COLS.beneficiario)||'')}>
-                          {String(gc(r,COLS.beneficiario)||'')}
+                        <td style={{padding:"6px 8px",maxWidth:160,overflow:"hidden",textOverflow:"ellipsis",
+                          whiteSpace:"nowrap" as const,fontWeight:600}} title={String(gcExacto(r,COLS.beneficiario)||'')}>
+                          {String(gcExacto(r,COLS.beneficiario)||'')}
                         </td>
-                        <td style={{padding:"6px 8px",maxWidth:100,overflow:"hidden",
-                          textOverflow:"ellipsis",whiteSpace:"nowrap" as const,color:C.muted,fontSize:10}}>
-                          {String(gc(r,COLS.modSelec)||'')}
+                        <td style={{padding:"6px 8px",textAlign:"right" as const,fontWeight:700,color:C.cyan,whiteSpace:"nowrap" as const}}>
+                          {fmtCOP(toNum(gcExacto(r,COLS.valorCRP)))}
                         </td>
-                        <td style={{padding:"6px 8px",color:C.muted}}>
-                          {String(gc(r,COLS.tipoDoc)||'')}
+                        <td style={{padding:"6px 8px",textAlign:"right" as const,color:C.rojo,whiteSpace:"nowrap" as const}}>
+                          {fmtCOP(toNum(gcExacto(r,COLS.anulaciones)))}
                         </td>
-                        <td style={{padding:"6px 8px",textAlign:"right" as const,fontWeight:700,
-                          color:C.cyan,whiteSpace:"nowrap" as const}}>
-                          {fmtCOP(toNum(gc(r,COLS.valorCRP)))}
+                        <td style={{padding:"6px 8px",textAlign:"right" as const,color:C.violet,whiteSpace:"nowrap" as const}}>
+                          {fmtCOP(toNum(gcExacto(r,COLS.reintegros)))}
                         </td>
-                        <td style={{padding:"6px 8px",textAlign:"right" as const,
-                          color:C.rojo,whiteSpace:"nowrap" as const}}>
-                          {fmtCOP(toNum(gc(r,COLS.anulaciones)))}
+                        <td style={{padding:"6px 8px",textAlign:"right" as const,color:C.verde,fontWeight:600,whiteSpace:"nowrap" as const}}>
+                          {fmtCOP(toNum(gcExacto(r,COLS.valorNeto)))}
                         </td>
-                        <td style={{padding:"6px 8px",textAlign:"right" as const,
-                          color:C.violet,whiteSpace:"nowrap" as const}}>
-                          {fmtCOP(toNum(gc(r,COLS.reintegros)))}
+                        <td style={{padding:"6px 8px",textAlign:"right" as const,color:C.teal,whiteSpace:"nowrap" as const}}>
+                          {fmtCOP(toNum(gcExacto(r,COLS.giro)))}
                         </td>
-                        <td style={{padding:"6px 8px",textAlign:"right" as const,
-                          color:C.verde,fontWeight:600,whiteSpace:"nowrap" as const}}>
-                          {fmtCOP(toNum(gc(r,COLS.valorNeto)))}
-                        </td>
-                        <td style={{padding:"6px 8px",textAlign:"right" as const,
-                          color:C.teal,whiteSpace:"nowrap" as const}}>
-                          {fmtCOP(toNum(gc(r,COLS.giro)))}
-                        </td>
-                        <td style={{padding:"6px 8px",textAlign:"right" as const,
-                          color:C.amar,whiteSpace:"nowrap" as const}}>
-                          {fmtCOP(toNum(gc(r,COLS.pendGiro)))}
+                        <td style={{padding:"6px 8px",textAlign:"right" as const,color:C.amar,whiteSpace:"nowrap" as const}}>
+                          {fmtCOP(toNum(gcExacto(r,COLS.sinGiro)))}
                         </td>
                         <td style={{padding:"6px 8px",minWidth:80}}>
                           <div style={{display:"flex",alignItems:"center",gap:4}}>
                             <div style={{flex:1,background:C.bg,borderRadius:4,height:5,overflow:"hidden"}}>
-                              <div style={{width:`${Math.min(ejec,100)}%`,height:"100%",
-                                background:ec,borderRadius:4}}/>
+                              <div style={{width:`${Math.min(ejec,100)}%`,height:"100%",background:ec,borderRadius:4}}/>
                             </div>
-                            <span style={{fontSize:10,fontWeight:700,color:ec,minWidth:32}}>
-                              {ejec.toFixed(2)}%
-                            </span>
+                            <span style={{fontSize:10,fontWeight:700,color:ec,minWidth:34}}>{ejec.toFixed(1)}%</span>
                           </div>
                         </td>
                       </tr>
                     );
                   })}
                   {pageData.length===0&&(
-                    <tr><td colSpan={17} style={{textAlign:"center" as const,padding:32,color:C.muted}}>
+                    <tr><td colSpan={13} style={{textAlign:"center" as const,padding:32,color:C.muted}}>
                       No hay registros con los filtros aplicados
                     </td></tr>
                   )}
