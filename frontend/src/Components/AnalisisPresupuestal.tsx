@@ -123,11 +123,53 @@ const TreemapCell = (props:any) => {
   );
 };
 
+// ─── Tabla de estadísticas (CRP · Giro · Sin Aut. Giro · Ejecución) ────────────
+const TablaStats = ({rows,labelCol,keyName}:{rows:any[];labelCol:string;keyName:string}) => (
+  <div style={{overflowX:"auto" as const,border:`1px solid ${C.border}`,borderRadius:10,marginTop:12}}>
+    <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
+      <thead>
+        <tr style={{background:C.navy,color:"white"}}>
+          {[labelCol,"Total CRP","Autoriz. Giro","Sin Aut. Giro","Ejecución","N°"].map(h=>(
+            <th key={h} style={{padding:"8px",textAlign:(h===labelCol?"left":"right") as "left"|"right",
+              fontSize:10,fontWeight:600,whiteSpace:"nowrap" as const}}>{h}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r,i)=>{
+          const ec=r.ejec>=80?C.verde:r.ejec>=50?C.amar:C.rojo;
+          return(
+            <tr key={i} style={{borderBottom:`1px solid ${C.border}`,background:i%2===0?"white":C.bg}}>
+              <td style={{padding:"6px 8px",maxWidth:300,overflow:"hidden",textOverflow:"ellipsis",
+                whiteSpace:"nowrap" as const,fontWeight:600}} title={r[keyName]}>{r[keyName]}</td>
+              <td style={{padding:"6px 8px",textAlign:"right" as const,color:C.cyan,fontWeight:700,whiteSpace:"nowrap" as const}}>{fmtCOP(r.valorCRP)}</td>
+              <td style={{padding:"6px 8px",textAlign:"right" as const,color:C.verde,whiteSpace:"nowrap" as const}}>{fmtCOP(r.giro)}</td>
+              <td style={{padding:"6px 8px",textAlign:"right" as const,color:C.amar,whiteSpace:"nowrap" as const}}>{fmtCOP(r.sinGiro)}</td>
+              <td style={{padding:"6px 8px",minWidth:110}}>
+                <div style={{display:"flex",alignItems:"center",gap:6}}>
+                  <div style={{flex:1,background:C.bg,borderRadius:4,height:6,overflow:"hidden"}}>
+                    <div style={{width:`${Math.min(r.ejec,100)}%`,height:"100%",background:ec,borderRadius:4}}/>
+                  </div>
+                  <span style={{fontSize:10,fontWeight:700,color:ec,minWidth:38}}>{r.ejec.toFixed(1)}%</span>
+                </div>
+              </td>
+              <td style={{padding:"6px 8px",textAlign:"right" as const,color:C.muted}}>{fmtNum(r.count)}</td>
+            </tr>
+          );
+        })}
+        {rows.length===0&&(
+          <tr><td colSpan={6} style={{textAlign:"center" as const,padding:24,color:C.muted}}>Sin datos con los filtros aplicados</td></tr>
+        )}
+      </tbody>
+    </table>
+  </div>
+);
+
 // ─── Componente principal ─────────────────────────────────────────────────────
 const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
   const [data,      setData]      = useState<DataRow[]>([]);
   const [fileName,  setFileName]  = useState('');
-  const [activeTab, setActiveTab] = useState<'resumen'|'graficas'|'detalle'|'anomalias'>('resumen');
+  const [activeTab, setActiveTab] = useState<'resumen'|'graficas'|'estadisticas'|'detalle'|'anomalias'>('resumen');
 
   // Filtros
   const [busqueda,   setBusqueda]   = useState('');
@@ -155,8 +197,20 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
     reader.readAsArrayBuffer(file);
   },[onDataLoad]);
 
-  const uniq = (col:string[]) =>
-    Array.from(new Set(data.map(r=>String(gcExacto(r,col)||'')).filter(Boolean))).sort();
+  // Dedup robusto: colapsa variantes por acentos/mayúsculas/espacios → sin repetidos en filtros
+  const uniq = (col:string[]) => {
+    const seen = new Set<string>();
+    const out:string[] = [];
+    data.forEach(r=>{
+      const raw = String(gcExacto(r,col)||'').trim();
+      if(!raw) return;
+      const key = norm(raw);
+      if(seen.has(key)) return;
+      seen.add(key);
+      out.push(raw);
+    });
+    return out.sort((a,b)=>a.localeCompare(b,'es'));
+  };
 
   // ── Datos filtrados ──────────────────────────────────────────────────────────
   const filtrado = useMemo(()=>{
@@ -245,6 +299,47 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
     return Object.entries(g).map(([nombre,v])=>({nombre:nombre.length>30?nombre.slice(0,30)+'…':nombre,...v}))
       .sort((a,b)=>b.valorCRP-a.valorCRP).slice(0,10);
   },[filtrado]);
+
+  // ── Estadísticas por COMPROMISO (CRP · Giro · Sin Aut. Giro · Ejecución) ───────
+  const byCompromisoStats = useMemo(()=>{
+    const g:Record<string,{valorCRP:number;giro:number;sinGiro:number;count:number}>={};
+    filtrado.forEach(r=>{
+      const k=String(gcExacto(r,COLS.compromiso)||'Sin compromiso');
+      if(!g[k]) g[k]={valorCRP:0,giro:0,sinGiro:0,count:0};
+      g[k].valorCRP+=toNum(gcExacto(r,COLS.valorCRP));
+      g[k].giro    +=toNum(gcExacto(r,COLS.giro));
+      g[k].sinGiro +=toNum(gcExacto(r,COLS.sinGiro));
+      g[k].count   +=1;
+    });
+    return Object.entries(g).map(([compromiso,v])=>({
+      compromiso,
+      corto: compromiso.length>34?compromiso.slice(0,34)+'…':compromiso,
+      ...v,
+      ejec: v.valorCRP>0?(v.giro/v.valorCRP)*100:0,
+    })).sort((a,b)=>b.valorCRP-a.valorCRP);
+  },[filtrado]);
+
+  // ── Estadísticas por MODALIDAD DE SELECCIÓN ────────────────────────────────────
+  const byModStats = useMemo(()=>{
+    const g:Record<string,{valorCRP:number;giro:number;sinGiro:number;count:number}>={};
+    filtrado.forEach(r=>{
+      const k=String(gcExacto(r,COLS.modSelec)||'Sin modalidad');
+      if(!g[k]) g[k]={valorCRP:0,giro:0,sinGiro:0,count:0};
+      g[k].valorCRP+=toNum(gcExacto(r,COLS.valorCRP));
+      g[k].giro    +=toNum(gcExacto(r,COLS.giro));
+      g[k].sinGiro +=toNum(gcExacto(r,COLS.sinGiro));
+      g[k].count   +=1;
+    });
+    return Object.entries(g).map(([modalidad,v])=>({
+      modalidad,
+      corto: modalidad.length>28?modalidad.slice(0,28)+'…':modalidad,
+      ...v,
+      ejec: v.valorCRP>0?(v.giro/v.valorCRP)*100:0,
+    })).sort((a,b)=>b.valorCRP-a.valorCRP);
+  },[filtrado]);
+
+  const compTop = useMemo(()=>byCompromisoStats.slice(0,12),[byCompromisoStats]);
+  const modTop  = useMemo(()=>byModStats.slice(0,12),[byModStats]);
 
   // Composición del CRP (Girado vs Com. Sin Aut. Giro)
   const composicion = useMemo(()=>[
@@ -406,6 +501,7 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
         display:"flex",padding:"0 12px",overflowX:"auto" as const}}>
         {([
           ['resumen','📈 Resumen'],['graficas','📊 Gráficas'],
+          ['estadisticas','📑 Compromiso/Mod.'],
           ['detalle','📋 Detalle'],['anomalias','🚨 Anomalías'],
         ] as const).map(([k,l])=>(
           <button key={k} onClick={()=>setActiveTab(k)} style={{
@@ -583,6 +679,103 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+
+        {/* ── ESTADÍSTICAS por Compromiso / Modalidad ── */}
+        {activeTab==='estadisticas'&&(
+          <div style={{display:"grid",gridTemplateColumns:"1fr",gap:28}}>
+
+            {/* Totales (coherentes con los filtros activos) */}
+            <div style={{display:"flex",gap:12,flexWrap:"wrap" as const}}>
+              <KpiCard emoji="💰" label="Total CRP"          valor={fmtCOP(kpis.valorCRP)}       color={C.cyan}/>
+              <KpiCard emoji="🏦" label="Autorización Giro"  valor={fmtCOP(kpis.giro)}           color={C.verde}/>
+              <KpiCard emoji="⏳" label="Com. Sin Aut. Giro" valor={fmtCOP(kpis.sinGiro)}        color={C.amar}/>
+              <KpiCard emoji="📊" label="Ejecución Total"    valor={`${kpis.pctEjec.toFixed(1)}%`} color={pctColor(kpis.pctEjec)}/>
+            </div>
+
+            {/* ══ Bloque 1: por COMPROMISO ══ */}
+            <div style={{border:`1px solid ${C.border}`,borderRadius:12,padding:"16px 18px"}}>
+              <div style={{fontWeight:800,fontSize:14,color:C.navy,marginBottom:2}}>🧾 Estadísticas por Compromiso</div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:14}}>
+                Variables: Compromiso · Total CRP · Autorización giro · Com.Sin.Aut.Giro · Ejecución — Top 12 por Valor CRP
+              </div>
+
+              {/* Montos por compromiso */}
+              <ResponsiveContainer width="99%" height={340}>
+                <BarChart data={compTop} layout="vertical" margin={{top:4,right:24,left:4,bottom:4}}>
+                  <Gradients/>
+                  <CartesianGrid strokeDasharray="3 3" stroke={C.border} horizontal={false}/>
+                  <XAxis type="number" tickFormatter={fmtCOP} tick={{fontSize:9}}/>
+                  <YAxis type="category" dataKey="corto" width={230} tick={{fontSize:9}}/>
+                  <Tooltip content={<TT/>}/>
+                  <Legend wrapperStyle={{fontSize:11}}/>
+                  <Bar dataKey="valorCRP" name="Total CRP"          fill="url(#gCyan)"  radius={[0,4,4,0]}/>
+                  <Bar dataKey="giro"     name="Autorización Giro"  fill="url(#gVerde)" radius={[0,4,4,0]}/>
+                  <Bar dataKey="sinGiro"  name="Com. Sin Aut. Giro" fill="url(#gAmar)"  radius={[0,4,4,0]}/>
+                </BarChart>
+              </ResponsiveContainer>
+
+              {/* Ejecución % por compromiso */}
+              <div style={{fontWeight:700,fontSize:12,color:C.navy,margin:"14px 0 6px"}}>Ejecución % por Compromiso (Giro / CRP)</div>
+              <ResponsiveContainer width="99%" height={300}>
+                <BarChart data={compTop} layout="vertical" margin={{top:4,right:40,left:4,bottom:4}}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={C.border} horizontal={false}/>
+                  <XAxis type="number" domain={[0,100]} tickFormatter={(v)=>`${v}%`} tick={{fontSize:9}}/>
+                  <YAxis type="category" dataKey="corto" width={230} tick={{fontSize:9}}/>
+                  <Tooltip formatter={(v:any)=>[`${Number(v).toFixed(1)}%`,"Ejecución"]}/>
+                  <Bar dataKey="ejec" name="Ejecución %" radius={[0,4,4,0]}>
+                    {compTop.map((r,i)=><Cell key={i} fill={r.ejec>=80?C.verde:r.ejec>=50?C.amar:C.rojo}/>)}
+                    <LabelList dataKey="ejec" position="right" formatter={(v:number)=>`${v.toFixed(0)}%`} style={{fontSize:9,fill:C.muted}}/>
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+
+              <TablaStats rows={byCompromisoStats.slice(0,15)} labelCol="Compromiso" keyName="compromiso"/>
+              {byCompromisoStats.length>15&&(
+                <div style={{fontSize:10,color:C.muted,marginTop:6}}>Mostrando 15 de {fmtNum(byCompromisoStats.length)} compromisos.</div>
+              )}
+            </div>
+
+            {/* ══ Bloque 2: por MODALIDAD DE SELECCIÓN ══ */}
+            <div style={{border:`1px solid ${C.border}`,borderRadius:12,padding:"16px 18px"}}>
+              <div style={{fontWeight:800,fontSize:14,color:C.navy,marginBottom:2}}>📌 Estadísticas por Modalidad de Selección</div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:14}}>
+                Variables: Descripcion Mod. Selec · Total CRP · Autorización giro · Com.Sin.Aut.Giro · Ejecución
+              </div>
+
+              {/* Montos por modalidad */}
+              <ResponsiveContainer width="99%" height={320}>
+                <BarChart data={modTop} layout="vertical" margin={{top:4,right:24,left:4,bottom:4}}>
+                  <Gradients/>
+                  <CartesianGrid strokeDasharray="3 3" stroke={C.border} horizontal={false}/>
+                  <XAxis type="number" tickFormatter={fmtCOP} tick={{fontSize:9}}/>
+                  <YAxis type="category" dataKey="corto" width={200} tick={{fontSize:9}}/>
+                  <Tooltip content={<TT/>}/>
+                  <Legend wrapperStyle={{fontSize:11}}/>
+                  <Bar dataKey="valorCRP" name="Total CRP"          fill="url(#gCyan)"  radius={[0,4,4,0]}/>
+                  <Bar dataKey="giro"     name="Autorización Giro"  fill="url(#gVerde)" radius={[0,4,4,0]}/>
+                  <Bar dataKey="sinGiro"  name="Com. Sin Aut. Giro" fill="url(#gAmar)"  radius={[0,4,4,0]}/>
+                </BarChart>
+              </ResponsiveContainer>
+
+              {/* Ejecución % por modalidad */}
+              <div style={{fontWeight:700,fontSize:12,color:C.navy,margin:"14px 0 6px"}}>Ejecución % por Modalidad (Giro / CRP)</div>
+              <ResponsiveContainer width="99%" height={260}>
+                <BarChart data={modTop} layout="vertical" margin={{top:4,right:40,left:4,bottom:4}}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={C.border} horizontal={false}/>
+                  <XAxis type="number" domain={[0,100]} tickFormatter={(v)=>`${v}%`} tick={{fontSize:9}}/>
+                  <YAxis type="category" dataKey="corto" width={200} tick={{fontSize:9}}/>
+                  <Tooltip formatter={(v:any)=>[`${Number(v).toFixed(1)}%`,"Ejecución"]}/>
+                  <Bar dataKey="ejec" name="Ejecución %" radius={[0,4,4,0]}>
+                    {modTop.map((r,i)=><Cell key={i} fill={r.ejec>=80?C.verde:r.ejec>=50?C.amar:C.rojo}/>)}
+                    <LabelList dataKey="ejec" position="right" formatter={(v:number)=>`${v.toFixed(0)}%`} style={{fontSize:9,fill:C.muted}}/>
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+
+              <TablaStats rows={byModStats} labelCol="Modalidad de Selección" keyName="modalidad"/>
             </div>
           </div>
         )}
