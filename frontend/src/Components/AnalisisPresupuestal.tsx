@@ -682,16 +682,24 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
               </div>
             </div>
 
-            {/* G4: Treemap de rubros */}
+            {/* G4: Top 14 Rubros por Valor CRP */}
             <div style={{gridColumn:"1/-1"}}>
               <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:4}}>
-                Mapa de Rubros por Valor CRP (Treemap)
+                Top 14 Rubros por Valor CRP
               </div>
-              <div style={{fontSize:11,color:C.muted,marginBottom:12}}>Tamaño proporcional al Valor CRP · top 14 rubros</div>
-              <ResponsiveContainer width="99%" height={450}>
-                <Treemap data={treeRubros} dataKey="value" stroke="#fff" content={<TreemapCell/>}>
-                  <Tooltip content={<TT/>}/>
-                </Treemap>
+              <div style={{fontSize:11,color:C.muted,marginBottom:12}}>Presupuesto asignado por rubro — valores en millones COP</div>
+              <ResponsiveContainer width="99%" height={520}>
+                <BarChart data={byRubro.slice(0,14).map(d=>({...d,valorM:+(d.valorCRP/1e6).toFixed(0)}))} layout="vertical" margin={{top:4,right:80,left:4,bottom:4}}>
+                  <Gradients/>
+                  <CartesianGrid strokeDasharray="3 3" stroke={C.border} horizontal={false}/>
+                  <XAxis type="number" tickFormatter={(v)=>'$'+v.toLocaleString('es-CO')+'M'} tick={{fontSize:11,fill:C.navy}}/>
+                  <YAxis type="category" dataKey="rubroCorto" width={280} tick={{fontSize:11,fill:C.navy,fontWeight:600}}/>
+                  <Tooltip formatter={(v:number)=>['$'+(v).toLocaleString('es-CO')+'M','Valor CRP']}/>
+                  <Bar dataKey="valorM" name="Valor CRP (Millones)" radius={[0,6,6,0]}>
+                    {byRubro.slice(0,14).map((_,i)=><Cell key={i} fill={PAL[i%PAL.length]}/>)}
+                    <LabelList dataKey="valorM" position="right" formatter={(v:number)=>'$'+v.toLocaleString('es-CO')+'M'} style={{fontSize:11,fill:C.navy,fontWeight:700}}/>
+                  </Bar>
+                </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
