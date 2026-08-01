@@ -70,6 +70,7 @@ const COLS = {
   valorNeto:    ['Valor Neto'],
   giro:         ['Autorizacion giro','Autorización giro','Autorizacion Giro'],
   sinGiro:      ['Com.Sin.Aut.Giro','Com. Sin. Aut. Giro','Com Sin Aut Giro','Compromiso Sin Autorizacion Giro'],
+  objeto:       ['Objeto'],  // ← AGREGAR ESTO
 };
 
 interface Props { onDataLoad?: (data:DataRow[]) => void; }
@@ -239,7 +240,7 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
   // ── ADICIONES (filas que contienen "REEMPLAZA" en Objeto) ──────────────────────
   const adiciones = useMemo(()=>{
     return data.filter(r=>{
-      const obj = String(gcExacto(r,COLS.compromiso)||'').toLowerCase();
+      const obj = String(gcExacto(r,COLS.objeto)||'').toLowerCase();
       return obj.includes('reemplaza');
     }).map(r=>({
       noComp: String(gcExacto(r,COLS.noComp)||''),
