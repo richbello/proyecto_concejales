@@ -21,7 +21,7 @@ const C = {
 const PAL = [C.cyan,C.verde,C.violet,C.amar,C.teal,C.rosa,C.orange,C.rojo,"#0984e3","#00b894"];
 
 const fmtCOP = (v:number) =>
-  v>=1e9?`$${(v/1e9).toFixed(2)}B`:v>=1e6?`$${(v/1e6).toFixed(1)}M`:v>=1e3?`$${(v/1e3).toFixed(0)}K`:`$${v.toFixed(0)}`;
+  v>=1e9?`$${(v/1e6).toFixed(0)}M`:v>=1e6?`$${(v/1e6).toFixed(1)}M`:v>=1e3?`$${(v/1e3).toFixed(0)}K`:`$${v.toFixed(0)}`;
 const fmtFull = (v:number) =>
   new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(v);
 const fmtNum = (v:number) => v.toLocaleString('es-CO');
@@ -62,7 +62,7 @@ const COLS = {
   ejercicio:    ['Ejercicio'],
   compromiso:   ['Compromiso'],                                   // objeto / descripción del compromiso
   noComp:       ['No. Compromiso','No.Compromiso','Numero Compromiso','N° Compromiso'],
-  rubro:        ['Rubro'],
+  rubro:        ['Descripción del Rubro','Descripcion del Rubro','Rubro'],
   modSelec:     ['Descripcion Mod. Selec','Descripción Mod. Selec','Desc Mod Selec'],
   beneficiario: ['Nombre BP Beneficiario','Nombre Beneficiario'],
   valorCRP:     ['Valor CRP'],
