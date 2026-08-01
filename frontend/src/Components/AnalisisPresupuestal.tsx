@@ -114,10 +114,10 @@ const TreemapCell = (props:any) => {
         style={{fill:color,stroke:"#fff",strokeWidth:2}}/>
       {width>50&&height>28&&(
         <>
-          <text x={x+8} y={y+20} fill="#fff" fontSize={12} fontWeight={800}>
-            {String(name).slice(0,Math.max(3,Math.floor(width/7)))}
+          <text x={x+8} y={y+22} fill="#fff" fontSize={14} fontWeight={800} style={{textShadow:'1px 1px 2px rgba(0,0,0,.5)'}}>
+            {String(name).slice(0,Math.max(4,Math.floor(width/8)))}
           </text>
-          <text x={x+8} y={y+36} fill="rgba(255,255,255,.95)" fontSize={11} fontWeight={600}>
+          <text x={x+8} y={y+42} fill="#fff" fontSize={13} fontWeight={700} style={{textShadow:'1px 1px 2px rgba(0,0,0,.5)'}}>
             {fmtCOP(value)}
           </text>
         </>
@@ -357,7 +357,7 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
       g[k].count   +=1;
     });
     return Object.entries(g)
-      .map(([rubro,v])=>({rubro,rubroCorto:rubro.length>18?rubro.slice(0,18)+'…':rubro,...v}))
+      .map(([rubro,v])=>({rubro,rubroCorto:rubro.length>35?rubro.slice(0,35)+'…':rubro,...v}))
       .sort((a,b)=>b.valorCRP-a.valorCRP);
   },[filtrado]);
 
@@ -378,7 +378,7 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
       const k=String(gcExacto(r,COLS.modSelec)||'Sin modalidad');
       g[k]=(g[k]||0)+toNum(gcExacto(r,COLS.valorNeto));
     });
-    return Object.entries(g).map(([name,value])=>({name:name.length>24?name.slice(0,24)+'…':name,value}))
+    return Object.entries(g).map(([name,value])=>({name:name.length>30?name.slice(0,30)+'…':name,value}))
       .sort((a,b)=>b.value-a.value).slice(0,8);
   },[filtrado]);
 
@@ -392,7 +392,7 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
       g[k].giro    +=toNum(gcExacto(r,COLS.giro));
       g[k].count   +=1;
     });
-    return Object.entries(g).map(([nombre,v])=>({nombre:nombre.length>30?nombre.slice(0,30)+'…':nombre,...v}))
+    return Object.entries(g).map(([nombre,v])=>({nombre:nombre.length>40?nombre.slice(0,40)+'…':nombre,...v}))
       .sort((a,b)=>b.valorCRP-a.valorCRP).slice(0,10);
   },[filtrado]);
 
@@ -625,14 +625,14 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
               <div style={{fontSize:11,color:C.muted,marginBottom:12}}>
                 Variables: Rubro · Valor CRP · Autorización giro · Com.Sin.Aut.Giro
               </div>
-              <ResponsiveContainer width="99%" height={420}>
+              <ResponsiveContainer width="99%" height={500}>
                 <BarChart data={topRubros} layout="vertical" margin={{top:4,right:24,left:4,bottom:4}}>
                   <Gradients/>
                   <CartesianGrid strokeDasharray="3 3" stroke={C.border} horizontal={false}/>
-                  <XAxis type="number" tickFormatter={fmtCOP} tick={{fontSize:9}}/>
-                  <YAxis type="category" dataKey="rubroCorto" width={160} tick={{fontSize:10,fill:"#1B3A6B"}}/>
+                  <XAxis type="number" tickFormatter={fmtCOP} tick={{fontSize:11,fill:'#1B3A6B'}}/>
+                  <YAxis type="category" dataKey="rubroCorto" width={280} tick={{fontSize:12,fill:"#1B3A6B",fontWeight:600}}/>
                   <Tooltip content={<TT/>}/>
-                  <Legend wrapperStyle={{fontSize:11}}/>
+                  <Legend wrapperStyle={{fontSize:12,fontWeight:600}}/>
                   <Bar dataKey="valorCRP" name="Valor CRP"          fill="url(#gCyan)"  radius={[0,4,4,0]}/>
                   <Bar dataKey="giro"     name="Autorización Giro"  fill="url(#gVerde)" radius={[0,4,4,0]}/>
                   <Bar dataKey="sinGiro"  name="Com. Sin Aut. Giro" fill="url(#gAmar)"  radius={[0,4,4,0]}/>
@@ -646,15 +646,15 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
                 Distribución por Modalidad de Selección
               </div>
               <div style={{fontSize:11,color:C.muted,marginBottom:12}}>Variable: Descripcion Mod. Selec · Valor Neto</div>
-              <ResponsiveContainer width="99%" height={260}>
+              <ResponsiveContainer width="99%" height={320}>
                 <PieChart>
                   <Pie data={byMod} dataKey="value" nameKey="name" cx="50%" cy="50%"
-                    outerRadius={110} innerRadius={60} paddingAngle={3}
+                    outerRadius={120} innerRadius={65} paddingAngle={3}
                     label={({percent})=>`${(percent*100).toFixed(0)}%`} labelLine={false} fontSize={9}>
                     {byMod.map((_,i)=><Cell key={i} fill={PAL[i%PAL.length]}/>)}
                   </Pie>
                   <Tooltip formatter={(v:number)=>fmtFull(v)}/>
-                  <Legend wrapperStyle={{fontSize:10}}/>
+                  <Legend wrapperStyle={{fontSize:12,fontWeight:600}}/>
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -688,7 +688,7 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
                 Mapa de Rubros por Valor CRP (Treemap)
               </div>
               <div style={{fontSize:11,color:C.muted,marginBottom:12}}>Tamaño proporcional al Valor CRP · top 14 rubros</div>
-              <ResponsiveContainer width="99%" height={380}>
+              <ResponsiveContainer width="99%" height={450}>
                 <Treemap data={treeRubros} dataKey="value" stroke="#fff" content={<TreemapCell/>}>
                   <Tooltip content={<TT/>}/>
                 </Treemap>
@@ -709,14 +709,14 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
               <div style={{fontSize:11,color:C.muted,marginBottom:12}}>
                 Variables: Nombre BP Beneficiario · Valor CRP · Autorización giro
               </div>
-              <ResponsiveContainer width="99%" height={380}>
+              <ResponsiveContainer width="99%" height={450}>
                 <BarChart data={byBenef} layout="vertical" margin={{top:4,right:70,left:4,bottom:4}}>
                   <Gradients/>
                   <CartesianGrid strokeDasharray="3 3" stroke={C.border} horizontal={false}/>
-                  <XAxis type="number" tickFormatter={fmtCOP} tick={{fontSize:9}}/>
-                  <YAxis type="category" dataKey="nombre" width={200} tick={{fontSize:9}}/>
+                  <XAxis type="number" tickFormatter={fmtCOP} tick={{fontSize:11,fill:'#1B3A6B'}}/>
+                  <YAxis type="category" dataKey="nombre" width={280} tick={{fontSize:11,fill:"#1B3A6B",fontWeight:600}}/>
                   <Tooltip content={<TT/>}/>
-                  <Legend wrapperStyle={{fontSize:11}}/>
+                  <Legend wrapperStyle={{fontSize:12,fontWeight:600}}/>
                   <Bar dataKey="valorCRP" name="Valor CRP" fill="url(#gCyan)"  radius={[0,4,4,0]}>
                     <LabelList dataKey="valorCRP" position="right" formatter={(v:number)=>fmtCOP(v)} style={{fontSize:9,fill:C.muted}}/>
                   </Bar>
@@ -734,9 +734,9 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
                   <Gradients/>
                   <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
                   <XAxis dataKey="rubro" tick={{fontSize:9}} angle={-25} textAnchor="end" height={50} interval={0}/>
-                  <YAxis tickFormatter={fmtCOP} tick={{fontSize:9}} width={60}/>
+                  <YAxis tickFormatter={fmtCOP} tick={{fontSize:11,fill:'#1B3A6B'}} width={60}/>
                   <Tooltip content={<TT/>}/>
-                  <Legend wrapperStyle={{fontSize:11}}/>
+                  <Legend wrapperStyle={{fontSize:12,fontWeight:600}}/>
                   <Bar dataKey="Anulaciones" fill="url(#gRojo)"   radius={[4,4,0,0]}/>
                   <Bar dataKey="Reintegros"  fill="url(#gViolet)" radius={[4,4,0,0]}/>
                 </BarChart>
@@ -755,7 +755,7 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
                     {composicion.map((c,i)=><Cell key={i} fill={c.fill}/>)}
                   </Pie>
                   <Tooltip formatter={(v:number)=>fmtFull(v)}/>
-                  <Legend wrapperStyle={{fontSize:11}}/>
+                  <Legend wrapperStyle={{fontSize:12,fontWeight:600}}/>
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -803,10 +803,10 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
                 <BarChart data={compTop} layout="vertical" margin={{top:4,right:24,left:4,bottom:4}}>
                   <Gradients/>
                   <CartesianGrid strokeDasharray="3 3" stroke={C.border} horizontal={false}/>
-                  <XAxis type="number" tickFormatter={fmtCOP} tick={{fontSize:9}}/>
+                  <XAxis type="number" tickFormatter={fmtCOP} tick={{fontSize:11,fill:'#1B3A6B'}}/>
                   <YAxis type="category" dataKey="corto" width={230} tick={{fontSize:9}}/>
                   <Tooltip content={<TT/>}/>
-                  <Legend wrapperStyle={{fontSize:11}}/>
+                  <Legend wrapperStyle={{fontSize:12,fontWeight:600}}/>
                   <Bar dataKey="valorCRP" name="Total CRP"          fill="url(#gCyan)"  radius={[0,4,4,0]}/>
                   <Bar dataKey="giro"     name="Autorización Giro"  fill="url(#gVerde)" radius={[0,4,4,0]}/>
                   <Bar dataKey="sinGiro"  name="Com. Sin Aut. Giro" fill="url(#gAmar)"  radius={[0,4,4,0]}/>
@@ -846,10 +846,10 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
                 <BarChart data={modTop} layout="vertical" margin={{top:4,right:24,left:4,bottom:4}}>
                   <Gradients/>
                   <CartesianGrid strokeDasharray="3 3" stroke={C.border} horizontal={false}/>
-                  <XAxis type="number" tickFormatter={fmtCOP} tick={{fontSize:9}}/>
+                  <XAxis type="number" tickFormatter={fmtCOP} tick={{fontSize:11,fill:'#1B3A6B'}}/>
                   <YAxis type="category" dataKey="corto" width={200} tick={{fontSize:9}}/>
                   <Tooltip content={<TT/>}/>
-                  <Legend wrapperStyle={{fontSize:11}}/>
+                  <Legend wrapperStyle={{fontSize:12,fontWeight:600}}/>
                   <Bar dataKey="valorCRP" name="Total CRP"          fill="url(#gCyan)"  radius={[0,4,4,0]}/>
                   <Bar dataKey="giro"     name="Autorización Giro"  fill="url(#gVerde)" radius={[0,4,4,0]}/>
                   <Bar dataKey="sinGiro"  name="Com. Sin Aut. Giro" fill="url(#gAmar)"  radius={[0,4,4,0]}/>
