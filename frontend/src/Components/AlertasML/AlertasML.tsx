@@ -65,6 +65,7 @@ function parsearArchivo(data: any[][]): DatosPAC {
   const iPacInicial = col(["pac inicial"]);
   const iPacReprog  = col(["pac reprogramado","reprogramado"]);
   const iPacActual  = col(["pac actual"]);
+  const iComp       = col(["comprometido pac","comprometido"]);
   const iDisp       = col(["disponibilidad pac","disponibilidad"]);
   const iGirado     = col(["girado y recaudado","girado"]);
   const iEjecutado  = col(["ejecutado"]);
@@ -89,7 +90,7 @@ function parsearArchivo(data: any[][]): DatosPAC {
     const periodo = String(row[iPeriodo] ?? "").trim().toUpperCase();
     if (!periodo) continue;
     const fila = parseFila(row);
-    if (periodo.includes("CONSOLIDADO")) consolidado = fila;
+    if (periodo.includes("CONSOLIDADO") || periodo === "TOTAL") consolidado = fila;
     else if (MESES.includes(periodo)) meses.push(fila);
     else if (periodo.includes("REZAGO")) rezago = fila;
     else if (periodo.includes("PAC NO")) pacNoEjec = fila;
@@ -195,7 +196,7 @@ export default function AlertasML({ onDataLoad }: Props) {
     reader.onload = (e) => {
       try {
         const wb = XLSX.read(e.target?.result, { type: "array" });
-        const sheetName = wb.SheetNames.includes("Data") ? "Data" : wb.SheetNames[0];
+        const sheetName = wb.SheetNames.find(s => s.includes("Data (2)") || s.includes("Data(2)")) || wb.SheetNames.find(s => s.includes("Data")) || wb.SheetNames[0];
         const ws = wb.Sheets[sheetName];
         const data = XLSX.utils.sheet_to_json<any[]>(ws, { header: 1, defval: "" });
         const resumen = parsearArchivo(data);
