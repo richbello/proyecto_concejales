@@ -70,7 +70,8 @@ const COLS = {
   valorNeto:    ['Valor Neto'],
   giro:         ['Autorizacion giro','Autorización giro','Autorizacion Giro'],
   sinGiro:      ['Com.Sin.Aut.Giro','Com. Sin. Aut. Giro','Com Sin Aut Giro','Compromiso Sin Autorizacion Giro'],
-  objeto:       ['Objeto'],  // ← AGREGAR ESTO
+  objeto:       ['Objeto'],
+  fechaReg:     ['Fecha Registro'],
 };
 
 interface Props { onDataLoad?: (data:DataRow[]) => void; }
@@ -179,11 +180,13 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
   const [filtroMod,  setFiltroMod]  = useState('Todos');
   const [pagina,     setPagina]     = useState(1);
   const POR_PAG = 15;
-  
+
   // Filtros para Adiciones
   const [filtroFechaIni, setFiltroFechaIni] = useState('');
   const [filtroFechaFin, setFiltroFechaFin] = useState('');
   const [filtroBenef, setFiltroBenef] = useState('Todos');
+  const [filtroTipo, setFiltroTipo] = useState('Todos');
+  const [busquedaAdic, setBusquedaAdic] = useState('');
   const [paginaAdic, setPaginaAdic] = useState(1);
 
   const handleFile = useCallback((e:React.ChangeEvent<HTMLInputElement>) => {
@@ -242,39 +245,68 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
     return data.filter(r=>{
       const obj = String(gcExacto(r,COLS.objeto)||'').toLowerCase();
       return obj.includes('reemplaza');
-    }).map(r=>({
-      noComp: String(gcExacto(r,COLS.noComp)||''),
-      fecha: gcExacto(r,['Fecha Registro']) as string|Date,
-      beneficiario: String(gcExacto(r,COLS.beneficiario)||''),
-      tipoComp: String(gcExacto(r,COLS.compromiso)||''),
-      valor: toNum(gcExacto(r,COLS.valorCRP)),
-      objeto: String(gcExacto(r,COLS.compromiso)||''),
-      raw: r
-    }));
+    }).map(r=>{
+      const fechaRaw = gcExacto(r,COLS.fechaReg);
+      let fecha: Date;
+      
+      if(fechaRaw instanceof Date) {
+        fecha = fechaRaw;
+      } else if(typeof fechaRaw === 'number') {
+        // Excel serial date: 44197 = 2026-01-16
+        fecha = new Date((fechaRaw - 25569) * 86400000);
+      } else if(typeof fechaRaw === 'string') {
+        fecha = new Date(fechaRaw);
+      } else {
+        fecha = new Date(0);
+      }
+      
+      return {
+        noComp: String(gcExacto(r,COLS.noComp)||''),
+        fecha: fecha,
+        beneficiario: String(gcExacto(r,COLS.beneficiario)||''),
+        tipoComp: String(gcExacto(r,COLS.compromiso)||''),
+        valor: toNum(gcExacto(r,COLS.valorCRP)),
+        objeto: String(gcExacto(r,COLS.objeto)||''),
+        raw: r
+      };
+    });
   },[data]);
 
-  // ── Adiciones filtradas por fecha y beneficiario ──────────────────────────────
+  // ── Adiciones filtradas por fecha, beneficiario, tipo y búsqueda ──────────────────────────
   const adicionesFilt = useMemo(()=>{
     let a = adiciones;
+    
     if(filtroFechaIni){
       const d1 = new Date(filtroFechaIni);
-      a = a.filter(x=>{
-        const fd = x.fecha instanceof Date ? x.fecha : new Date(x.fecha);
-        return fd >= d1;
-      });
+      a = a.filter(x=> x.fecha >= d1);
     }
+    
     if(filtroFechaFin){
       const d2 = new Date(filtroFechaFin);
-      a = a.filter(x=>{
-        const fd = x.fecha instanceof Date ? x.fecha : new Date(x.fecha);
-        return fd <= d2;
-      });
+      // Agregar 1 día para incluir todo el día final
+      d2.setDate(d2.getDate() + 1);
+      a = a.filter(x=> x.fecha <= d2);
     }
+    
     if(filtroBenef!=='Todos'){
       a = a.filter(x=>x.beneficiario===filtroBenef);
     }
+    
+    if(filtroTipo!=='Todos'){
+      a = a.filter(x=>x.tipoComp===filtroTipo);
+    }
+    
+    if(busquedaAdic.trim()){
+      const q = norm(busquedaAdic);
+      a = a.filter(x=>
+        norm(x.noComp).includes(q) ||
+        norm(x.beneficiario).includes(q) ||
+        norm(x.tipoComp).includes(q)
+      );
+    }
+    
     return a;
-  },[adiciones,filtroFechaIni,filtroFechaFin,filtroBenef]);
+  },[adiciones,filtroFechaIni,filtroFechaFin,filtroBenef,filtroTipo,busquedaAdic]);
 
   const beneficiarios = useMemo(()=>{
     const b = new Set<string>();
@@ -282,6 +314,14 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
       if(a.beneficiario) b.add(a.beneficiario);
     });
     return Array.from(b).sort();
+  },[adiciones]);
+
+  const tiposCompromiso = useMemo(()=>{
+    const t = new Set<string>();
+    adiciones.forEach(a=>{
+      if(a.tipoComp) t.add(a.tipoComp);
+    });
+    return Array.from(t).sort();
   },[adiciones]);
 
   // ── KPIs ────────────────────────────────────────────────────────────────────
@@ -958,32 +998,47 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
                 📝 Adiciones de Contratos ({adiciones.length} registros)
               </div>
               
-              {/* Filtros */}
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:12,marginBottom:16}}>
-                <div>
-                  <label style={{fontSize:11,fontWeight:700,color:C.navy,display:"block",marginBottom:4}}>Fecha Inicial</label>
-                  <input type="date" value={filtroFechaIni} onChange={e=>setFiltroFechaIni(e.target.value)}
-                    style={{width:"100%",padding:"8px",border:`1px solid ${C.border}`,borderRadius:6,fontSize:11}} />
+              {/* Búsqueda + Filtros */}
+              <div style={{marginBottom:16,padding:12,background:C.bg,borderRadius:10}}>
+                <div style={{fontSize:11,fontWeight:700,color:C.navy,marginBottom:8}}>🔍 Buscar y Filtrar</div>
+                
+                <input type="text" placeholder="Buscar por No. Compromiso, Beneficiario o Tipo..." 
+                  value={busquedaAdic} onChange={e=>{setBusquedaAdic(e.target.value);setPaginaAdic(1);}}
+                  style={{width:"100%",padding:"10px",marginBottom:10,border:`1px solid ${C.border}`,
+                    borderRadius:6,fontSize:12,color:C.navy}}/>
+                
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:10}}>
+                  <div>
+                    <label style={{fontSize:10,fontWeight:700,color:C.navy,display:"block",marginBottom:4}}>Fecha Inicial</label>
+                    <input type="date" value={filtroFechaIni} onChange={e=>{setFiltroFechaIni(e.target.value);setPaginaAdic(1);}}
+                      style={{width:"100%",padding:"8px",border:`1px solid ${C.border}`,borderRadius:6,fontSize:11}} />
+                  </div>
+                  <div>
+                    <label style={{fontSize:10,fontWeight:700,color:C.navy,display:"block",marginBottom:4}}>Fecha Final</label>
+                    <input type="date" value={filtroFechaFin} onChange={e=>{setFiltroFechaFin(e.target.value);setPaginaAdic(1);}}
+                      style={{width:"100%",padding:"8px",border:`1px solid ${C.border}`,borderRadius:6,fontSize:11}} />
+                  </div>
+                  <div>
+                    <label style={{fontSize:10,fontWeight:700,color:C.navy,display:"block",marginBottom:4}}>Tipo Contrato</label>
+                    <select value={filtroTipo} onChange={e=>{setFiltroTipo(e.target.value);setPaginaAdic(1);}}
+                      style={{width:"100%",padding:"8px",border:`1px solid ${C.border}`,borderRadius:6,fontSize:11}}>
+                      <option value="Todos">Todos los tipos</option>
+                      {tiposCompromiso.map(t=><option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{fontSize:10,fontWeight:700,color:C.navy,display:"block",marginBottom:4}}>Beneficiario</label>
+                    <select value={filtroBenef} onChange={e=>{setFiltroBenef(e.target.value);setPaginaAdic(1);}}
+                      style={{width:"100%",padding:"8px",border:`1px solid ${C.border}`,borderRadius:6,fontSize:11}}>
+                      <option value="Todos">Todos</option>
+                      {beneficiarios.map(b=><option key={b} value={b}>{b.substring(0,40)}</option>)}
+                    </select>
+                  </div>
                 </div>
-                <div>
-                  <label style={{fontSize:11,fontWeight:700,color:C.navy,display:"block",marginBottom:4}}>Fecha Final</label>
-                  <input type="date" value={filtroFechaFin} onChange={e=>setFiltroFechaFin(e.target.value)}
-                    style={{width:"100%",padding:"8px",border:`1px solid ${C.border}`,borderRadius:6,fontSize:11}} />
-                </div>
-                <div>
-                  <label style={{fontSize:11,fontWeight:700,color:C.navy,display:"block",marginBottom:4}}>Beneficiario</label>
-                  <select value={filtroBenef} onChange={e=>setFiltroBenef(e.target.value)}
-                    style={{width:"100%",padding:"8px",border:`1px solid ${C.border}`,borderRadius:6,fontSize:11}}>
-                    <option value="Todos">Todos</option>
-                    {beneficiarios.map(b=><option key={b} value={b}>{b}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label style={{fontSize:11,fontWeight:700,color:C.navy,display:"block",marginBottom:4}}>&nbsp;</label>
-                  <button onClick={()=>{setFiltroFechaIni('');setFiltroFechaFin('');setFiltroBenef('Todos');}}
-                    style={{width:"100%",padding:"8px",background:C.cyan,color:"white",border:"none",borderRadius:6,
-                      cursor:"pointer",fontSize:11,fontWeight:600}}>Limpiar Filtros</button>
-                </div>
+                
+                <button onClick={()=>{setFiltroFechaIni('');setFiltroFechaFin('');setFiltroBenef('Todos');setFiltroTipo('Todos');setBusquedaAdic('');setPaginaAdic(1);}}
+                  style={{marginTop:10,width:"100%",padding:"10px",background:C.cyan,color:"white",border:"none",borderRadius:6,
+                    cursor:"pointer",fontSize:11,fontWeight:700}}>Limpiar Todos los Filtros</button>
               </div>
 
               {/* Tabla */}
@@ -1004,8 +1059,7 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
                         <td style={{padding:"10px 12px",color:C.navy,fontWeight:600}}>{a.noComp}</td>
                         <td style={{padding:"10px 12px",color:C.muted,fontSize:10}}>{a.tipoComp.substring(0,30)}</td>
                         <td style={{padding:"10px 12px",color:C.muted}}>
-                          {a.fecha instanceof Date?a.fecha.toLocaleDateString('es-CO'):
-                            new Date(a.fecha).toLocaleDateString('es-CO')}
+                          {a.fecha.toLocaleDateString('es-CO')}
                         </td>
                         <td style={{padding:"10px 12px",color:C.muted,fontSize:10}}>{a.beneficiario.substring(0,35)}</td>
                         <td style={{padding:"10px 12px",textAlign:"right" as const,color:C.cyan,fontWeight:600}}>{fmtCOP(a.valor)}</td>
