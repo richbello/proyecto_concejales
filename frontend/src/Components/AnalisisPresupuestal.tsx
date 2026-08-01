@@ -244,7 +244,7 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
   const adiciones = useMemo(()=>{
     return data.filter(r=>{
       const obj = String(gcExacto(r,COLS.objeto)||'').toLowerCase();
-      return obj.includes('reemplaza');
+      return obj.includes('adicion');
     }).map(r=>{
       const fechaRaw = gcExacto(r,COLS.fechaReg);
       let fecha: Date;
