@@ -60,7 +60,7 @@ export function detectarAnomalias(data: DataRow[]): AnomaliaDetectada[] {
   const anomalias: AnomaliaDetectada[] = [];
 
   // ── 1. CONTRATOS CON CERO EJECUCIÓN ──────────────────────────────────────
-  const sinEjec = data.filter(r => toNum(gc(r, COLS.ejecucion)) === 0 && toNum(gc(r, COLS.valorCRP)) > 0);
+  const sinEjec = data.filter(r => { const crp = toNum(gc(r, COLS.valorCRP)); const giro = toNum(gc(r, COLS.giro)); return crp > 0 && giro === 0; });
   if (sinEjec.length > 0) {
     const total = sinEjec.reduce((s, r) => s + toNum(gc(r, COLS.valorCRP)), 0);
     anomalias.push({
