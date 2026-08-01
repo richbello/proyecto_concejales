@@ -25,6 +25,7 @@ const fmtCOP = (v:number) =>
 const fmtFull = (v:number) =>
   new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(v);
 const fmtNum = (v:number) => v.toLocaleString('es-CO');
+const fmtM = (v:number) => '$' + (v/1e6).toLocaleString('es-CO',{maximumFractionDigits:1}) + 'M';
 
 const toNum = (v:any):number => {
   if(v===null||v===undefined||v==='') return 0;
@@ -1060,10 +1061,10 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
                         <td style={{padding:"10px 12px",color:C.navy,fontWeight:600}}>{a.noComp}</td>
                         <td style={{padding:"10px 12px",color:C.muted,fontSize:10}}>{a.tipoComp.substring(0,30)}</td>
                         <td style={{padding:"10px 12px",color:C.muted}}>
-                          {a.fecha.toLocaleDateString('es-CO')}
+                          {a.fecha.toLocaleDateString('es-CO',{timeZone:'UTC'})}
                         </td>
                         <td style={{padding:"10px 12px",color:C.muted,fontSize:10}}>{a.beneficiario.substring(0,35)}</td>
-                        <td style={{padding:"10px 12px",textAlign:"right" as const,color:C.cyan,fontWeight:600}}>{fmtCOP(a.valor)}</td>
+                        <td style={{padding:"10px 12px",textAlign:"right" as const,color:C.cyan,fontWeight:600}}>{fmtM(a.valor)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1099,13 +1100,13 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
                   <div>
                     <div style={{fontSize:10,color:C.muted}}>Valor Total</div>
                     <div style={{fontSize:14,fontWeight:800,color:C.cyan}}>
-                      {fmtCOP(adicionesFilt.reduce((s,a)=>s+a.valor,0))}
+                      {fmtM(adicionesFilt.reduce((s,a)=>s+a.valor,0))}
                     </div>
                   </div>
                   <div>
                     <div style={{fontSize:10,color:C.muted}}>Valor Promedio</div>
                     <div style={{fontSize:14,fontWeight:800,color:C.verde}}>
-                      {fmtCOP(adicionesFilt.length>0?adicionesFilt.reduce((s,a)=>s+a.valor,0)/adicionesFilt.length:0)}
+                      {fmtM(adicionesFilt.length>0?adicionesFilt.reduce((s,a)=>s+a.valor,0)/adicionesFilt.length:0)}
                     </div>
                   </div>
                 </div>
