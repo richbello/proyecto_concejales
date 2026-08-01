@@ -112,12 +112,12 @@ const TreemapCell = (props:any) => {
     <g>
       <rect x={x} y={y} width={width} height={height} rx={4}
         style={{fill:color,stroke:"#fff",strokeWidth:2}}/>
-      {width>70&&height>30&&(
+      {width>50&&height>28&&(
         <>
-          <text x={x+8} y={y+18} fill="#fff" fontSize={11} fontWeight={700}>
-            {String(name).slice(0,Math.max(2,Math.floor(width/7)))}
+          <text x={x+8} y={y+20} fill="#fff" fontSize={12} fontWeight={800}>
+            {String(name).slice(0,Math.max(3,Math.floor(width/7)))}
           </text>
-          <text x={x+8} y={y+33} fill="rgba(255,255,255,.9)" fontSize={10}>
+          <text x={x+8} y={y+36} fill="rgba(255,255,255,.95)" fontSize={11} fontWeight={600}>
             {fmtCOP(value)}
           </text>
         </>
@@ -357,7 +357,7 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
       g[k].count   +=1;
     });
     return Object.entries(g)
-      .map(([rubro,v])=>({rubro,rubroCorto:rubro.length>26?rubro.slice(0,26)+'…':rubro,...v}))
+      .map(([rubro,v])=>({rubro,rubroCorto:rubro.length>18?rubro.slice(0,18)+'…':rubro,...v}))
       .sort((a,b)=>b.valorCRP-a.valorCRP);
   },[filtrado]);
 
@@ -625,12 +625,12 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
               <div style={{fontSize:11,color:C.muted,marginBottom:12}}>
                 Variables: Rubro · Valor CRP · Autorización giro · Com.Sin.Aut.Giro
               </div>
-              <ResponsiveContainer width="99%" height={330}>
+              <ResponsiveContainer width="99%" height={420}>
                 <BarChart data={topRubros} layout="vertical" margin={{top:4,right:24,left:4,bottom:4}}>
                   <Gradients/>
                   <CartesianGrid strokeDasharray="3 3" stroke={C.border} horizontal={false}/>
                   <XAxis type="number" tickFormatter={fmtCOP} tick={{fontSize:9}}/>
-                  <YAxis type="category" dataKey="rubroCorto" width={190} tick={{fontSize:9}}/>
+                  <YAxis type="category" dataKey="rubroCorto" width={160} tick={{fontSize:10,fill:"#1B3A6B"}}/>
                   <Tooltip content={<TT/>}/>
                   <Legend wrapperStyle={{fontSize:11}}/>
                   <Bar dataKey="valorCRP" name="Valor CRP"          fill="url(#gCyan)"  radius={[0,4,4,0]}/>
@@ -649,7 +649,7 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
               <ResponsiveContainer width="99%" height={260}>
                 <PieChart>
                   <Pie data={byMod} dataKey="value" nameKey="name" cx="50%" cy="50%"
-                    outerRadius={95} innerRadius={50} paddingAngle={2}
+                    outerRadius={110} innerRadius={60} paddingAngle={3}
                     label={({percent})=>`${(percent*100).toFixed(0)}%`} labelLine={false} fontSize={9}>
                     {byMod.map((_,i)=><Cell key={i} fill={PAL[i%PAL.length]}/>)}
                   </Pie>
@@ -664,7 +664,7 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
               <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:4}}>Nivel de Ejecución (Gauge)</div>
               <div style={{fontSize:11,color:C.muted,marginBottom:12}}>Autorización Giro / Valor CRP</div>
               <div style={{position:"relative" as const}}>
-                <ResponsiveContainer width="99%" height={260}>
+                <ResponsiveContainer width="99%" height={280}>
                   <RadialBarChart innerRadius="68%" outerRadius="100%"
                     data={[{name:'Ejecución',value:Math.min(kpis.pctEjec,100),fill:pctColor(kpis.pctEjec)}]}
                     startAngle={220} endAngle={-40}>
@@ -688,7 +688,7 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
                 Mapa de Rubros por Valor CRP (Treemap)
               </div>
               <div style={{fontSize:11,color:C.muted,marginBottom:12}}>Tamaño proporcional al Valor CRP · top 14 rubros</div>
-              <ResponsiveContainer width="99%" height={300}>
+              <ResponsiveContainer width="99%" height={380}>
                 <Treemap data={treeRubros} dataKey="value" stroke="#fff" content={<TreemapCell/>}>
                   <Tooltip content={<TT/>}/>
                 </Treemap>
@@ -709,7 +709,7 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
               <div style={{fontSize:11,color:C.muted,marginBottom:12}}>
                 Variables: Nombre BP Beneficiario · Valor CRP · Autorización giro
               </div>
-              <ResponsiveContainer width="99%" height={300}>
+              <ResponsiveContainer width="99%" height={380}>
                 <BarChart data={byBenef} layout="vertical" margin={{top:4,right:70,left:4,bottom:4}}>
                   <Gradients/>
                   <CartesianGrid strokeDasharray="3 3" stroke={C.border} horizontal={false}/>
@@ -764,7 +764,7 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
             <div style={{gridColumn:"1/-1"}}>
               <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:4}}>N° de Compromisos por Rubro (Top 12)</div>
               <div style={{fontSize:11,color:C.muted,marginBottom:12}}>Variables: Rubro · No. Compromiso</div>
-              <ResponsiveContainer width="99%" height={260}>
+              <ResponsiveContainer width="99%" height={320}>
                 <BarChart data={byRubro.slice(0,12)} margin={{top:4,right:16,left:4,bottom:60}}>
                   <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
                   <XAxis dataKey="rubroCorto" tick={{fontSize:9}} angle={-30} textAnchor="end" height={70} interval={0}/>
