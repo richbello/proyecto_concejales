@@ -169,7 +169,7 @@ const TablaStats = ({rows,labelCol,keyName}:{rows:any[];labelCol:string;keyName:
 const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
   const [data,      setData]      = useState<DataRow[]>([]);
   const [fileName,  setFileName]  = useState('');
-  const [activeTab, setActiveTab] = useState<'resumen'|'graficas'|'estadisticas'|'detalle'|'anomalias'>('resumen');
+  const [activeTab, setActiveTab] = useState<'resumen'|'graficas'|'estadisticas'|'detalle'|'anomalias'|'adiciones'>('resumen');
 
   // Filtros
   const [busqueda,   setBusqueda]   = useState('');
@@ -178,6 +178,12 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
   const [filtroMod,  setFiltroMod]  = useState('Todos');
   const [pagina,     setPagina]     = useState(1);
   const POR_PAG = 15;
+  
+  // Filtros para Adiciones
+  const [filtroFechaIni, setFiltroFechaIni] = useState('');
+  const [filtroFechaFin, setFiltroFechaFin] = useState('');
+  const [filtroBenef, setFiltroBenef] = useState('Todos');
+  const [paginaAdic, setPaginaAdic] = useState(1);
 
   const handleFile = useCallback((e:React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -229,6 +235,53 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
     }
     return f;
   },[data,busqueda,filtroEj,filtroRubro,filtroMod]);
+
+  // ── ADICIONES (filas que contienen "REEMPLAZA" en Objeto) ──────────────────────
+  const adiciones = useMemo(()=>{
+    return data.filter(r=>{
+      const obj = String(gcExacto(r,COLS.compromiso)||'').toLowerCase();
+      return obj.includes('reemplaza');
+    }).map(r=>({
+      noComp: String(gcExacto(r,COLS.noComp)||''),
+      fecha: gcExacto(r,['Fecha Registro']) as string|Date,
+      beneficiario: String(gcExacto(r,COLS.beneficiario)||''),
+      tipoComp: String(gcExacto(r,COLS.compromiso)||''),
+      valor: toNum(gcExacto(r,COLS.valorCRP)),
+      objeto: String(gcExacto(r,COLS.compromiso)||''),
+      raw: r
+    }));
+  },[data]);
+
+  // ── Adiciones filtradas por fecha y beneficiario ──────────────────────────────
+  const adicionesFilt = useMemo(()=>{
+    let a = adiciones;
+    if(filtroFechaIni){
+      const d1 = new Date(filtroFechaIni);
+      a = a.filter(x=>{
+        const fd = x.fecha instanceof Date ? x.fecha : new Date(x.fecha);
+        return fd >= d1;
+      });
+    }
+    if(filtroFechaFin){
+      const d2 = new Date(filtroFechaFin);
+      a = a.filter(x=>{
+        const fd = x.fecha instanceof Date ? x.fecha : new Date(x.fecha);
+        return fd <= d2;
+      });
+    }
+    if(filtroBenef!=='Todos'){
+      a = a.filter(x=>x.beneficiario===filtroBenef);
+    }
+    return a;
+  },[adiciones,filtroFechaIni,filtroFechaFin,filtroBenef]);
+
+  const beneficiarios = useMemo(()=>{
+    const b = new Set<string>();
+    adiciones.forEach(a=>{
+      if(a.beneficiario) b.add(a.beneficiario);
+    });
+    return Array.from(b).sort();
+  },[adiciones]);
 
   // ── KPIs ────────────────────────────────────────────────────────────────────
   const kpis = useMemo(()=>{
@@ -502,7 +555,7 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
         {([
           ['resumen','📈 Resumen'],['graficas','📊 Gráficas'],
           ['estadisticas','📑 Compromiso/Mod.'],
-          ['detalle','📋 Detalle'],['anomalias','🚨 Anomalías'],
+          ['detalle','📋 Detalle'],['adiciones','📝 Adiciones'],['anomalias','🚨 Anomalías'],
         ] as const).map(([k,l])=>(
           <button key={k} onClick={()=>setActiveTab(k)} style={{
             padding:"11px 16px",background:"transparent",border:"none",
@@ -893,6 +946,115 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
                     cursor:pagina===totalPag?"default":"pointer",opacity:pagina===totalPag?.4:1,background:"white",fontSize:12}}>»</button>
               </div>
             )}
+          </div>
+        )}
+
+        {/* ── ADICIONES ── */}
+        {activeTab==='adiciones'&&(
+          <div>
+            <div style={{marginBottom:20}}>
+              <div style={{fontSize:16,fontWeight:800,color:C.navy,marginBottom:12}}>
+                📝 Adiciones de Contratos ({adiciones.length} registros)
+              </div>
+              
+              {/* Filtros */}
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:12,marginBottom:16}}>
+                <div>
+                  <label style={{fontSize:11,fontWeight:700,color:C.navy,display:"block",marginBottom:4}}>Fecha Inicial</label>
+                  <input type="date" value={filtroFechaIni} onChange={e=>setFiltroFechaIni(e.target.value)}
+                    style={{width:"100%",padding:"8px",border:`1px solid ${C.border}`,borderRadius:6,fontSize:11}} />
+                </div>
+                <div>
+                  <label style={{fontSize:11,fontWeight:700,color:C.navy,display:"block",marginBottom:4}}>Fecha Final</label>
+                  <input type="date" value={filtroFechaFin} onChange={e=>setFiltroFechaFin(e.target.value)}
+                    style={{width:"100%",padding:"8px",border:`1px solid ${C.border}`,borderRadius:6,fontSize:11}} />
+                </div>
+                <div>
+                  <label style={{fontSize:11,fontWeight:700,color:C.navy,display:"block",marginBottom:4}}>Beneficiario</label>
+                  <select value={filtroBenef} onChange={e=>setFiltroBenef(e.target.value)}
+                    style={{width:"100%",padding:"8px",border:`1px solid ${C.border}`,borderRadius:6,fontSize:11}}>
+                    <option value="Todos">Todos</option>
+                    {beneficiarios.map(b=><option key={b} value={b}>{b}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={{fontSize:11,fontWeight:700,color:C.navy,display:"block",marginBottom:4}}>&nbsp;</label>
+                  <button onClick={()=>{setFiltroFechaIni('');setFiltroFechaFin('');setFiltroBenef('Todos');}}
+                    style={{width:"100%",padding:"8px",background:C.cyan,color:"white",border:"none",borderRadius:6,
+                      cursor:"pointer",fontSize:11,fontWeight:600}}>Limpiar Filtros</button>
+                </div>
+              </div>
+
+              {/* Tabla */}
+              <div style={{overflowX:"auto" as const}}>
+                <table style={{width:"100%",borderCollapse:"collapse" as const,fontSize:11}}>
+                  <thead>
+                    <tr style={{background:C.navy,color:"white"}}>
+                      <th style={{padding:"10px 12px",textAlign:"left" as const,fontWeight:700}}>No. Compromiso</th>
+                      <th style={{padding:"10px 12px",textAlign:"left" as const,fontWeight:700}}>Tipo</th>
+                      <th style={{padding:"10px 12px",textAlign:"left" as const,fontWeight:700}}>Fecha Registro</th>
+                      <th style={{padding:"10px 12px",textAlign:"left" as const,fontWeight:700}}>Beneficiario</th>
+                      <th style={{padding:"10px 12px",textAlign:"right" as const,fontWeight:700}}>Valor CRP</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {adicionesFilt.slice((paginaAdic-1)*15,paginaAdic*15).map((a,i)=>(
+                      <tr key={i} style={{background:i%2===0?"white":"#f9f9f9",borderBottom:`1px solid ${C.border}`}}>
+                        <td style={{padding:"10px 12px",color:C.navy,fontWeight:600}}>{a.noComp}</td>
+                        <td style={{padding:"10px 12px",color:C.muted,fontSize:10}}>{a.tipoComp.substring(0,30)}</td>
+                        <td style={{padding:"10px 12px",color:C.muted}}>
+                          {a.fecha instanceof Date?a.fecha.toLocaleDateString('es-CO'):
+                            new Date(a.fecha).toLocaleDateString('es-CO')}
+                        </td>
+                        <td style={{padding:"10px 12px",color:C.muted,fontSize:10}}>{a.beneficiario.substring(0,35)}</td>
+                        <td style={{padding:"10px 12px",textAlign:"right" as const,color:C.cyan,fontWeight:600}}>{fmtCOP(a.valor)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Paginación */}
+              {Math.ceil(adicionesFilt.length/15)>1&&(
+                <div style={{marginTop:16,display:"flex",justifyContent:"center",gap:8,alignItems:"center"}}>
+                  <button onClick={()=>setPaginaAdic(p=>Math.max(1,p-1))}
+                    style={{padding:"5px 10px",borderRadius:6,border:`1px solid ${C.border}`,
+                      cursor:paginaAdic===1?"default":"pointer",opacity:paginaAdic===1?.4:1,background:"white",fontSize:12}}>«</button>
+                  <span style={{fontSize:11,color:C.navy,fontWeight:600}}>
+                    Pág {paginaAdic} de {Math.ceil(adicionesFilt.length/15)}
+                  </span>
+                  <button onClick={()=>setPaginaAdic(p=>Math.min(Math.ceil(adicionesFilt.length/15),p+1))}
+                    style={{padding:"5px 10px",borderRadius:6,border:`1px solid ${C.border}`,
+                      cursor:paginaAdic===Math.ceil(adicionesFilt.length/15)?"default":"pointer",
+                      opacity:paginaAdic===Math.ceil(adicionesFilt.length/15)?.4:1,background:"white",fontSize:12}}>»</button>
+                </div>
+              )}
+
+              {/* Resumen */}
+              <div style={{marginTop:16,padding:12,background:"#f0f7ff",borderRadius:8,border:`1px solid ${C.cyanSoft}`}}>
+                <div style={{fontSize:12,fontWeight:700,color:C.navy,marginBottom:6}}>
+                  💰 Resumen Adiciones
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:16}}>
+                  <div>
+                    <div style={{fontSize:10,color:C.muted}}>Total Registros</div>
+                    <div style={{fontSize:14,fontWeight:800,color:C.navy}}>{adicionesFilt.length}</div>
+                  </div>
+                  <div>
+                    <div style={{fontSize:10,color:C.muted}}>Valor Total</div>
+                    <div style={{fontSize:14,fontWeight:800,color:C.cyan}}>
+                      {fmtCOP(adicionesFilt.reduce((s,a)=>s+a.valor,0))}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{fontSize:10,color:C.muted}}>Valor Promedio</div>
+                    <div style={{fontSize:14,fontWeight:800,color:C.verde}}>
+                      {fmtCOP(adicionesFilt.length>0?adicionesFilt.reduce((s,a)=>s+a.valor,0)/adicionesFilt.length:0)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
