@@ -301,7 +301,8 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
       a = a.filter(x=>
         norm(x.noComp).includes(q) ||
         norm(x.beneficiario).includes(q) ||
-        norm(x.tipoComp).includes(q)
+        norm(x.tipoComp).includes(q) ||
+        norm(x.objeto).includes(q)
       );
     }
     
