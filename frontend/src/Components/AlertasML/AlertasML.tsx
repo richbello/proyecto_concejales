@@ -14,7 +14,7 @@ const C = {
 };
 
 const fmtCOP = (v: number) =>
-  v >= 1e9 ? `$${(v / 1e9).toFixed(2)}B`
+  v >= 1e9 ? '$' + (v/1e6).toLocaleString('es-CO',{maximumFractionDigits:0}) + 'M'
   : v >= 1e6 ? `$${(v / 1e6).toFixed(0)}M`
   : v >= 1e3 ? `$${(v / 1e3).toFixed(0)}K`
   : `$${v.toFixed(0)}`;
