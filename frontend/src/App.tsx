@@ -50,7 +50,8 @@ export default function App() {
   }, []);
 
   const handleLicencia = (data: any) => {
-    setModulos(data.modulos || TODOS_MODULOS.map(m => m.key));
+    const newModulos = data.modulos || TODOS_MODULOS.map(m => m.key);
+    setModulos([...new Set([...newModulos, "licencias"])]);
     setPlanActual(data.plan || "");
     // Si el tab actual no está disponible, ir al primero disponible
     if (data.modulos && !data.modulos.includes(tab)) {
