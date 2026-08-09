@@ -26,6 +26,7 @@ const TODOS_MODULOS: ModuloItem[] = [
   { key:"contratacion", label:"3. Contratación", icon:"📋" },
   { key:"planeacion", label:"4. Planeación Local", icon:"📐" },
   { key:"ciberseguridad", label:"5. Ciberseguridad", icon:"🔐" },
+  { key:"licencias", label:"6. Licencias", icon:"🔑" },
 ];
 
 
