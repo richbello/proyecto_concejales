@@ -227,7 +227,7 @@ export default function AlertasML({ onDataLoad }: Props) {
       <div style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center", minHeight: 400, padding: 24 }}>
         <div style={{ background: `linear-gradient(135deg, ${C.navy} 0%, #1e3a6e 100%)`, borderRadius: 16, padding: "32px 40px", textAlign: "center" as const, color: "white", maxWidth: 540, width: "100%" }}>
           <div style={{ fontSize: 48, marginBottom: 16 }}>📂</div>
-          <h3 style={{ margin: "0 0 8px", fontSize: 20, fontWeight: 800 }}>Alertas PAC FDL — ControlIA</h3>
+          <h3 style={{ margin: "0 0 8px", fontSize: 20, fontWeight: 800 }}>Alertas PAC FDL — XBOG CONTROL</h3>
           <p style={{ margin: "0 0 28px", fontSize: 13, color: "rgba(255,255,255,.65)", lineHeight: 1.6 }}>
             Carga el reporte PAC exportado de SAP.<br />
             <span style={{ color: C.cyanLt, fontSize: 11 }}>PAC Inicial · PAC Reprogramado · PAC Actual · Disponibilidad · Girado · EJECUTADO</span>

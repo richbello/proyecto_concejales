@@ -127,6 +127,6 @@ export default {
     if (path === "/crear"   && request.method === "POST") return handleCrear(request, env);
     if (path === "/listar"  && request.method === "GET")  return handleListar(request, env);
     if (path === "/revocar" && request.method === "POST") return handleRevocar(request, env);
-    return Response.json({ok:true, servicio:"ControlIA Licencias v1.0"}, {headers:cors()});
+    return Response.json({ok:true, servicio:"XBOG CONTROL Licencias v1.0"}, {headers:cors()});
   }
 };

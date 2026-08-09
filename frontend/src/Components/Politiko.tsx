@@ -197,7 +197,7 @@ export default function Politiko({ data, planData, contratosData, pacData, mapaD
         body: JSON.stringify({
           model: 'claude-haiku-4-5',
           max_tokens: 1000,
-system: `Eres Politiko, asistente experto en control político integral para concejales y ediles municipales de Colombia, parte de la plataforma ControlIA.
+system: `Eres Politiko, asistente experto en control político integral para concejales y ediles municipales de Colombia, parte de la plataforma XBOG CONTROL.
 
 Tu conocimiento cubre TODOS los frentes de control político, no solo presupuesto:
 

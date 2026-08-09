@@ -175,7 +175,7 @@ const PantallaLogin = ({onLogin}:{onLogin:(s:Sesion,logs:LogEntry[],users:Usuari
           <div style={{fontSize:52,marginBottom:8}}>🔐</div>
           <div style={{fontSize:10,color:C.cyan,letterSpacing:4,fontWeight:700,textTransform:"uppercase" as const}}>Control Político · XBOG Technologies</div>
           <h1 style={{color:C.texto,fontSize:24,fontWeight:900,margin:"8px 0 4px"}}>Acceso Seguro</h1>
-          <div style={{color:C.textoSub,fontSize:12}}>FDL Usme · Sistema de Auditoría</div>
+          <div style={{color:C.textoSub,fontSize:12}}>Codespage · Sistema de Auditoría</div>
         </div>
 
         {/* Form */}

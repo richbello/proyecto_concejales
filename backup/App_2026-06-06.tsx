@@ -167,7 +167,7 @@ export default function App() {
         <div style={{padding:"20px 16px",borderBottom:"1px solid rgba(255,255,255,.1)"}}>
           <div style={{fontSize:28}}>M</div>
           <div style={{fontSize:11,fontWeight:700,color:"#5dade2",textTransform:"uppercase",letterSpacing:2,marginTop:8}}>Control Politico</div>
-          <div style={{fontSize:11,color:"rgba(255,255,255,.5)",marginTop:2}}>FDL Usme 2026</div>
+          <div style={{fontSize:11,color:"rgba(255,255,255,.5)",marginTop:2}}>Codespage 2026</div>
         </div>
         <ul style={{listStyle:"none",padding:0,margin:0,flex:1,paddingTop:8}}>
           {navItems.map(n => (

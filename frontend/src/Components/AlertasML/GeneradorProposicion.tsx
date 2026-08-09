@@ -121,8 +121,8 @@ SEGUNDO: Solicitar documentación completa (PAC, estudios previos, contratos) de
 
 TERCERO: Enviar copia a la Contraloría de Bogotá D.C. y Veeduría Distrital.
 
-Generado por ControlIA — Sistema de Inteligencia Artificial para Control Político
-XBOG Technologies · gerencia@gestionyreclamoscolombia.org
+Generado por XBOG CONTROL — Sistema de Inteligencia Artificial para Control Político
+XBOG Technologies · xbogtechnologies@zohomail.com
 ${hoy}`;
 }
 
@@ -193,7 +193,7 @@ export default function GeneradorProposicion({
     <div style={{ position:"fixed" as const, inset:0, background:"rgba(0,0,0,.55)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}>
       <div style={{ background:"white", borderRadius:12, width:"100%", maxWidth:620, maxHeight:"90vh", overflow:"auto", boxShadow:"0 20px 60px rgba(0,0,0,.35)" }}>
         <div style={{ background:`linear-gradient(135deg, ${C.navy} 0%, #1e3a6e 100%)`, color:"white", padding:"20px 24px", borderRadius:"12px 12px 0 0" }}>
-          <div style={{ fontSize:10, color:C.cyan, letterSpacing:2, textTransform:"uppercase" as const, fontWeight:700 }}>ControlIA · Generador Automático</div>
+          <div style={{ fontSize:10, color:C.cyan, letterSpacing:2, textTransform:"uppercase" as const, fontWeight:700 }}>XBOG CONTROL · Generador Automático</div>
           <div style={{ fontWeight:800, fontSize:17, margin:"6px 0 4px" }}>📝 Proposición de Control Político</div>
         </div>
 

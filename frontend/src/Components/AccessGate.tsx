@@ -113,8 +113,8 @@ export default function AccessGate({ children, onLicencia }: Props) {
           <div style={{ textAlign:"center" as const, marginBottom:32 }}>
             <div style={{ fontSize:56, marginBottom:12 }}>🏛️</div>
             <div style={{ fontSize:10, color:"#5dade2", letterSpacing:4, fontWeight:700, textTransform:"uppercase" as const }}>XBOG Technologies</div>
-            <h1 style={{ color:"#e2e8f0", fontSize:26, fontWeight:900, margin:"10px 0 6px" }}>ControlIA</h1>
-            <div style={{ color:"#94a3b8", fontSize:12 }}>Plataforma de Control Político · FDL Usme</div>
+            <h1 style={{ color:"#e2e8f0", fontSize:26, fontWeight:900, margin:"10px 0 6px" }}>XBOG CONTROL</h1>
+            <div style={{ color:"#94a3b8", fontSize:12 }}>Plataforma de Control Político · Codespage</div>
           </div>
 
           <div style={{ background:"#161d2e", borderRadius:16, padding:32, border:"1px solid #1e2a40", boxShadow:"0 24px 48px rgba(0,0,0,.5)" }}>
@@ -149,7 +149,7 @@ export default function AccessGate({ children, onLicencia }: Props) {
 
             <div style={{ marginTop:20, padding:"12px 14px", background:"#0a0f1e", borderRadius:8, fontSize:11, color:"#4a5568", textAlign:"center" as const }}>
               ¿No tienes licencia? Contacta a XBOG Technologies<br/>
-              <span style={{ color:"#5dade2" }}>gerencia@gestionyreclamoscolombia.org</span>
+              <span style={{ color:"#5dade2" }}>xbogtechnologies@zohomail.com</span>
             </div>
           </div>
 

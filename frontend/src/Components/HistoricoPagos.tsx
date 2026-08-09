@@ -319,7 +319,7 @@ export default function HistoricoPagos() {
       <div style={{background:`linear-gradient(135deg,${C.navy} 0%,#1e3a6e 100%)`,borderRadius:12,padding:"20px 24px",marginBottom:18,color:"white"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap" as const,gap:12,marginBottom:16}}>
           <div>
-            <div style={{fontSize:10,color:C.cyan,letterSpacing:2,textTransform:"uppercase" as const,fontWeight:700}}>📊 SAP Distrital · FDL Usme</div>
+            <div style={{fontSize:10,color:C.cyan,letterSpacing:2,textTransform:"uppercase" as const,fontWeight:700}}>📊 SAP Distrital · Codespage</div>
             <h2 style={{margin:"6px 0 4px",fontSize:20,fontWeight:800}}>Histórico de Pagos · {ejercicios[0]}–{ejercicios[ejercicios.length-1]}</h2>
             <div style={{fontSize:11,color:"rgba(255,255,255,.5)"}}>8 variables · 7 gráficas · buscador de contratista</div>
           </div>
