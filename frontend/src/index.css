@@ -101,3 +101,16 @@ cat >> /workspaces/proyecto_concejales/frontend/src/index.css << 'EOF'
     font-size: 10px !important;
   }
 }
+
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700;900&display=swap');
+/* Fraunces para XBOG Control */
+
+.xbog-branding {
+  font-family: 'Fraunces', serif;
+  font-weight: 900;
+  font-size: 28px;
+  color: #FFD100;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  letter-spacing: -1px;
+}

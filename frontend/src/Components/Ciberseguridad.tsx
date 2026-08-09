@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 
 // ─── Paleta ───────────────────────────────────────────────────────────────────
 const C = {
-  navy: "#0a0f1e", navyLt: "#111827", card: "#161d2e", cardHov: "#1e2a40",
+  navy: "#1a2742", navyLt: "#111827", card: "#1a2742", cardHov: "#1e2a40",
   cyan: "#00d4ff", cyanDim: "#0099bb", verde: "#00ff88", verdeDim: "#00cc6a",
   amar: "#ffd60a", rojo: "#ff3d5a", rojoDim: "#cc2244",
   muted: "#4a5568", border: "#1e2a40", borderLt: "#2d3a50",
@@ -167,7 +167,7 @@ const PantallaLogin = ({onLogin}:{onLogin:(s:Sesion,logs:LogEntry[],users:Usuari
   },[usuario,clave]);
 
   return(
-    <div style={{minHeight:"100vh",background:`radial-gradient(ellipse at top, #0d1b2a 0%, ${C.navy} 100%)`,
+    <div style={{minHeight:"100vh",background:`radial-gradient(ellipse at top, #1a2742 0%, ${C.navy} 100%)`,
       display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
       <div style={{width:"100%",maxWidth:420}}>
         {/* Logo */}
@@ -387,7 +387,7 @@ export default function Ciberseguridad() {
       background:C.navy,borderRadius:12,padding:0}}>
 
       {/* Header */}
-      <div style={{background:`linear-gradient(135deg,#0d1b2a 0%,#111827 100%)`,borderRadius:12,
+      <div style={{background:`linear-gradient(135deg,#1a2742 0%,#111827 100%)`,borderRadius:12,
         padding:"18px 24px",marginBottom:16,border:`1px solid ${C.borderLt}`,
         boxShadow:"0 4px 24px rgba(0,212,255,.08)"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",
@@ -537,7 +537,7 @@ export default function Ciberseguridad() {
             <div style={{overflowX:"auto" as const,borderRadius:10,border:`1px solid ${C.border}`}}>
               <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
                 <thead>
-                  <tr style={{background:"#0d1b2a"}}>
+                  <tr style={{background:"#1a2742"}}>
                     {["ID","Día","Fecha","Hora","Usuario","Nombre","Rol","Acción","Dispositivo","IP","Detalle","Estado"].map(h=>(
                       <th key={h} style={{padding:"10px 10px",textAlign:"left" as const,
                         color:C.cyan,fontWeight:700,fontSize:10,whiteSpace:"nowrap" as const,

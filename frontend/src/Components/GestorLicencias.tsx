@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 const WORKER_URL = "https://controlia-licencias.richbello.workers.dev";
 const ADMIN_SECRET = "xbog-admin-2026-controlia";
 
-const C = { navy:"#0a0f1e", card:"#161d2e", cyan:"#00d4ff", verde:"#00ff88", amar:"#ffd60a", rojo:"#ff3d5a", muted:"#4a5568", border:"#1e2a40", texto:"#e2e8f0", sub:"#94a3b8" };
+const C = { navy:"#0a0f1e", card:"#161d2e", cyan:"#FFD100", verde:"#00ff88", amar:"#ffd60a", rojo:"#D10D0D", muted:"#4a5568", border:"#1e2a40", texto:"#e2e8f0", sub:"#94a3b8" };
 const PAL = [C.cyan, C.verde, C.amar, C.rojo, "#8b5cf6", "#f97316"];
 
 const fmtCOP = (v:number) => v>=1e6?`$${(v/1e6).toFixed(1)}M`:v>=1e3?`$${(v/1e3).toFixed(0)}K`:`$${v}`;
@@ -238,7 +238,7 @@ export default function GestorLicencias() {
               <div style={{ marginTop:4 }}>16 caracteres aleatorios · encriptada en Cloudflare KV</div>
             </div>
 
-            <button onClick={crear} disabled={cargando} style={{ width:"100%", background:cargando?"#4a5568":"linear-gradient(135deg,#00d4ff,#0099bb)", border:"none", borderRadius:10, padding:"13px", color:"#0a0f1e", fontWeight:800, fontSize:14, cursor:cargando?"default":"pointer" }}>
+            <button onClick={crear} disabled={cargando} style={{ width:"100%", background:cargando?"#4a5568":"linear-gradient(135deg,#FFD100,#D10D0D)", border:"none", borderRadius:10, padding:"13px", color:"#0a0f1e", fontWeight:800, fontSize:14, cursor:cargando?"default":"pointer" }}>
               {cargando ? "⏳ Creando..." : "🔑 Generar licencia"}
             </button>
           </div>

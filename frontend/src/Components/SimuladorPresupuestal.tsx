@@ -103,7 +103,7 @@ export default function SimuladorPresupuestal({ data = [] }: Props) {
     const maxCrp = ordenado[0]?.crp ?? 0;
     return ordenado.map((d, i) => ({
       key: `c${i}`,
-      nombre: d.nombre.length > 26 ? d.nombre.slice(0,26)+'…' : d.nombre,
+      nombre: d.nombre,
       nombreCompleto: d.nombre,
       base:    Math.round(d.crp / 1e6),      // millones (CRP = base presupuestal)
       giro:    Math.round(d.giro / 1e6),
@@ -377,7 +377,7 @@ ${proyeccion.map(p=>`<tr><td><strong>${p.año}</strong></td><td>${fmtCOP(p['Esce
                         <Icon className="w-5 h-5 text-white"/>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-bold text-slate-700 truncate" title={u.nombreCompleto}>{u.nombre}</div>
+                        <div className="text-sm font-bold text-slate-700" title={u.nombreCompleto} style={{whiteSpace:"normal",wordBreak:"break-word",lineHeight:"1.3"}}>{u.nombre}</div>
                         <input type="range" min={-20} max={20} value={val}
                           onChange={e=>setAjustes(prev=>({...prev,[u.key]:Number(e.target.value)}))}
                           className="w-full h-2 rounded-full appearance-none cursor-pointer mt-1.5"

@@ -191,6 +191,28 @@ const UploadScreen: React.FC<{ onFile: (file: File) => void }> = ({ onFile }) =>
   );
 };
 
+// ─── SPINNER DE CARGA CIRCULAR ─────────────────────────────────────────────────
+const SpinnerCarga: React.FC<{ pct: number; etapa: string }> = ({ pct, etapa }) => {
+  const R = 52, C = 2 * Math.PI * R, offset = C - (pct / 100) * C;
+  const done = pct >= 100;
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(11,18,33,.92)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 9999, backdropFilter: 'blur(4px)' }}>
+      <div style={{ position: 'relative', width: 140, height: 140 }}>
+        <svg width="140" height="140" style={{ transform: 'rotate(-90deg)' }}>
+          <circle cx="70" cy="70" r={R} fill="none" stroke="#1E3058" strokeWidth="10" />
+          <circle cx="70" cy="70" r={R} fill="none" stroke={done ? '#10B981' : '#00C8E0'} strokeWidth="10"
+            strokeDasharray={C} strokeDashoffset={offset} strokeLinecap="round"
+            style={{ transition: 'stroke-dashoffset .4s ease, stroke .3s' }} />
+        </svg>
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+          <span style={{ fontSize: 30, fontWeight: 900, color: done ? '#10B981' : '#00C8E0', fontFamily: "'Segoe UI',sans-serif" }}>{pct}%</span>
+        </div>
+      </div>
+      <div style={{ marginTop: 24, fontSize: 15, fontWeight: 700, color: '#E2E8F0', fontFamily: "'Segoe UI',sans-serif" }}>{etapa}</div>
+    </div>
+  );
+};
+
 // ─── COMPONENTE PRINCIPAL ─────────────────────────────────────────────────────
 interface PlaneacionProps { onDataLoad?: (data: any) => void; }
 const Planeacion: React.FC<PlaneacionProps> = ({ onDataLoad }) => {
@@ -201,16 +223,34 @@ const Planeacion: React.FC<PlaneacionProps> = ({ onDataLoad }) => {
   const [tab, setTab] = useState<'resumen' | 'sectores' | 'proyectos' | 'indicadores' | 'alertas'>('resumen');
   const [sectorFilter, setSectorFilter] = useState('TODOS');
   const [proyDetail, setProyDetail] = useState<Proyecto | null>(null);
+  const [progreso, setProgreso] = useState<{pct:number; etapa:string} | null>(null);
 
   const handleFile = useCallback((file: File) => {
     setFileName(file.name);
+    setProgreso({ pct: 10, etapa: 'Leyendo archivo...' });
     const reader = new FileReader();
     reader.onload = (ev) => {
+      setProgreso({ pct: 40, etapa: 'Procesando hojas...' });
+      setTimeout(() => {
+      try {
       const wb = XLSX.read(ev.target?.result, { type: 'array' });
+      setProgreso({ pct: 70, etapa: 'Analizando datos PDL...' });
       const sheetNames = wb.SheetNames;
-      const pdluSheet = sheetNames.find(n => n.toLowerCase().includes('pdlu') || n.toLowerCase().includes('pdl')) || sheetNames[0];
-      const ejSheet   = sheetNames.find(n => n.toLowerCase().includes('ejec')) || sheetNames[1];
-      const pdluRows  = XLSX.utils.sheet_to_json(wb.Sheets[pdluSheet]) as PDLURow[];
+      console.log("📋 Hojas en Excel Planeación:", sheetNames);
+      // Matriz PDL: busca FDLU/PDLU/PDL. Ejecución: busca el año más reciente (2026/2025/2024) o EJECUCIONES
+      const pdluSheet = sheetNames.find(n => /fdlu|pdlu|pdl|matriz/i.test(n)) || sheetNames.find(n => !/^20\d\d$/.test(n.trim())) || sheetNames[0];
+      const aniosSheets = sheetNames.filter(n => /^20\d\d$/.test(n.trim())).sort().reverse();
+      const ejSheet   = sheetNames.find(n => /ejec/i.test(n)) || aniosSheets[0] || sheetNames[1];
+      console.log('📋 Hoja matriz PDL:', pdluSheet, '| Hoja ejecución:', ejSheet);
+      // Limitar rango: la hoja puede tener 1M de filas vacías. Recortar al rango real de datos.
+      const wsPdlu = wb.Sheets[pdluSheet];
+      if (wsPdlu['!ref']) {
+        const rng = XLSX.utils.decode_range(wsPdlu['!ref']);
+        // Buscar la última fila con datos reales (máx 2000 para seguridad)
+        rng.e.r = Math.min(rng.e.r, 2000);
+        wsPdlu['!ref'] = XLSX.utils.encode_range(rng);
+      }
+      const pdluRows  = XLSX.utils.sheet_to_json(wsPdlu) as PDLURow[];
       const ejecRaw   = XLSX.utils.sheet_to_json(wb.Sheets[ejSheet], { header: 1 }) as any[][];
       let ejRows: EjecRow[] = [];
       if (ejecRaw.length > 1) {
@@ -229,14 +269,27 @@ const Planeacion: React.FC<PlaneacionProps> = ({ onDataLoad }) => {
         }
       }
       const result = processData(pdluRows, ejRows);
+      setProgreso({ pct: 100, etapa: '✅ Cargado' });
       setSectores(result.sectores); setProyectos(result.proyectos); setTotals(result.totals);
       setTab('resumen'); setSectorFilter('TODOS');
+      setTimeout(() => setProgreso(null), 900);
       onDataLoad?.({ sectores: result.sectores, proyectos: result.proyectos, totals: result.totals });
+      } catch (err) {
+        console.error("❌ Error procesando Excel Planeación:", err);
+        setProgreso(null);
+        alert("Error al procesar el Excel. Detalle: " + err);
+      }
+      }, 50);
     };
     reader.readAsArrayBuffer(file);
   }, []);
 
-  if (!sectores.length) return <div style={{ background: '#0B1221', minHeight: '100%', borderRadius: 10 }}><UploadScreen onFile={handleFile} /></div>;
+  if (!sectores.length) return (
+    <div style={{ background: '#0B1221', minHeight: '100%', borderRadius: 10 }}>
+      {progreso && <SpinnerCarga pct={progreso.pct} etapa={progreso.etapa} />}
+      <UploadScreen onFile={handleFile} />
+    </div>
+  );
 
   // ── Datos derivados ──
   const pctComp  = totals.apropiaciones > 0 ? totals.compromisos / totals.apropiaciones : 0;

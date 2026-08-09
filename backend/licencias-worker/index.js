@@ -1,7 +1,7 @@
 const ADMIN_SECRET = "xbog-admin-2026-controlia";
 
 const PLANES = {
-  demo:    { nombre:"DEMO",        modulos:["mapa","sesiones","denuncias","presupuesto"], diasMax:15 },
+  demo:    { nombre:"codespage Demo",        modulos:["mapa","sesiones","denuncias","presupuesto"], diasMax:15 },
   basico:  { nombre:"EDIL BASICO", modulos:["mapa","sesiones","denuncias","simulador","presupuesto","planeacion"], diasMax:null },
   pro:     { nombre:"EDIL PRO",    modulos:["mapa","sesiones","denuncias","simulador","presupuesto","alertas","contratacion","planeacion","historico","ciberseguridad"], diasMax:null },
   concejal:{ nombre:"CONCEJAL",    modulos:["mapa","sesiones","denuncias","simulador","presupuesto","alertas","contratacion","planeacion","historico","ciberseguridad"], diasMax:null },

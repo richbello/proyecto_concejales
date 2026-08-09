@@ -129,7 +129,7 @@ export default function AccessGate({ children, onLicencia }: Props) {
                   onKeyDown={e => e.key === "Enter" && validar()}
                   type={verClave ? "text" : "password"}
                   placeholder="CP-PRO-XXXX-XXXX-XXXX-XXXX"
-                  style={{ width:"100%", background:"#0a0f1e", border:`1.5px solid ${error ? "#ff3d5a" : "#1e2a40"}`, borderRadius:10, padding:"12px 44px 12px 16px", color:"#e2e8f0", fontSize:13, outline:"none", boxSizing:"border-box" as const, fontFamily:"monospace", letterSpacing:1 }}
+                  style={{ width:"100%", background:"#0a0f1e", border:`1.5px solid ${error ? "#D10D0D" : "#1e2a40"}`, borderRadius:10, padding:"12px 44px 12px 16px", color:"#e2e8f0", fontSize:13, outline:"none", boxSizing:"border-box" as const, fontFamily:"monospace", letterSpacing:1 }}
                 />
                 <button onClick={() => setVerClave(v => !v)} style={{ position:"absolute" as const, right:12, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:"#4a5568", fontSize:16 }}>
                   {verClave ? "🙈" : "👁️"}
@@ -138,12 +138,12 @@ export default function AccessGate({ children, onLicencia }: Props) {
             </div>
 
             {error && (
-              <div style={{ background:"#ff3d5a22", border:"1px solid #ff3d5a44", borderRadius:8, padding:"10px 14px", marginBottom:16, fontSize:12, color:"#ff3d5a", fontWeight:600 }}>
+              <div style={{ background:"#D10D0D22", border:"1px solid #D10D0D44", borderRadius:8, padding:"10px 14px", marginBottom:16, fontSize:12, color:"#D10D0D", fontWeight:600 }}>
                 ⚠️ {error}
               </div>
             )}
 
-            <button onClick={validar} disabled={cargando} style={{ width:"100%", background:cargando ? "#4a5568" : "linear-gradient(135deg,#00d4ff 0%,#0099bb 100%)", border:"none", borderRadius:10, padding:"13px", color:"#0a0f1e", fontWeight:800, fontSize:14, cursor:cargando ? "default" : "pointer" }}>
+            <button onClick={validar} disabled={cargando} style={{ width:"100%", background:cargando ? "#4a5568" : "linear-gradient(135deg,#FFD100 0%,#D10D0D 100%)", border:"none", borderRadius:10, padding:"13px", color:"#0a0f1e", fontWeight:800, fontSize:14, cursor:cargando ? "default" : "pointer" }}>
               {cargando ? "⏳ Verificando..." : "🚀 Activar plataforma"}
             </button>
 
@@ -165,7 +165,7 @@ export default function AccessGate({ children, onLicencia }: Props) {
     <>
       {/* Banner licencia activa */}
       {licencia.diasRestantes !== null && licencia.diasRestantes <= 5 && (
-        <div style={{ background:"#ff3d5a", color:"white", textAlign:"center" as const, padding:"6px", fontSize:12, fontWeight:700 }}>
+        <div style={{ background:"#D10D0D", color:"white", textAlign:"center" as const, padding:"6px", fontSize:12, fontWeight:700 }}>
           ⚠️ Tu licencia {licencia.plan} vence en {licencia.diasRestantes} días · Contacta a XBOG para renovar
         </div>
       )}

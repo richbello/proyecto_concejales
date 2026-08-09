@@ -131,7 +131,7 @@ const TablaStats = ({rows,labelCol,keyName}:{rows:any[];labelCol:string;keyName:
   <div style={{overflowX:"auto" as const,border:`1px solid ${C.border}`,borderRadius:10,marginTop:12}}>
     <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
       <thead>
-        <tr style={{background:C.navy,color:"white"}}>
+        <tr style={{background:C.navy,color:"#e2e8f0"}}>
           {[labelCol,"Total CRP","Autoriz. Giro","Sin Aut. Giro","Ejecución","N°"].map(h=>(
             <th key={h} style={{padding:"8px",textAlign:(h===labelCol?"left":"right") as "left"|"right",
               fontSize:10,fontWeight:600,whiteSpace:"nowrap" as const}}>{h}</th>
@@ -465,7 +465,7 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
   if(data.length===0) return(
     <div style={{display:"flex",flexDirection:"column" as const,alignItems:"center",justifyContent:"center",minHeight:420,padding:24}}>
       <div style={{background:`linear-gradient(135deg,${C.navy} 0%,${C.navyDark} 100%)`,borderRadius:16,
-        padding:"36px 44px",textAlign:"center" as const,color:"white",maxWidth:600,width:"100%"}}>
+        padding:"36px 44px",textAlign:"center" as const,color:"#e2e8f0",maxWidth:600,width:"100%"}}>
         <div style={{fontSize:52,marginBottom:16}}>📊</div>
         <h3 style={{margin:"0 0 8px",fontSize:22,fontWeight:800}}>Análisis Presupuestal CRP</h3>
         <p style={{margin:"0 0 12px",fontSize:13,color:"rgba(255,255,255,.65)",lineHeight:1.7}}>
@@ -496,7 +496,7 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
 
       {/* Header */}
       <div style={{background:`linear-gradient(135deg,${C.navy} 0%,${C.navyDark} 100%)`,borderRadius:12,
-        padding:"16px 22px",marginBottom:16,color:"white",display:"flex",
+        padding:"16px 22px",marginBottom:16,color:"#e2e8f0",display:"flex",
         justifyContent:"space-between",alignItems:"center",flexWrap:"wrap" as const,gap:10}}>
         <div>
           <div style={{fontSize:10,color:C.cyan,letterSpacing:2,fontWeight:700,textTransform:"uppercase" as const}}>
@@ -510,7 +510,7 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
         <div style={{display:"flex",gap:8,flexWrap:"wrap" as const}}>
           <label style={{display:"inline-flex",alignItems:"center",gap:6,background:"rgba(255,255,255,.1)",
             border:"1px solid rgba(255,255,255,.2)",borderRadius:8,padding:"6px 14px",
-            cursor:"pointer",fontSize:12,color:"white",fontWeight:600}}>
+            cursor:"pointer",fontSize:12,color:"#e2e8f0",fontWeight:600}}>
             📂 Cambiar archivo
             <input type="file" accept=".xlsx,.xls" onChange={handleFile} style={{display:"none"}}/>
           </label>
@@ -895,7 +895,7 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
             <div style={{overflowX:"auto" as const,border:`1px solid ${C.border}`,borderRadius:10}}>
               <table style={{width:"100%",borderCollapse:"collapse",fontSize:10}}>
                 <thead>
-                  <tr style={{background:C.navy,color:"white",position:"sticky" as const,top:0}}>
+                  <tr style={{background:C.navy,color:"#e2e8f0",position:"sticky" as const,top:0}}>
                     {[
                       "Ejercicio","No. Compromiso","Compromiso","Rubro","Mod. Selec","Nombre Beneficiario",
                       "Valor CRP","Anulaciones","Reintegros","Valor Neto","Autoriz. Giro","Sin Aut. Giro","Ejecutado"
@@ -1047,7 +1047,7 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
                 </div>
                 
                 <button onClick={()=>{setFiltroFechaIni('');setFiltroFechaFin('');setFiltroBenef('Todos');setFiltroTipo('Todos');setBusquedaAdic('');setPaginaAdic(1);}}
-                  style={{marginTop:10,width:"100%",padding:"10px",background:C.cyan,color:"white",border:"none",borderRadius:6,
+                  style={{marginTop:10,width:"100%",padding:"10px",background:C.cyan,color:"#e2e8f0",border:"none",borderRadius:6,
                     cursor:"pointer",fontSize:11,fontWeight:700}}>Limpiar Todos los Filtros</button>
               </div>
 
@@ -1055,7 +1055,7 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
               <div style={{overflowX:"auto" as const}}>
                 <table style={{width:"100%",borderCollapse:"collapse" as const,fontSize:11}}>
                   <thead>
-                    <tr style={{background:C.navy,color:"white"}}>
+                    <tr style={{background:C.navy,color:"#e2e8f0"}}>
                       <th style={{padding:"10px 12px",textAlign:"left" as const,fontWeight:700}}>No. Compromiso</th>
                       <th style={{padding:"10px 12px",textAlign:"left" as const,fontWeight:700}}>Tipo</th>
                       <th style={{padding:"10px 12px",textAlign:"left" as const,fontWeight:700}}>Fecha Registro</th>

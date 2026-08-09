@@ -186,7 +186,9 @@ const TooltipPct = ({ active, payload, label }: any) => {
 interface Props { onDataLoad?: (data: DatosPAC) => void; }
 
 export default function AlertasML({ onDataLoad }: Props) {
-  const [tab, setTab] = useState<"consolidado" | "meses" | "ritmo" | "tabla">("consolidado");
+  const [tab, setTab] = useState<"consolidado" | "meses" | "ritmo" | "tabla" | "detalle">("consolidado");
+  const [detalleData, setDetalleData] = useState<any[]>([]);
+  const [filtros, setFiltros] = useState({ periodo: "", proyecto: "", fondos: "", posicion: "" });
   const [datos, setDatos] = useState<DatosPAC | null>(null);
   const [generador, setGenerador] = useState<any>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -196,13 +198,23 @@ export default function AlertasML({ onDataLoad }: Props) {
     reader.onload = (e) => {
       try {
         const wb = XLSX.read(e.target?.result, { type: "array" });
+
+        // Hoja consolidado (Data (2)) para el análisis por mes
         const sheetName = wb.SheetNames.find(s => s.includes("Data (2)") || s.includes("Data(2)")) || wb.SheetNames.find(s => s.includes("Data")) || wb.SheetNames[0];
         const ws = wb.Sheets[sheetName];
         const data = XLSX.utils.sheet_to_json<any[]>(ws, { header: 1, defval: "" });
         const resumen = parsearArchivo(data);
         setDatos(resumen);
         onDataLoad?.(resumen);
-      } catch {
+
+        // Hoja Data (detalle línea por línea) para la pestaña Detalle PAC
+        const wsDetalle = wb.Sheets["Data"];
+        if (wsDetalle) {
+          const detalle = XLSX.utils.sheet_to_json<any>(wsDetalle, { defval: "" });
+          setDetalleData(detalle);
+        }
+      } catch (err) {
+        console.error(err);
         alert("Error leyendo el archivo Excel");
       }
     };
@@ -342,6 +354,7 @@ export default function AlertasML({ onDataLoad }: Props) {
     { key: "meses",       label: "📅 Por Mes" },
     { key: "ritmo",       label: "📈 Ritmo & Tendencia" },
     { key: "tabla",       label: "📋 Tabla" },
+    { key: "detalle",     label: "🔍 Detalle PAC" },
   ] as const;
 
   return (
@@ -746,6 +759,103 @@ export default function AlertasML({ onDataLoad }: Props) {
           </div>
         )}
       </div>
+
+
+      {tab === "detalle" && (
+        <div style={{ background: C.white, borderRadius: 12, padding: "20px 24px", marginBottom: 18, border: `1px solid ${C.border}` }}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: C.navy, marginBottom: 16 }}>📋 Detalle línea por línea — Hoja Data</h3>
+          
+          {/* Filtros */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12, marginBottom: 16 }}>
+            {[
+              { label: "Período", key: "periodo", vals: [...new Set(detalleData.map(d => d["Descripción período presupuesto"] || d["Descripción período presupuesto"] || "").filter(Boolean))] },
+              { label: "Proyecto", key: "proyecto", vals: [...new Set(detalleData.map(d => d["Descripción proyecto presup."] || "").filter(Boolean))] },
+              { label: "Fondos", key: "fondos", vals: [...new Set(detalleData.map(d => d["Descr.fondos"] || "").filter(Boolean))] },
+              { label: "Pos. Presupuestaria", key: "posicion", vals: [...new Set(detalleData.map(d => d["Pos.presupuestaria"] || "").filter(Boolean))] },
+            ].map(({ label, key, vals }) => (
+              <div key={key}>
+                <label style={{ fontSize: 11, fontWeight: 600, color: C.muted, display: "block", marginBottom: 4 }}>{label}</label>
+                <select
+                  value={filtros[key as keyof typeof filtros]}
+                  onChange={e => setFiltros(prev => ({ ...prev, [key]: e.target.value }))}
+                  style={{ width: "100%", padding: "6px 8px", fontSize: 12, border: `1px solid ${C.border}`, borderRadius: 4, fontFamily: "inherit" }}
+                >
+                  <option value="">Todos</option>
+                  {vals.slice(0, 50).map(v => <option key={v} value={v}>{String(v).slice(0, 40)}</option>)}
+                </select>
+              </div>
+            ))}
+          </div>
+
+          {/* Tabla */}
+          <div style={{ overflowX: "auto", marginBottom: 16, borderRadius: 8, border: `1px solid ${C.border}` }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+              <thead>
+                <tr style={{ background: C.navy, color: "white", fontWeight: 700, textAlign: "left" }}>
+                  {["Período", "Pos.presupuestaria", "Fondos", "Progr.financiación", "Descr.pos.presupuestaria", "Descr.fondos", "Descr.proyecto", "PAC inicial", "PAC Reprog", "PAC Actual", "Comprometido", "Disponibilidad", "Girado"].map(col => (
+                    <th key={col} style={{ padding: "8px 12px", borderBottom: `2px solid ${C.navyLt}`, whiteSpace: "nowrap" }}>{col}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {detalleData
+                  .filter(d => {
+                    const periodo = String(d["Descripción período presupuesto"] || d["Descripción período presupuesto"] || "").toLowerCase();
+                    const proyecto = String(d["Descripción proyecto presup."] || "").toLowerCase();
+                    const fondos = String(d["Descr.fondos"] || "").toLowerCase();
+                    const posicion = String(d["Pos.presupuestaria"] || "").toLowerCase();
+                    return (!filtros.periodo || periodo.includes(filtros.periodo.toLowerCase())) &&
+                           (!filtros.proyecto || proyecto.includes(filtros.proyecto.toLowerCase())) &&
+                           (!filtros.fondos || fondos.includes(filtros.fondos.toLowerCase())) &&
+                           (!filtros.posicion || posicion.includes(filtros.posicion.toLowerCase()));
+                  })
+                  .map((row, i) => (
+                    <tr key={i} style={{ borderBottom: `1px solid ${C.border}`, background: i % 2 === 0 ? C.white : "#fafafa" }}>
+                      <td style={{ padding: "8px 12px" }}>{row["Descripción período presupuesto"] || row["Descripción período presupuesto"] || "—"}</td>
+                      <td style={{ padding: "8px 12px" }}>{row["Pos.presupuestaria"] || "—"}</td>
+                      <td style={{ padding: "8px 12px" }}>{row["Descr.fondos"] || "—"}</td>
+                      <td style={{ padding: "8px 12px" }}>{row["Progr.financiación"] || "—"}</td>
+                      <td style={{ padding: "8px 12px" }}>{row["Descripción pos.presupuestaria"] || "—"}</td>
+                      <td style={{ padding: "8px 12px" }}>{row["Descr. fondos"] || "—"}</td>
+                      <td style={{ padding: "8px 12px", fontWeight: 600, color: C.navy }}>{row["Descripción proyecto presup."] || "—"}</td>
+                      <td style={{ padding: "8px 12px", textAlign: "right" as const }}>{fmtCOP(Number(row["PAC inicial"]) || 0)}</td>
+                      <td style={{ padding: "8px 12px", textAlign: "right" as const, color: Number(row["PAC Reprogramado"]) < 0 ? C.rojo : C.verde }}>{fmtCOP(Number(row["PAC Reprogramado"]) || 0)}</td>
+                      <td style={{ padding: "8px 12px", textAlign: "right" as const, fontWeight: 700 }}>{fmtCOP(Number(row["PAC Actual"]) || 0)}</td>
+                      <td style={{ padding: "8px 12px", textAlign: "right" as const }}>{fmtCOP(Number(row["Comprometido PAC"]) || 0)}</td>
+                      <td style={{ padding: "8px 12px", textAlign: "right" as const, color: C.amar }}>{fmtCOP(Number(row["Disponibilidad PAC"]) || 0)}</td>
+                      <td style={{ padding: "8px 12px", textAlign: "right" as const, color: C.verde, fontWeight: 600 }}>{fmtCOP(Number(row["Girado y Recaudado PAC"]) || 0)}</td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Gráfica PAC por Proyecto */}
+          {detalleData.length > 0 && (
+            <div style={{ background: "#fafafa", borderRadius: 8, padding: 16 }}>
+              <h4 style={{ fontSize: 13, fontWeight: 700, color: C.navy, marginBottom: 12 }}>📊 PAC Actual por Proyecto</h4>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart
+                  data={Object.entries(
+                    detalleData.reduce((acc: any, row) => {
+                      const proyecto = row["Descripción proyecto presup."] || "Sin proyecto";
+                      acc[proyecto] = (acc[proyecto] || 0) + (Number(row["PAC Actual"]) || 0);
+                      return acc;
+                    }, {})
+                  ).map(([proyecto, pacActual]) => ({ proyecto: String(proyecto).slice(0, 25), pacActual }))}
+                  margin={{ left: 0, right: 16, top: 10, bottom: 40 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke={C.border} />
+                  <XAxis dataKey="proyecto" angle={-45} textAnchor="end" height={80} style={{ fontSize: 10 }} />
+                  <YAxis />
+                  <Tooltip formatter={(v: any) => fmtCOP(v)} />
+                  <Bar dataKey="pacActual" fill={C.azul} radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </div>
+      )}
 
       {generador && (
         <GeneradorProposicion
