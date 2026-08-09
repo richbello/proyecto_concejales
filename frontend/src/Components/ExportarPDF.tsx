@@ -61,7 +61,7 @@ export default function ExportarPDF({ fileName, totalRegistros, kpis, anomalias,
 <html lang="es">
 <head>
 <meta charset="UTF-8"/>
-<title>Informe Control Político — ${municipio}</title>
+<title>Informe XBOG CONTROL — ${municipio}</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -150,7 +150,7 @@ export default function ExportarPDF({ fileName, totalRegistros, kpis, anomalias,
   <div class="header">
     <div class="header-left">
       <div class="escudo">🏛️</div>
-      <h1>Informe de Control Político</h1>
+      <h1>Informe de XBOG CONTROL</h1>
       <p>Análisis Presupuestal y Detección de Anomalías</p>
       <p>Fuente: ${fileName} · ${totalRegistros.toLocaleString('es-CO')} registros analizados</p>
     </div>
@@ -158,7 +158,7 @@ export default function ExportarPDF({ fileName, totalRegistros, kpis, anomalias,
       <div class="fecha">${fecha}</div>
       <div class="municipio">Localidad de ${municipio}</div>
       ${concejal ? `<div style="font-size:13px;opacity:0.8;margin-top:4px">${concejal}</div>` : ''}
-      <div style="margin-top:12px;font-size:11px;opacity:0.6">Control Político · XBOG Technologies</div>
+      <div style="margin-top:12px;font-size:11px;opacity:0.6">XBOG CONTROL · Codespage</div>
     </div>
   </div>
 
@@ -292,7 +292,7 @@ export default function ExportarPDF({ fileName, totalRegistros, kpis, anomalias,
   </div>
 
   <div class="footer">
-    Informe generado automáticamente por el Sistema de Control Político · XBOG Technologies · richbello.github.io/proyecto_concejales
+    Informe generado automáticamente por el Sistema de XBOG CONTROL · Codespage · richbello.github.io/proyecto_concejales
     <br/>Este documento es de carácter informativo y no constituye un acto administrativo.
   </div>
 

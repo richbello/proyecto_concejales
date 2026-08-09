@@ -251,7 +251,7 @@ export default function SimuladorPresupuestal({ data = [] }: Props) {
   const exportarPDF = () => {
     const fecha = new Date().toLocaleDateString('es-CO', { year:'numeric', month:'long', day:'numeric' });
     const html = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"/>
-<title>Simulador Presupuestal — Control Político</title>
+<title>Simulador Presupuestal — XBOG CONTROL</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',sans-serif;color:#1e293b;padding:40px}
 h1{font-size:22px;font-weight:800;color:#0f172a;margin-bottom:4px}.sub{font-size:12px;color:#64748b;margin-bottom:20px}
@@ -264,7 +264,7 @@ td{padding:9px 12px;border-bottom:1px solid #f1f5f9}tr:nth-child(even){backgroun
 .footer{margin-top:30px;text-align:center;font-size:10px;color:#94a3b8;padding-top:10px;border-top:1px solid #e2e8f0}
 @media print{body{padding:20px}}
 </style></head><body>
-<h1>🧮 Simulador Presupuestal — Control Político</h1>
+<h1>🧮 Simulador Presupuestal — XBOG CONTROL</h1>
 <div class="sub">Generado el ${fecha} · Datos reales del CRP (por compromiso) · XBOG Technologies</div>
 <div class="analisis"><strong>📊 Análisis automático:</strong><br/>${analisis}</div>
 <div class="kpi-grid">
@@ -283,7 +283,7 @@ ${simulado.map(s=>{const diff=s.simulado-s.base;const pct=s.base>0?((diff/s.base
 <table><thead><tr><th>Año</th><th>Actual</th><th>Simulado</th><th>Pesimista</th></tr></thead><tbody>
 ${proyeccion.map(p=>`<tr><td><strong>${p.año}</strong></td><td>${fmtCOP(p['Escenario Actual']*1e6)}</td><td style="color:#16a34a;font-weight:700">${fmtCOP(p['Escenario Simulado']*1e6)}</td><td style="color:#dc2626">${fmtCOP(p['Escenario Pesimista']*1e6)}</td></tr>`).join('')}
 </tbody></table>
-<div class="footer">Simulador Presupuestal · Control Político · XBOG Technologies · richbello.github.io/proyecto_concejales</div>
+<div class="footer">Simulador Presupuestal · XBOG CONTROL · Codespage · richbello.github.io/proyecto_concejales</div>
 <script>window.onload=()=>window.print()</script></body></html>`;
     const blob = new Blob([html], { type:'text/html;charset=utf-8' });
     const url = URL.createObjectURL(blob);

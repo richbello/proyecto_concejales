@@ -301,7 +301,7 @@ Responde basándote en estos datos reales cuando la pregunta sea sobre presupues
                 </div>
                 <div style={{color:'#93c5fd',fontSize:11,display:'flex',alignItems:'center',gap:4}}>
                   <span style={{width:7,height:7,background:'#4ade80',borderRadius:'50%',display:'inline-block'}}/>
-                  Asistente IA · Control Político
+                  Asistente IA · XBOG CONTROL
                   {data.length > 0 && <span style={{background:'rgba(255,255,255,.15)',padding:'1px 6px',borderRadius:10,marginLeft:4}}>{data.length} registros</span>}
                 </div>
               </div>
@@ -422,7 +422,7 @@ Responde basándote en estos datos reales cuando la pregunta sea sobre presupues
               </button>
             </div>
             <p style={{fontSize:10,color:'#94a3b8',textAlign:'center',marginTop:6}}>
-              Politiko · IA para Control Político · XBOG Technologies
+              Politiko · IA para XBOG CONTROL · Codespage
             </p>
           </div>
         </div>
