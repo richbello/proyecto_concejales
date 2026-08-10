@@ -1,48 +1,20 @@
-import React, { useState, useEffect, useCallback } from "react";
-
+import { useState, useEffect, useCallback } from "react";
 const WORKER_URL = "https://controlia-licencias.richbello.workers.dev";
 const ADMIN_SECRET = "xbog-admin-2026-controlia";
-
+const PASSWORD_ADMIN = "Bogota.2026";
 const C = { navy:"#0a0f1e", card:"#161d2e", cyan:"#FFD100", verde:"#00ff88", amar:"#ffd60a", rojo:"#D10D0D", muted:"#4a5568", border:"#1e2a40", texto:"#e2e8f0", sub:"#94a3b8" };
-
-// RESPONSIVE
-const useResponsive = () => {
-  const [isMobile, setIsMobile] = React.useState(false);
-  React.useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
-  return isMobile;
-};
-
-const sizes = (isMobile: boolean) => ({
-  container: isMobile ? 12 : 16,
-  title: isMobile ? 18 : 24,
-  subtitle: isMobile ? 13 : 15,
-  input: isMobile ? 13 : 14,
-  button: isMobile ? 13 : 14,
-  padding: isMobile ? 12 : 20,
-  gap: isMobile ? 8 : 12,
-});
-const PAL = [C.cyan, C.verde, C.amar, C.rojo, "#8b5cf6", "#f97316"];
-
 const fmtCOP = (v:number) => v>=1e6?`$${(v/1e6).toFixed(1)}M`:v>=1e3?`$${(v/1e3).toFixed(0)}K`:`$${v}`;
-
 const PLANES_INFO: Record<string, {label:string; precio:number; color:string; modulos:number}> = {
   demo:    { label:"DEMO",       precio:0,       color:C.muted, modulos:4  },
-  basico:  { label:"EDIL BÁSICO",precio:390000,  color:C.cyan,  modulos:6  },
+  basico:  { label:"EDIL BASICO",precio:390000,  color:C.cyan,  modulos:6  },
   pro:     { label:"EDIL PRO",   precio:690000,  color:C.verde, modulos:10 },
   concejal:{ label:"CONCEJAL",   precio:1200000, color:C.amar,  modulos:13 },
   premium: { label:"PREMIUM",    precio:2200000, color:C.rojo,  modulos:13 },
 };
-
 interface Licencia {
   clave:string; plan:string; cliente:string; localidad:string;
   activa:boolean; creada:string; expira:number|null; accesos:number; ultimoAcceso:string|null;
 }
-
 const Stat = ({icon,label,valor,color}:{icon:string;label:string;valor:string|number;color:string}) => (
   <div style={{background:C.card,borderRadius:10,padding:"14px 16px",border:`1px solid ${C.border}`,flex:1,minWidth:110}}>
     <div style={{fontSize:20}}>{icon}</div>
@@ -50,105 +22,16 @@ const Stat = ({icon,label,valor,color}:{icon:string;label:string;valor:string|nu
     <div style={{fontSize:11,color:C.sub,marginTop:3}}>{label}</div>
   </div>
 );
-
 export default function GestorLicencias() {
   const [autenticado, setAutenticado] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
-
-  if (!autenticado) {
-    return (
-      <div style={{padding:20,background:"#0a0f1e",minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
-        <div style={{background:"#161d2e",borderRadius:12,padding:30,border:"2px solid #FFD100",maxWidth:400,width:"100%"}}>
-          <div style={{fontSize:24,fontWeight:800,marginBottom:20,textAlign:"center",color:"#FFD100"}}>🔐 ADMINISTRADOR</div>
-          <input type="password" placeholder="Contraseña" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} onKeyPress={(e) => {if(e.key==="Enter" && passwordInput==="Bogota.2026") setAutenticado(true);}} style={{width:"100%",padding:12,borderRadius:8,border:"1px solid #1e2a40",background:"#0a0f1e",color:"#e2e8f0",fontSize:14,marginBottom:15,boxSizing:"border-box"}} />
-          <button onClick={() => {if(passwordInput==="Bogota.2026") setAutenticado(true); else alert("❌ Incorrecta");}} style={{width:"100%",padding:12,borderRadius:8,background:"#FFD100",color:"#000",fontWeight:800,border:"none",cursor:"pointer",fontSize:14}}>Acceder</button>
-        </div>
-      </div>
-    );
-  }
-
-  const [autenticado, setAutenticado] = useState(false);
-  const [passwordInput, setPasswordInput] = useState("");
-  const PASSWORD_ADMIN = "Bogota.2026";
-
-  const handleLogin = () => {
-    if (passwordInput === PASSWORD_ADMIN) {
-      setAutenticado(true);
-      setPasswordInput("");
-    } else {
-      alert("❌ Contraseña incorrecta");
-      setPasswordInput("");
-    }
-  };
-
-  if (!autenticado) {
-    return (
-      <div style={{padding:20,background:"#0a0f1e",minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
-        <div style={{background:"#161d2e",borderRadius:12,padding:30,border:"2px solid #FFD100",maxWidth:400,width:"100%"}}>
-          <div style={{fontSize:24,fontWeight:800,marginBottom:20,textAlign:"center",color:"#FFD100"}}>🔐 ADMINISTRADOR</div>
-          <input type="password" placeholder="Contraseña" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} onKeyPress={(e) => e.key === "Enter" && handleLogin()} style={{width:"100%",padding:12,borderRadius:8,border:"1px solid #1e2a40",background:"#0a0f1e",color:"#e2e8f0",fontSize:14,marginBottom:15,boxSizing:"border-box"}} />
-          <button onClick={handleLogin} style={{width:"100%",padding:12,borderRadius:8,background:"#FFD100",color:"#000",fontWeight:800,border:"none",cursor:"pointer",fontSize:14}}>Acceder</button>
-        </div>
-      </div>
-    );
-  }
-
-  const isMobile = useResponsive();
-  const sz = sizes(isMobile);
   const [licencias, setLicencias] = useState<Licencia[]>([]);
   const [cargando,  setCargando]  = useState(false);
   const [tab,       setTab]       = useState<"lista"|"crear">("lista");
   const [msg,       setMsg]       = useState("");
   const [msgColor,  setMsgColor]  = useState(C.verde);
   const [claveCopied, setClaveCopied] = useState("");
-
-  // Form nueva licencia
   const [form, setForm] = useState({ plan:"demo", cliente:"", localidad:"", dias:"15" });
-  // AUTENTICACIÓN
-  const [autenticado, setAutenticado] = useState(false);
-  const [passwordInput, setPasswordInput] = useState("");
-  const PASSWORD_ADMIN = "Bogota.2026";
-
-  const handleLogin = () => {
-    if (passwordInput === PASSWORD_ADMIN) {
-      setAutenticado(true);
-      setPasswordInput("");
-      setMsg("✅ Autenticado correctamente");
-      setMsgColor(C.verde);
-    } else {
-      setMsg("❌ Contraseña incorrecta");
-      setMsgColor(C.rojo);
-      setPasswordInput("");
-    }
-  };
-
-  // SI NO ESTÁ AUTENTICADO, MOSTRAR LOGIN
-  if (!autenticado) {
-    return (
-      <div style={{padding:20,background:C.navy,minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
-        <div style={{background:C.card,borderRadius:12,padding:30,border:`2px solid ${C.cyan}`,maxWidth:400,width:"100%"}}>
-          <div style={{fontSize:24,fontWeight:800,marginBottom:20,textAlign:"center",color:C.cyan}}>🔐 ADMINISTRADOR</div>
-          <div style={{fontSize:13,color:C.sub,marginBottom:15,textAlign:"center"}}>Ingresa la contraseña para acceder al Gestor de Licencias</div>
-          <input
-            type="password"
-            placeholder="Contraseña"
-            value={passwordInput}
-            onChange={(e) => setPasswordInput(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && handleLogin()}
-            style={{width:"100%",padding:12,borderRadius:8,border:`1px solid ${C.border}`,background:C.navy,color:C.texto,fontSize:14,marginBottom:15,boxSizing:"border-box"}}
-          />
-          <button
-            onClick={handleLogin}
-            style={{width:"100%",padding:12,borderRadius:8,background:C.cyan,color:"#000",fontWeight:800,border:"none",cursor:"pointer",fontSize:14}}
-          >
-            Acceder
-          </button>
-          {msg && <div style={{marginTop:15,padding:10,borderRadius:6,background:msgColor,color:"#000",fontSize:12,fontWeight:700,textAlign:"center"}}>{msg}</div>}
-        </div>
-      </div>
-    );
-  }
-
 
   const cargar = useCallback(async () => {
     setCargando(true);
@@ -160,7 +43,12 @@ export default function GestorLicencias() {
     setCargando(false);
   }, []);
 
-  useEffect(() => { cargar(); }, [cargar]);
+  useEffect(() => { if (autenticado) cargar(); }, [autenticado, cargar]);
+
+  const login = () => {
+    if (passwordInput === PASSWORD_ADMIN) { setAutenticado(true); setPasswordInput(""); }
+    else { alert("Contrasena incorrecta"); setPasswordInput(""); }
+  };
 
   const crear = async () => {
     if (!form.cliente.trim()) { setMsg("Ingresa el nombre del cliente."); setMsgColor(C.rojo); return; }
@@ -175,16 +63,13 @@ export default function GestorLicencias() {
       });
       const d = await r.json();
       if (d.ok) {
-        setMsg(`✅ Licencia creada: ${d.clave}`);
+        setMsg(`Licencia creada: ${d.clave}`);
         setMsgColor(C.verde);
         setForm({ plan:"demo", cliente:"", localidad:"", dias:"15" });
         await cargar();
         setTab("lista");
-      } else {
-        setMsg("❌ " + d.error);
-        setMsgColor(C.rojo);
-      }
-    } catch { setMsg("❌ Error de conexión."); setMsgColor(C.rojo); }
+      } else { setMsg(d.error); setMsgColor(C.rojo); }
+    } catch { setMsg("Error de conexion."); setMsgColor(C.rojo); }
     setCargando(false);
   };
 
@@ -205,6 +90,23 @@ export default function GestorLicencias() {
     setTimeout(() => setClaveCopied(""), 2000);
   };
 
+  if (!autenticado) {
+    return (
+      <div style={{padding:20,background:C.navy,minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <div style={{background:C.card,borderRadius:12,padding:30,border:`2px solid ${C.cyan}`,maxWidth:400,width:"100%"}}>
+          <div style={{fontSize:24,fontWeight:800,marginBottom:8,textAlign:"center",color:C.cyan}}>ADMINISTRADOR</div>
+          <div style={{fontSize:13,color:C.sub,marginBottom:20,textAlign:"center"}}>Ingresa la contrasena para acceder al Gestor de Licencias</div>
+          <input type="password" placeholder="Contrasena" value={passwordInput}
+            onChange={(e) => setPasswordInput(e.target.value)}
+            onKeyPress={(e) => e.key === "Enter" && login()}
+            style={{width:"100%",padding:12,borderRadius:8,border:`1px solid ${C.border}`,background:C.navy,color:C.texto,fontSize:14,marginBottom:15,boxSizing:"border-box"}} />
+          <button onClick={login}
+            style={{width:"100%",padding:12,borderRadius:8,background:C.cyan,color:"#000",fontWeight:800,border:"none",cursor:"pointer",fontSize:14}}>Acceder</button>
+        </div>
+      </div>
+    );
+  }
+
   const stats = {
     total:   licencias.length,
     activas: licencias.filter(l => l.activa).length,
@@ -220,46 +122,40 @@ export default function GestorLicencias() {
   );
 
   return (
-    <div style={{ fontFamily:"'Segoe UI',sans-serif", color:C.texto, minHeight:"100%" }}>
-
-      {/* Header */}
-      <div style={{ background:"linear-gradient(135deg,#0d1b2a 0%,#111827 100%)", borderRadius:12, padding:"18px 24px", marginBottom:16, border:`1px solid ${C.border}` }}>
-        <div style={{ fontSize:10, color:C.cyan, letterSpacing:3, fontWeight:700, textTransform:"uppercase" as const }}>🔐 XBOG Technologies · Panel de Control</div>
+    <div style={{ fontFamily:"'Segoe UI',sans-serif", color:C.texto, minHeight:"100%", padding:"0 4px" }}>
+      <div style={{ background:"linear-gradient(135deg,#0d1b2a 0%,#111827 100%)", borderRadius:12, padding:"18px 20px", marginBottom:16, border:`1px solid ${C.border}` }}>
+        <div style={{ fontSize:10, color:C.cyan, letterSpacing:3, fontWeight:700, textTransform:"uppercase" as const }}>XBOG Technologies - Panel de Control</div>
         <h2 style={{ margin:"6px 0 4px", fontSize:20, fontWeight:900 }}>Gestor de Licencias XBOG CONTROL</h2>
         <div style={{ fontSize:11, color:C.sub }}>Administra claves de acceso para clientes de la plataforma</div>
         <div style={{ display:"flex", gap:10, marginTop:16, flexWrap:"wrap" as const }}>
-          <Stat icon="🔑" label="Total licencias"  valor={stats.total}               color={C.cyan}/>
-          <Stat icon="✅" label="Activas"           valor={stats.activas}             color={C.verde}/>
-          <Stat icon="🎯" label="Demo activas"      valor={stats.demo}                color={C.amar}/>
-          <Stat icon="💰" label="Clientes pagos"    valor={stats.pagas}               color={C.rojo}/>
-          <Stat icon="📈" label="Ingresos/mes est." valor={fmtCOP(stats.ingresos)}    color="#8b5cf6"/>
+          <Stat icon="K" label="Total licencias"  valor={stats.total}            color={C.cyan}/>
+          <Stat icon="A" label="Activas"           valor={stats.activas}          color={C.verde}/>
+          <Stat icon="D" label="Demo activas"      valor={stats.demo}             color={C.amar}/>
+          <Stat icon="P" label="Clientes pagos"    valor={stats.pagas}            color={C.rojo}/>
+          <Stat icon="$" label="Ingresos/mes est." valor={fmtCOP(stats.ingresos)} color="#8b5cf6"/>
         </div>
       </div>
 
-      {/* Mensaje */}
       {msg && (
         <div style={{ background:msgColor+"22", border:`1px solid ${msgColor}44`, borderRadius:8, padding:"10px 16px", marginBottom:12, fontSize:12, color:msgColor, fontWeight:600, display:"flex", justifyContent:"space-between" }}>
           {msg}
-          <button onClick={() => setMsg("")} style={{ background:"none", border:"none", color:msgColor, cursor:"pointer", fontSize:16 }}>✕</button>
+          <button onClick={() => setMsg("")} style={{ background:"none", border:"none", color:msgColor, cursor:"pointer", fontSize:16 }}>x</button>
         </div>
       )}
 
-      {/* Tabs */}
-      <div style={{ background:C.card, borderRadius:"10px 10px 0 0", borderBottom:`1px solid ${C.border}`, display:"flex", padding:"0 12px" }}>
-        <TabBtn id="lista"  label={`📋 Licencias (${licencias.length})`}/>
-        <TabBtn id="crear"  label="➕ Nueva licencia"/>
+      <div style={{ background:C.card, borderRadius:"10px 10px 0 0", borderBottom:`1px solid ${C.border}`, display:"flex", padding:"0 12px", flexWrap:"wrap" as const }}>
+        <TabBtn id="lista"  label={`Licencias (${licencias.length})`}/>
+        <TabBtn id="crear"  label="Nueva licencia"/>
         <button onClick={cargar} style={{ marginLeft:"auto", padding:"10px 14px", background:"transparent", border:"none", color:C.sub, cursor:"pointer", fontSize:12 }}>
-          {cargando ? "⏳" : "🔄"} Actualizar
+          {cargando ? "..." : "Actualizar"}
         </button>
       </div>
 
-      <div style={{ background:C.card, borderRadius:"0 0 10px 10px", padding:"20px", border:`1px solid ${C.border}`, borderTop:"none" }}>
-
-        {/* LISTA */}
+      <div style={{ background:C.card, borderRadius:"0 0 10px 10px", padding:"16px", border:`1px solid ${C.border}`, borderTop:"none" }}>
         {tab === "lista" && (
           <div>
             {licencias.length === 0 && !cargando && (
-              <div style={{ textAlign:"center" as const, padding:40, color:C.sub }}>No hay licencias creadas aún. Crea la primera.</div>
+              <div style={{ textAlign:"center" as const, padding:40, color:C.sub }}>No hay licencias creadas aun. Crea la primera.</div>
             )}
             <div style={{ display:"flex", flexDirection:"column" as const, gap:10 }}>
               {licencias.map((lic, i) => {
@@ -269,8 +165,8 @@ export default function GestorLicencias() {
                 return (
                   <div key={i} style={{ background:"#0d1520", borderRadius:10, padding:"14px 18px", border:`1px solid ${lic.activa && !expirada ? info.color+"44" : C.border}`, borderLeft:`3px solid ${lic.activa && !expirada ? info.color : C.muted}` }}>
                     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap" as const, gap:10 }}>
-                      <div style={{ flex:2, minWidth:200 }}>
-                        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
+                      <div style={{ flex:2, minWidth:180 }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4, flexWrap:"wrap" as const }}>
                           <span style={{ background:info.color+"22", color:info.color, border:`1px solid ${info.color}44`, borderRadius:20, padding:"2px 10px", fontSize:10, fontWeight:700 }}>
                             {info.label}
                           </span>
@@ -280,12 +176,11 @@ export default function GestorLicencias() {
                         <div style={{ fontWeight:700, fontSize:14, color:C.texto }}>{lic.cliente}</div>
                         <div style={{ fontSize:11, color:C.sub }}>{lic.localidad}</div>
                       </div>
-
                       <div style={{ flex:1, minWidth:160 }}>
                         <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:4 }}>
                           <span style={{ fontFamily:"monospace", fontSize:12, color:C.cyan, letterSpacing:1 }}>{lic.clave}</span>
                           <button onClick={() => copiar(lic.clave)} style={{ background:"none", border:"none", cursor:"pointer", fontSize:14, color:claveCopied===lic.clave?C.verde:C.sub }}>
-                            {claveCopied === lic.clave ? "✅" : "📋"}
+                            {claveCopied === lic.clave ? "OK" : "Copiar"}
                           </button>
                         </div>
                         <div style={{ fontSize:10, color:C.sub }}>
@@ -294,7 +189,6 @@ export default function GestorLicencias() {
                           Accesos: {lic.accesos || 0}
                         </div>
                       </div>
-
                       <div style={{ display:"flex", gap:6, alignItems:"center" }}>
                         {info.precio > 0 && <span style={{ fontSize:11, fontWeight:700, color:C.verde }}>{fmtCOP(info.precio)}/mes</span>}
                         <button onClick={() => toggleActiva(lic)} style={{ background:lic.activa ? C.rojo+"22" : C.verde+"22", border:`1px solid ${lic.activa ? C.rojo : C.verde}44`, borderRadius:6, padding:"5px 12px", color:lic.activa ? C.rojo : C.verde, cursor:"pointer", fontSize:11, fontWeight:700 }}>
@@ -309,12 +203,9 @@ export default function GestorLicencias() {
           </div>
         )}
 
-        {/* CREAR */}
         {tab === "crear" && (
           <div style={{ maxWidth:520 }}>
             <div style={{ fontWeight:700, fontSize:14, color:C.texto, marginBottom:20 }}>Nueva licencia de acceso</div>
-
-            {/* Plan */}
             <div style={{ marginBottom:16 }}>
               <label style={{ display:"block", fontSize:11, color:C.sub, fontWeight:700, textTransform:"uppercase" as const, letterSpacing:1, marginBottom:8 }}>Plan</label>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
@@ -322,17 +213,15 @@ export default function GestorLicencias() {
                   <div key={key} onClick={() => { setForm(f => ({...f, plan:key, dias: key==="demo"?"15":""})); }}
                     style={{ padding:"10px 14px", borderRadius:8, border:`1.5px solid ${form.plan===key ? info.color : C.border}`, background:form.plan===key ? info.color+"11" : "transparent", cursor:"pointer" }}>
                     <div style={{ fontWeight:700, fontSize:12, color:form.plan===key ? info.color : C.sub }}>{info.label}</div>
-                    <div style={{ fontSize:10, color:C.muted }}>{info.modulos} módulos · {info.precio > 0 ? fmtCOP(info.precio)+"/mes" : "Gratis"}</div>
+                    <div style={{ fontSize:10, color:C.muted }}>{info.modulos} modulos - {info.precio > 0 ? fmtCOP(info.precio)+"/mes" : "Gratis"}</div>
                   </div>
                 ))}
               </div>
             </div>
-
-            {/* Cliente */}
             {[
-              { label:"Nombre del cliente *", key:"cliente", placeholder:"Edil Juan García" },
-              { label:"Localidad / municipio", key:"localidad", placeholder:"Usme · Bogotá D.C." },
-              { label:"Días de vigencia (vacío = sin límite)", key:"dias", placeholder:"15" },
+              { label:"Nombre del cliente *", key:"cliente", placeholder:"Edil Juan Garcia" },
+              { label:"Localidad / municipio", key:"localidad", placeholder:"Usme - Bogota D.C." },
+              { label:"Dias de vigencia (vacio = sin limite)", key:"dias", placeholder:"15" },
             ].map(f => (
               <div key={f.key} style={{ marginBottom:14 }}>
                 <label style={{ display:"block", fontSize:11, color:C.sub, fontWeight:700, textTransform:"uppercase" as const, letterSpacing:1, marginBottom:6 }}>{f.label}</label>
@@ -341,15 +230,13 @@ export default function GestorLicencias() {
                   style={{ width:"100%", background:"#0a0f1e", border:`1.5px solid ${C.border}`, borderRadius:8, padding:"10px 14px", color:C.texto, fontSize:12, outline:"none", boxSizing:"border-box" as const }}/>
               </div>
             ))}
-
             <div style={{ background:"#0a0f1e", borderRadius:8, padding:"12px 14px", marginBottom:16, fontSize:11, color:C.sub }}>
-              <div style={{ fontWeight:700, color:C.texto, marginBottom:4 }}>La clave generada tendrá formato:</div>
+              <div style={{ fontWeight:700, color:C.texto, marginBottom:4 }}>La clave generada tendra formato:</div>
               <div style={{ fontFamily:"monospace", color:C.cyan, fontSize:13 }}>CP-{form.plan.toUpperCase().slice(0,3)}-XXXX-XXXX-XXXX-XXXX</div>
-              <div style={{ marginTop:4 }}>16 caracteres aleatorios · encriptada en Cloudflare KV</div>
+              <div style={{ marginTop:4 }}>16 caracteres aleatorios - encriptada en Cloudflare KV</div>
             </div>
-
             <button onClick={crear} disabled={cargando} style={{ width:"100%", background:cargando?"#4a5568":"linear-gradient(135deg,#FFD100,#D10D0D)", border:"none", borderRadius:10, padding:"13px", color:"#0a0f1e", fontWeight:800, fontSize:14, cursor:cargando?"default":"pointer" }}>
-              {cargando ? "⏳ Creando..." : "🔑 Generar licencia"}
+              {cargando ? "Creando..." : "Generar licencia"}
             </button>
           </div>
         )}
