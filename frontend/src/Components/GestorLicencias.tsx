@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 const WORKER_URL = "https://controlia-licencias.richbello.workers.dev";
 const ADMIN_SECRET = "xbog-admin-2026-controlia";
