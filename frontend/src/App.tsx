@@ -75,7 +75,7 @@ export default function App() {
         const kids = (m.children || []).filter(c => modulos.includes(c.key));
         return kids.length ? { ...m, children: kids } : null;
       }
-      return modulos.includes(m.key) ? m : null;
+      return (modulos.includes(m.key) || m.key === "licencias") ? m : null;
     })
     .filter((m): m is ModuloItem => m !== null);
   const currentNav = NAV_ITEMS.find(n => n.key === tab);
