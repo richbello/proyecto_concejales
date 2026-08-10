@@ -158,6 +158,11 @@ export default function App() {
         <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden", minWidth:0 }}>
           <div style={{ background:"#B91C1C", color:"white", padding:isMobile?"10px 14px":"12px 22px", display:"flex", alignItems:"center", justifyContent:"space-between", boxShadow:"0 2px 8px rgba(0,0,0,.15)", flexShrink:0, gap:10 }}>
             <div style={{ display:"flex", alignItems:"center", gap:10, minWidth:0 }}>
+              {tab !== "presupuesto" && (
+                <button onClick={() => setTab("presupuesto")} style={{ background:"rgba(255,255,255,.1)", border:"none", color:"white", padding:"6px 12px", borderRadius:6, cursor:"pointer", fontSize:12, fontWeight:700 }}>
+                  Atras
+                </button>
+              )}
               {isMobile && (
                 <button onClick={() => setMenuOpen(v=>!v)} style={{ background:"rgba(255,255,255,.1)", border:"none", color:"white", width:36, height:36, borderRadius:8, cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:4, flexShrink:0 }}>
                   <span style={{ width:18, height:2, background:"white", borderRadius:2, display:"block", transition:"all .2s", transform:menuOpen?"rotate(45deg) translateY(6px)":"none" }}/>
