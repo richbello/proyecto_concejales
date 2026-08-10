@@ -39,6 +39,51 @@ export default function GestorLicencias() {
 
   // Form nueva licencia
   const [form, setForm] = useState({ plan:"demo", cliente:"", localidad:"", dias:"15" });
+  // AUTENTICACIÓN
+  const [autenticado, setAutenticado] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
+  const PASSWORD_ADMIN = "Bogota.2026";
+
+  const handleLogin = () => {
+    if (passwordInput === PASSWORD_ADMIN) {
+      setAutenticado(true);
+      setPasswordInput("");
+      setMsg("✅ Autenticado correctamente");
+      setMsgColor(C.verde);
+    } else {
+      setMsg("❌ Contraseña incorrecta");
+      setMsgColor(C.rojo);
+      setPasswordInput("");
+    }
+  };
+
+  // SI NO ESTÁ AUTENTICADO, MOSTRAR LOGIN
+  if (!autenticado) {
+    return (
+      <div style={{padding:20,background:C.navy,minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <div style={{background:C.card,borderRadius:12,padding:30,border:`2px solid ${C.cyan}`,maxWidth:400,width:"100%"}}>
+          <div style={{fontSize:24,fontWeight:800,marginBottom:20,textAlign:"center",color:C.cyan}}>🔐 ADMINISTRADOR</div>
+          <div style={{fontSize:13,color:C.sub,marginBottom:15,textAlign:"center"}}>Ingresa la contraseña para acceder al Gestor de Licencias</div>
+          <input
+            type="password"
+            placeholder="Contraseña"
+            value={passwordInput}
+            onChange={(e) => setPasswordInput(e.target.value)}
+            onKeyPress={(e) => e.key === "Enter" && handleLogin()}
+            style={{width:"100%",padding:12,borderRadius:8,border:`1px solid ${C.border}`,background:C.navy,color:C.texto,fontSize:14,marginBottom:15,boxSizing:"border-box"}}
+          />
+          <button
+            onClick={handleLogin}
+            style={{width:"100%",padding:12,borderRadius:8,background:C.cyan,color:"#000",fontWeight:800,border:"none",cursor:"pointer",fontSize:14}}
+          >
+            Acceder
+          </button>
+          {msg && <div style={{marginTop:15,padding:10,borderRadius:6,background:msgColor,color:"#000",fontSize:12,fontWeight:700,textAlign:"center"}}>{msg}</div>}
+        </div>
+      </div>
+    );
+  }
+
 
   const cargar = useCallback(async () => {
     setCargando(true);
