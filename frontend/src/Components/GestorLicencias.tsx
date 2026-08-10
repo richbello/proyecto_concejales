@@ -52,6 +52,32 @@ const Stat = ({icon,label,valor,color}:{icon:string;label:string;valor:string|nu
 );
 
 export default function GestorLicencias() {
+  const [autenticado, setAutenticado] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
+  const PASSWORD_ADMIN = "Bogota.2026";
+
+  const handleLogin = () => {
+    if (passwordInput === PASSWORD_ADMIN) {
+      setAutenticado(true);
+      setPasswordInput("");
+    } else {
+      alert("❌ Contraseña incorrecta");
+      setPasswordInput("");
+    }
+  };
+
+  if (!autenticado) {
+    return (
+      <div style={{padding:20,background:"#0a0f1e",minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <div style={{background:"#161d2e",borderRadius:12,padding:30,border:"2px solid #FFD100",maxWidth:400,width:"100%"}}>
+          <div style={{fontSize:24,fontWeight:800,marginBottom:20,textAlign:"center",color:"#FFD100"}}>🔐 ADMINISTRADOR</div>
+          <input type="password" placeholder="Contraseña" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} onKeyPress={(e) => e.key === "Enter" && handleLogin()} style={{width:"100%",padding:12,borderRadius:8,border:"1px solid #1e2a40",background:"#0a0f1e",color:"#e2e8f0",fontSize:14,marginBottom:15,boxSizing:"border-box"}} />
+          <button onClick={handleLogin} style={{width:"100%",padding:12,borderRadius:8,background:"#FFD100",color:"#000",fontWeight:800,border:"none",cursor:"pointer",fontSize:14}}>Acceder</button>
+        </div>
+      </div>
+    );
+  }
+
   const isMobile = useResponsive();
   const sz = sizes(isMobile);
   const [licencias, setLicencias] = useState<Licencia[]>([]);
