@@ -4,6 +4,28 @@ const WORKER_URL = "https://controlia-licencias.richbello.workers.dev";
 const ADMIN_SECRET = "xbog-admin-2026-controlia";
 
 const C = { navy:"#0a0f1e", card:"#161d2e", cyan:"#FFD100", verde:"#00ff88", amar:"#ffd60a", rojo:"#D10D0D", muted:"#4a5568", border:"#1e2a40", texto:"#e2e8f0", sub:"#94a3b8" };
+
+// RESPONSIVE
+const useResponsive = () => {
+  const [isMobile, setIsMobile] = React.useState(false);
+  React.useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+  return isMobile;
+};
+
+const sizes = (isMobile: boolean) => ({
+  container: isMobile ? 12 : 16,
+  title: isMobile ? 18 : 24,
+  subtitle: isMobile ? 13 : 15,
+  input: isMobile ? 13 : 14,
+  button: isMobile ? 13 : 14,
+  padding: isMobile ? 12 : 20,
+  gap: isMobile ? 8 : 12,
+});
 const PAL = [C.cyan, C.verde, C.amar, C.rojo, "#8b5cf6", "#f97316"];
 
 const fmtCOP = (v:number) => v>=1e6?`$${(v/1e6).toFixed(1)}M`:v>=1e3?`$${(v/1e3).toFixed(0)}K`:`$${v}`;
@@ -30,6 +52,8 @@ const Stat = ({icon,label,valor,color}:{icon:string;label:string;valor:string|nu
 );
 
 export default function GestorLicencias() {
+  const isMobile = useResponsive();
+  const sz = sizes(isMobile);
   const [licencias, setLicencias] = useState<Licencia[]>([]);
   const [cargando,  setCargando]  = useState(false);
   const [tab,       setTab]       = useState<"lista"|"crear">("lista");
