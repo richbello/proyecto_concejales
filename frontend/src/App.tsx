@@ -197,9 +197,14 @@ export default function App() {
             </div>
           )}
 
-          <div style={{ flex:1, padding:isMobile?10:18, overflowY:"auto", overflowX:"hidden", background:"#F5F3EE" }}>
+          <div style={{ flex:1, padding:isMobile?10:18, overflowY:"auto", overflowX:"hidden", background:"#F5F3EE", paddingBottom:isMobile?"50px":"20px" }}>
             {renderModulo()}
           </div>
+          {isMobile && (
+            <div style={{ position:"fixed", bottom:0, left:0, right:0, background:"#1a2742", borderTop:"1px solid #1e2a40", padding:"12px 16px", textAlign:"center", fontSize:10, color:"#94a3b8", zIndex:999 }}>
+              Derechos Reservados Propiedad de XBOG Technologies 2026
+            </div>
+          )}
         </div>
 
         <Politiko data={crpData} planData={planData} contratosData={contratosData} pacData={pacData} mapaData={mapaData} />
