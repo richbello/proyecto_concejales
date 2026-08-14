@@ -1,0 +1,10 @@
+{
+  "name": "proyecto-concejales",
+  "version": "1.0.0",
+  "description": "XBOG Control - Plataforma de Control Político",
+  "scripts": {
+    "build": "cd frontend && npm install --legacy-peer-deps && npm run build",
+    "dev": "cd frontend && npm run dev"
+  },
+  "keywords": []
+}
