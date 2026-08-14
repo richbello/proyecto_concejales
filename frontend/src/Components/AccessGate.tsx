@@ -34,7 +34,6 @@ export default function AccessGate({ children, onLicencia }: Props) {
     if (stored) {
       try {
         const data = JSON.parse(stored);
-        // Revalidar contra el worker
         fetch(WORKER_URL + "/validar", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -48,13 +47,13 @@ export default function AccessGate({ children, onLicencia }: Props) {
               onLicencia?.(res);
             } else {
               localStorage.removeItem(STORAGE_KEY);
+              setError("Licencia inválida o expirada.");
             }
             setValidando(false);
           })
           .catch(() => {
-            // Sin conexión — usar cache local
-            setLicencia(data);
-            licenciaActual = data;
+            localStorage.removeItem(STORAGE_KEY);
+            setError("No hay conexión con el servidor. Verifica tu internet e intenta nuevamente.");
             setValidando(false);
           });
       } catch {
@@ -81,6 +80,7 @@ export default function AccessGate({ children, onLicencia }: Props) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
         licenciaActual = stored;
         setLicencia(data);
+        setError("");
         onLicencia?.(data);
       } else {
         setError(data.error || "Licencia no válida.");
@@ -96,6 +96,7 @@ export default function AccessGate({ children, onLicencia }: Props) {
     licenciaActual = null;
     setLicencia(null);
     setClave("");
+    setError("");
   };
 
   if (validando) {
@@ -114,7 +115,7 @@ export default function AccessGate({ children, onLicencia }: Props) {
             <div style={{ fontSize:56, marginBottom:12 }}>🏛️</div>
             <div style={{ fontSize:10, color:"#5dade2", letterSpacing:4, fontWeight:700, textTransform:"uppercase" as const }}>XBOG Technologies</div>
             <h1 style={{ color:"#e2e8f0", fontSize:26, fontWeight:900, margin:"10px 0 6px" }}>XBOG CONTROL</h1>
-            <div style={{ color:"#94a3b8", fontSize:12 }}>Plataforma de Control Político · Codespage</div>
+            <div style={{ color:"#94a3b8", fontSize:12 }}>Plataforma de Control Político</div>
           </div>
 
           <div style={{ background:"#161d2e", borderRadius:16, padding:32, border:"1px solid #1e2a40", boxShadow:"0 24px 48px rgba(0,0,0,.5)" }}>
@@ -163,7 +164,6 @@ export default function AccessGate({ children, onLicencia }: Props) {
 
   return (
     <>
-      {/* Banner licencia activa */}
       {licencia.diasRestantes !== null && licencia.diasRestantes <= 5 && (
         <div style={{ background:"#D10D0D", color:"white", textAlign:"center" as const, padding:"6px", fontSize:12, fontWeight:700 }}>
           ⚠️ Tu licencia {licencia.plan} vence en {licencia.diasRestantes} días · Contacta a XBOG para renovar
@@ -171,7 +171,7 @@ export default function AccessGate({ children, onLicencia }: Props) {
       )}
       {licencia.plan === "DEMO" && (
         <div style={{ background:"#f39c12", color:"#0a0f1e", textAlign:"center" as const, padding:"6px", fontSize:12, fontWeight:700 }}>
-          🎯 Modo DEMO · {licencia.diasRestantes} días restantes · <span style={{ textDecoration:"underline", cursor:"pointer" }} onClick={cerrar}>Activar licencia completa</span>
+          🎯 Modo DEMO · {licencia.diasRestantes} días restantes · <span style={{ textDecoration:"underline", cursor:"pointer" }} onClick={cerrar}>Cambiar licencia</span>
         </div>
       )}
       {children}
