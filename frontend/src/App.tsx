@@ -119,7 +119,7 @@ export default function App() {
       <div style={{ display:"flex", flexDirection:isMobile?"column":"row", height:"100vh", fontFamily:"'Segoe UI',sans-serif", background:"#f0f2f5", color:"#2c3e50", overflow:"hidden" }}>
 
         {!isMobile && (
-          <aside style={{ width:220, background:"#1F3A5F", color:"white", display:"flex", flexDirection:"column", boxShadow:"3px 0 10px rgba(0,0,0,.2)", flexShrink:0 }}>
+          <aside style={{ width:220, background:"#A01B1B", color:"white", display:"flex", flexDirection:"column", boxShadow:"3px 0 10px rgba(0,0,0,.2)", flexShrink:0 }}>
             <div style={{ padding:"20px 16px", borderBottom:"1px solid rgba(255,255,255,.1)" }}>
               <div style={{ fontSize:28 }}>🏛️</div>
               <div style={{ fontSize:16, fontWeight:900, color:"#FFE082", textTransform:"uppercase", letterSpacing:2, marginTop:6 }}>XBOG Control</div>
@@ -163,7 +163,7 @@ export default function App() {
         )}
 
         <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden", minWidth:0 }}>
-          <div style={{ background:"#1F3A5F", color:"white", padding:isMobile?"10px 14px":"12px 22px", display:"flex", alignItems:"center", justifyContent:"space-between", boxShadow:"0 2px 8px rgba(0,0,0,.15)", flexShrink:0, gap:10 }}>
+          <div style={{ background:"#A01B1B", color:"white", padding:isMobile?"10px 14px":"12px 22px", display:"flex", alignItems:"center", justifyContent:"space-between", boxShadow:"0 2px 8px rgba(0,0,0,.15)", flexShrink:0, gap:10 }}>
             <div style={{ display:"flex", alignItems:"center", gap:10, minWidth:0 }}>
               {tab !== "presupuesto" && (
                 <button onClick={() => setTab("presupuesto")} style={{ background:"rgba(255,255,255,.1)", border:"none", color:"white", padding:"6px 12px", borderRadius:6, cursor:"pointer", fontSize:12, fontWeight:700 }}>
@@ -193,7 +193,7 @@ export default function App() {
           </div>
 
           {isMobile && menuOpen && (
-            <div style={{ background:"#1F3A5F", position:"absolute", top:57, left:0, right:0, zIndex:1000, boxShadow:"0 8px 24px rgba(0,0,0,.3)" }}>
+            <div style={{ background:"#A01B1B", position:"absolute", top:57, left:0, right:0, zIndex:1000, boxShadow:"0 8px 24px rgba(0,0,0,.3)" }}>
               {NAV_ITEMS.map(n => (
                 <div key={n.key} onClick={() => handleTabChange(n.key)} style={{ padding:"13px 18px", cursor:"pointer", display:"flex", alignItems:"center", gap:12, fontSize:14, background:tab===n.key?"#FFE082":"transparent", borderLeft:tab===n.key?"4px solid #5dade2":"4px solid transparent", color:tab===n.key?"#FFE082":"rgba(255,255,255,.8)", borderBottom:"1px solid rgba(255,255,255,.06)" }}>
                   <span style={{ fontSize:18 }}>{n.icon}</span>
