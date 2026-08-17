@@ -55,7 +55,7 @@ export default function App() {
 
   const handleLicencia = (data: any) => {
     const newModulos = data.modulos || TODOS_MODULOS.map(m => m.key);
-    setModulos([...new Set([...newModulos, "licencias", "generador-proposiciones"])]);
+    setModulos([...new Set([...newModulos, "licencias", "generador-proposiciones", "alertas-automaticas"])]);
     setPlanActual(data.plan || "");
     // Si el tab actual no está disponible, ir al primero disponible
     if (data.modulos && !data.modulos.includes(tab)) {
