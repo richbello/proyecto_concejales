@@ -119,11 +119,11 @@ export default function App() {
       <div style={{ display:"flex", flexDirection:isMobile?"column":"row", height:"100vh", fontFamily:"'Segoe UI',sans-serif", background:"#f0f2f5", color:"#2c3e50", overflow:"hidden" }}>
 
         {!isMobile && (
-          <aside style={{ width:220, background:"#A01B1B", color:"white", display:"flex", flexDirection:"column", boxShadow:"3px 0 10px rgba(0,0,0,.2)", flexShrink:0 }}>
+          <aside style={{ width:220, background:"linear-gradient(160deg,#8E1616 0%,#A01B1B 45%,#B93A3A 100%)", color:"white", display:"flex", flexDirection:"column", boxShadow:"3px 0 18px rgba(120,0,0,.35)", flexShrink:0 }}>
             <div style={{ padding:"20px 16px", borderBottom:"1px solid rgba(255,255,255,.1)" }}>
               <div style={{ fontSize:28 }}>🏛️</div>
-              <div style={{ fontSize:16, fontWeight:900, color:"#FFE082", textTransform:"uppercase", letterSpacing:2, marginTop:6 }}>XBOG Control</div>
-              <div style={{ fontSize:13, color:"#FFE082", marginTop:4, fontFamily:"'Fraunces', serif", fontWeight:600, letterSpacing:"0.3px", lineHeight:"1.3" }}>Sistema de Control Legislativo</div>
+              <div style={{ fontSize:23, fontWeight:900, color:"#F4CF6A", fontFamily:"'Fraunces', Georgia, serif", letterSpacing:"1.5px", marginTop:8, lineHeight:"1.1", textShadow:"0 2px 6px rgba(0,0,0,.35)" }}>XBOG<span style={{ fontWeight:500, fontStyle:"italic", marginLeft:5, color:"#E8B84B" }}>Control</span></div>
+              <div style={{ fontSize:11, color:"rgba(244,207,106,.85)", marginTop:6, fontFamily:"'Fraunces', serif", fontWeight:500, letterSpacing:"1px", lineHeight:"1.4", textTransform:"uppercase" }}>Sistema de Control Legislativo</div>
               {false && planActual && (
                 <div style={{ marginTop:8, background:"rgba(93,173,226,.15)", borderRadius:6, padding:"4px 8px", fontSize:9, color:"#FFE082", fontWeight:700 }}>
                   🔑 {planActual}
@@ -163,7 +163,7 @@ export default function App() {
         )}
 
         <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden", minWidth:0 }}>
-          <div style={{ background:"#A01B1B", color:"white", padding:isMobile?"10px 14px":"12px 22px", display:"flex", alignItems:"center", justifyContent:"space-between", boxShadow:"0 2px 8px rgba(0,0,0,.15)", flexShrink:0, gap:10 }}>
+          <div style={{ background:"linear-gradient(90deg,#8E1616 0%,#A01B1B 60%,#B93A3A 100%)", color:"white", padding:isMobile?"10px 14px":"12px 22px", display:"flex", alignItems:"center", justifyContent:"space-between", boxShadow:"0 2px 12px rgba(120,0,0,.25)", flexShrink:0, gap:10 }}>
             <div style={{ display:"flex", alignItems:"center", gap:10, minWidth:0 }}>
               {tab !== "presupuesto" && (
                 <button onClick={() => setTab("presupuesto")} style={{ background:"rgba(255,255,255,.1)", border:"none", color:"white", padding:"6px 12px", borderRadius:6, cursor:"pointer", fontSize:12, fontWeight:700 }}>
@@ -193,7 +193,7 @@ export default function App() {
           </div>
 
           {isMobile && menuOpen && (
-            <div style={{ background:"#A01B1B", position:"absolute", top:57, left:0, right:0, zIndex:1000, boxShadow:"0 8px 24px rgba(0,0,0,.3)" }}>
+            <div style={{ background:"linear-gradient(160deg,#8E1616 0%,#A01B1B 60%,#B93A3A 100%)", position:"absolute", top:57, left:0, right:0, zIndex:1000, boxShadow:"0 8px 24px rgba(0,0,0,.3)" }}>
               {NAV_ITEMS.map(n => (
                 <div key={n.key} onClick={() => handleTabChange(n.key)} style={{ padding:"13px 18px", cursor:"pointer", display:"flex", alignItems:"center", gap:12, fontSize:14, background:tab===n.key?"#FFE082":"transparent", borderLeft:tab===n.key?"4px solid #5dade2":"4px solid transparent", color:tab===n.key?"#FFE082":"rgba(255,255,255,.8)", borderBottom:"1px solid rgba(255,255,255,.06)" }}>
                   <span style={{ fontSize:18 }}>{n.icon}</span>
