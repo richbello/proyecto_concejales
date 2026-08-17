@@ -22,63 +22,53 @@ export default function AlertasAutomaticas({ pacData, contratosData, presupuesto
     const lista: any[] = [];
     const hoy = new Date().toISOString().split('T')[0];
 
-    // Procesar PRESUPUESTO REAL (CRP)
-    if (presupuestoData && Array.isArray(presupuestoData)) {
-      presupuestoData.forEach((p: any, idx: number) => {
-        const autorizado = Number(p.autorizado || p.Autorizado || 0);
-        const ejecutado = Number(p.ejecutado || p.Ejecutado || 0);
-        const pctEjec = autorizado > 0 ? (ejecutado / autorizado) * 100 : 0;
+    // Si presupuestoData es un array de transacciones (SAP crudo), resumir por rubro
+    if (presupuestoData && Array.isArray(presupuestoData) && presupuestoData.length > 0) {
+      const rubroMap = new Map<string, any>();
 
-        // Alerta si ejecución < 20% y monto > $50M
-        if (pctEjec < 20 && autorizado > 50000000) {
+      presupuestoData.forEach((fila: any) => {
+        const rubro = fila.rubro || fila.Rubro || fila['Descripción del Rubro'] || 'Sin rubro';
+        const valor = Number(fila['Valor Neto'] || fila.Valor || fila['Autorizacion giro'] || 0);
+
+        if (!rubroMap.has(rubro)) {
+          rubroMap.set(rubro, { rubro, total: 0, cantidad: 0 });
+        }
+        const entry = rubroMap.get(rubro);
+        entry.total += valor;
+        entry.cantidad += 1;
+      });
+
+      // Analizar rubros
+      rubroMap.forEach((entry, rubro) => {
+        // Alerta si rubro tiene muchas transacciones (posible duplicidad)
+        if (entry.cantidad > 10 && entry.total > 20000000) {
           lista.push({
-            id: 'presup-' + idx,
+            id: 'presup-' + rubro,
             tipo: 'presupuesto',
             severidad: 'media',
-            titulo: 'Ejecucion presupuestal baja',
-            desc: `${p.rubro || p.Rubro || 'Rubro'} - Ejecución: ${Math.round(pctEjec)}%`,
-            valor: autorizado,
-            pctEjec: Math.round(pctEjec),
+            titulo: 'Alto volumen de transacciones en rubro',
+            desc: `${rubro} - ${entry.cantidad} transacciones - $${entry.total.toLocaleString('es-CO')}`,
+            valor: entry.total,
+            cantidad: entry.cantidad,
             fecha: hoy
           });
         }
       });
     }
 
-    // Procesar CONTRATOS
-    if (contratosData && Array.isArray(contratosData)) {
-      contratosData.slice(0, 50).forEach((c: any, idx: number) => {
-        const valor = Number(c.valor || c.Valor || 0);
-        // Alerta si contrato > $10M y no tiene marcado como "publicado"
-        if (valor > 10000000 && !c.secopPublicado && !c.publicado) {
-          lista.push({
-            id: 'secop-' + idx,
-            tipo: 'secop',
-            severidad: 'alta',
-            titulo: 'Contrato sin publicacion SECOP',
-            desc: `${c.concepto || c.Concepto || 'Contrato'} - $${valor.toLocaleString('es-CO')}`,
-            valor: valor,
-            fecha: hoy
-          });
-        }
-      });
-    }
-
-    // Siempre agregar vencimientos demo (son genéricos)
-    if (lista.length > 0 || (!presupuestoData && !contratosData)) {
-      lista.push({
-        id: 'venc-1',
-        tipo: 'vencimientos',
-        severidad: 'alta',
-        titulo: 'Vencimiento: Respuesta a peticion de informacion',
-        desc: 'Vence en 3 dias habiles',
-        fecha: '2026-08-20'
-      });
-    }
+    // Alertas de vencimientos (siempre mostrar)
+    lista.push({
+      id: 'venc-1',
+      tipo: 'vencimientos',
+      severidad: 'alta',
+      titulo: 'Vencimiento: Respuesta a peticion de informacion',
+      desc: 'Vence en 3 dias habiles',
+      fecha: '2026-08-20'
+    });
 
     // Si no hay alertas reales, mostrar demos
-    if (lista.length === 0) {
-      lista.push(
+    if (lista.length <= 1) {
+      lista.unshift(
         {
           id: 'd1',
           tipo: 'secop',
@@ -87,22 +77,12 @@ export default function AlertasAutomaticas({ pacData, contratosData, presupuesto
           desc: 'Suministro de insumos - $28M',
           valor: 28000000,
           fecha: '2026-08-15'
-        },
-        {
-          id: 'd2',
-          tipo: 'presupuesto',
-          severidad: 'media',
-          titulo: 'Ejecucion presupuestal baja',
-          desc: 'Inversión en infraestructura - 22%',
-          pctEjec: 22,
-          valor: 150000000,
-          fecha: '2026-08-17'
         }
       );
     }
 
     return filtroTipo === 'todas' ? lista : lista.filter(a => a.tipo === filtroTipo);
-  }, [presupuestoData, contratosData, filtroTipo]);
+  }, [presupuestoData, filtroTipo]);
 
   const stats = {
     total: alertas.length,
@@ -149,18 +129,11 @@ export default function AlertasAutomaticas({ pacData, contratosData, presupuesto
             <h4 style={{ margin: '0 0 8px 0', fontSize: 14, fontWeight: 700, color: C.navy }}>{a.titulo}</h4>
             <p style={{ margin: 0, fontSize: 13, color: '#666', marginBottom: 8 }}>{a.desc}</p>
             {a.valor && <div style={{ fontSize: 12, color: C.navy, fontWeight: 600 }}>💵 ${a.valor.toLocaleString('es-CO')}</div>}
-            {a.pctEjec !== undefined && <div style={{ fontSize: 12, color: C.navy, fontWeight: 600 }}>📊 Ejecucion: {a.pctEjec}%</div>}
+            {a.cantidad && <div style={{ fontSize: 12, color: C.navy, fontWeight: 600 }}>📊 {a.cantidad} transacciones</div>}
             <div style={{ fontSize: 11, color: '#999', marginTop: 8 }}>📅 {a.fecha}</div>
           </div>
         ))}
       </div>
-
-      {alertas.length === 0 && (
-        <div style={{ textAlign: 'center', padding: 40, color: '#999' }}>
-          <p style={{ fontSize: 16, fontWeight: 600 }}>✓ Sin alertas</p>
-          <p style={{ fontSize: 13 }}>Carga datos de Presupuesto o Contratación</p>
-        </div>
-      )}
     </div>
   );
 }
