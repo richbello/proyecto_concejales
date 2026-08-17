@@ -7,10 +7,10 @@ interface AlertasProps {
 }
 
 const C = {
-  rojo: '#A01B1B',
-  rojoOsc: '#7A1414',
-  dorado: '#E8B84B',
-  doradoOsc: '#C99A2E',
+  rojo: '#1B3A6B',
+  rojoOsc: '#1e3a6e',
+  dorado: '#5dade2',
+  doradoOsc: '#3498db',
   warning: '#E8871E',
   error: '#C0392B',
   gris: '#666'

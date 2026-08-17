@@ -92,11 +92,11 @@ export default function GeneradorProposicion(props: DatosProposicion) {
     }
   };
 
-  const card = { background: 'rgba(139,0,0,0.3)', borderRadius: 8, padding: 16 };
+  const card = { background: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 16 };
   const gold = { color: '#FFD700' };
 
   return (
-    <div style={{ background: 'linear-gradient(to bottom right, #B91C1C, #991B1B)', borderRadius: 12, padding: 24, color: 'white' }}>
+    <div style={{ background: 'linear-gradient(135deg, #1B3A6B 0%, #1e3a6e 100%)', borderRadius: 12, padding: 24, color: 'white' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
         <span style={{ fontSize: 32 }}>📝</span>
         <div>
@@ -110,7 +110,7 @@ export default function GeneradorProposicion(props: DatosProposicion) {
           <h3 style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 12, ...gold }}>1. Tipo de Proposicion</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {tiposProposicion.map(tipo => (
-              <label key={tipo.id} style={{ display: 'flex', alignItems: 'flex-start', padding: 8, borderRadius: 6, cursor: 'pointer', background: tipoProposicion === tipo.id ? '#FFD700' : 'rgba(0,0,0,0.2)', color: tipoProposicion === tipo.id ? '#B91C1C' : 'white' }}>
+              <label key={tipo.id} style={{ display: 'flex', alignItems: 'flex-start', padding: 8, borderRadius: 6, cursor: 'pointer', background: tipoProposicion === tipo.id ? '#5dade2' : 'rgba(0,0,0,0.25)', color: tipoProposicion === tipo.id ? '#123456' : 'white' }}>
                 <input type="radio" name="tipo" value={tipo.id} checked={tipoProposicion === tipo.id} onChange={(e) => setTipoProposicion(e.target.value)} style={{ marginRight: 8, marginTop: 3 }} />
                 <div>
                   <p style={{ fontWeight: 'bold', margin: 0 }}>{tipo.nombre}</p>
@@ -129,7 +129,7 @@ export default function GeneradorProposicion(props: DatosProposicion) {
               <p style={{ fontSize: 12, opacity: 0.85, marginBottom: 6 }}>Detectadas automaticamente:</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 160, overflowY: 'auto' }}>
                 {anomaliasDetectadas.map(anom => (
-                  <button key={anom.id} onClick={() => setAnomaliaSeleccionada(anom)} style={{ textAlign: 'left', padding: 10, borderRadius: 6, border: 'none', cursor: 'pointer', background: anomaliaSeleccionada?.id === anom.id ? '#FFD700' : 'rgba(0,0,0,0.2)', color: anomaliaSeleccionada?.id === anom.id ? '#B91C1C' : 'white' }}>
+                  <button key={anom.id} onClick={() => setAnomaliaSeleccionada(anom)} style={{ textAlign: 'left', padding: 10, borderRadius: 6, border: 'none', cursor: 'pointer', background: anomaliaSeleccionada?.id === anom.id ? '#5dade2' : 'rgba(0,0,0,0.25)', color: anomaliaSeleccionada?.id === anom.id ? '#123456' : 'white' }}>
                     <p style={{ fontWeight: 'bold', fontSize: 13, margin: 0 }}>{anom.titulo}</p>
                     <p style={{ fontSize: 11, margin: '3px 0 0 0', opacity: 0.9 }}>${anom.monto.toLocaleString('es-CO')} - {anom.fecha}</p>
                   </button>
@@ -143,7 +143,7 @@ export default function GeneradorProposicion(props: DatosProposicion) {
             <input placeholder="Titulo del asunto" value={manualTitulo} onChange={e => setManualTitulo(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: 'none', marginBottom: 8, boxSizing: 'border-box', color: '#333' }} />
             <input placeholder="Monto (ej: 50000000)" value={manualMonto} onChange={e => setManualMonto(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: 'none', marginBottom: 8, boxSizing: 'border-box', color: '#333' }} />
             <textarea placeholder="Descripcion (opcional)" value={manualDesc} onChange={e => setManualDesc(e.target.value)} rows={2} style={{ width: '100%', padding: 8, borderRadius: 6, border: 'none', marginBottom: 8, boxSizing: 'border-box', resize: 'vertical', color: '#333' }} />
-            <button onClick={crearAnomaliaManual} style={{ width: '100%', padding: 10, borderRadius: 6, border: '2px solid #FFD700', background: 'transparent', color: '#FFD700', fontWeight: 'bold', cursor: 'pointer' }}>Usar este asunto</button>
+            <button onClick={crearAnomaliaManual} style={{ width: '100%', padding: 10, borderRadius: 6, border: '2px solid #5dade2', background: 'transparent', color: '#5dade2', fontWeight: 'bold', cursor: 'pointer' }}>Usar este asunto</button>
           </div>
         </div>
       </div>
@@ -160,7 +160,7 @@ export default function GeneradorProposicion(props: DatosProposicion) {
         </div>
       )}
 
-      <button onClick={handleGenerar} disabled={!anomaliaSeleccionada || generando} style={{ width: '100%', padding: 16, fontSize: 16, fontWeight: 'bold', borderRadius: 8, border: 'none', background: !anomaliaSeleccionada || generando ? 'rgba(255,209,0,0.4)' : '#FFD700', color: '#B91C1C', cursor: !anomaliaSeleccionada || generando ? 'not-allowed' : 'pointer' }}>
+      <button onClick={handleGenerar} disabled={!anomaliaSeleccionada || generando} style={{ width: '100%', padding: 16, fontSize: 16, fontWeight: 'bold', borderRadius: 8, border: 'none', background: !anomaliaSeleccionada || generando ? 'rgba(93,173,226,0.4)' : '#5dade2', color: 'white', cursor: !anomaliaSeleccionada || generando ? 'not-allowed' : 'pointer' }}>
         {generando ? 'Generando...' : '📥 Descargar Proposicion (Word)'}
       </button>
 
