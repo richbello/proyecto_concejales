@@ -351,7 +351,7 @@ const Planeacion: React.FC<PlaneacionProps> = ({ onDataLoad }) => {
     <div style={{ background: '#0B1221', minHeight: '100%', fontFamily: "'Segoe UI',system-ui,sans-serif", color: '#E2E8F0' }}>
 
       {/* HEADER */}
-      <div style={{ background: 'linear-gradient(135deg,#0B1221,#162040)', borderBottom: '1px solid #1E3058', padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' as const, gap: 10 }}>
+      <div style={{ background: 'linear-gradient(135deg,#1B3A6B,#1e3a6e)', borderBottom: '1px solid #1E3058', padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' as const, gap: 10 }}>
         <div>
           <div style={{ fontSize: 15, fontWeight: 800, color: '#fff' }}>📐 Planeación PDL · Usme 2026</div>
           <div style={{ fontSize: 10, color: '#00C8E0', textTransform: 'uppercase' as const, letterSpacing: 1.5, marginTop: 1 }}>

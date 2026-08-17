@@ -123,7 +123,7 @@ export default function GestorLicencias() {
 
   return (
     <div style={{ fontFamily:"'Segoe UI',sans-serif", color:C.texto, minHeight:"100%", padding:"0 4px" }}>
-      <div style={{ background:"linear-gradient(135deg,#0d1b2a 0%,#111827 100%)", borderRadius:12, padding:"18px 20px", marginBottom:16, border:`1px solid ${C.border}` }}>
+      <div style={{ background:"linear-gradient(135deg,#1B3A6B 0%,#1e3a6e 100%)", borderRadius:12, padding:"18px 20px", marginBottom:16, border:`1px solid ${C.border}` }}>
         <div style={{ fontSize:10, color:C.cyan, letterSpacing:3, fontWeight:700, textTransform:"uppercase" as const }}>XBOG Technologies - Panel de Control</div>
         <h2 style={{ margin:"6px 0 4px", fontSize:20, fontWeight:900 }}>Gestor de Licencias XBOG CONTROL</h2>
         <div style={{ fontSize:11, color:C.sub }}>Administra claves de acceso para clientes de la plataforma</div>
