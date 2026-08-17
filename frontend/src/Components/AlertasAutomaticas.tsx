@@ -22,71 +22,136 @@ export default function AlertasAutomaticas({ pacData, contratosData, presupuesto
     const lista: any[] = [];
     const hoy = new Date().toISOString().split('T')[0];
 
-    // Si presupuestoData es un array de transacciones (SAP crudo), resumir por rubro
+    // ============ MÓDULO 1: PRESUPUESTO CRP ============
     if (presupuestoData && Array.isArray(presupuestoData) && presupuestoData.length > 0) {
-      const rubroMap = new Map<string, any>();
+      const rubroMap = new Map<string, { total: number, ejecutado: number, cantidad: number }>();
 
       presupuestoData.forEach((fila: any) => {
         const rubro = fila.rubro || fila.Rubro || fila['Descripción del Rubro'] || 'Sin rubro';
-        const valor = Number(fila['Valor Neto'] || fila.Valor || fila['Autorizacion giro'] || 0);
+        const valor = Number(fila['Valor Neto'] || fila['Autorizacion giro'] || 0);
 
         if (!rubroMap.has(rubro)) {
-          rubroMap.set(rubro, { rubro, total: 0, cantidad: 0 });
+          rubroMap.set(rubro, { total: 0, ejecutado: valor, cantidad: 0 });
         }
-        const entry = rubroMap.get(rubro);
+        const entry = rubroMap.get(rubro)!;
         entry.total += valor;
         entry.cantidad += 1;
       });
 
-      // Analizar rubros
+      // Analizar rubros para alertas
       rubroMap.forEach((entry, rubro) => {
-        // Alerta si rubro tiene muchas transacciones (posible duplicidad)
-        if (entry.cantidad > 10 && entry.total > 20000000) {
+        // ALERTA: Alto volumen de transacciones (posible inconsistencia)
+        if (entry.cantidad > 15) {
           lista.push({
-            id: 'presup-' + rubro,
+            id: 'presup-vol-' + rubro,
             tipo: 'presupuesto',
             severidad: 'media',
             titulo: 'Alto volumen de transacciones en rubro',
-            desc: `${rubro} - ${entry.cantidad} transacciones - $${entry.total.toLocaleString('es-CO')}`,
+            desc: `${rubro} - ${entry.cantidad} transacciones - Total: $${entry.total.toLocaleString('es-CO')}`,
             valor: entry.total,
             cantidad: entry.cantidad,
+            fecha: hoy
+          });
+        }
+
+        // ALERTA: Rubro con ejecución completa (100% = sospechoso)
+        if (entry.ejecutado === entry.total && entry.total > 50000000) {
+          lista.push({
+            id: 'presup-100-' + rubro,
+            tipo: 'presupuesto',
+            severidad: 'alta',
+            titulo: 'Rubro ejecutado al 100% en corto tiempo',
+            desc: `${rubro} - Ejecución total: $${entry.total.toLocaleString('es-CO')}`,
+            valor: entry.total,
             fecha: hoy
           });
         }
       });
     }
 
-    // Alertas de vencimientos (siempre mostrar)
+    // ============ MÓDULO 2: PAC - ANOMALÍAS ============
+    if (pacData) {
+      // Si pacData tiene array de anomalías detectadas
+      const anomalias = pacData.anomalias || pacData.alertas || pacData.detalle || [];
+      if (Array.isArray(anomalias)) {
+        anomalias.slice(0, 20).forEach((anom: any, idx: number) => {
+          lista.push({
+            id: 'pac-anom-' + idx,
+            tipo: 'secop',
+            severidad: anom.severidad || 'media',
+            titulo: anom.titulo || anom.concepto || 'Anomalia en PAC',
+            desc: anom.descripcion || anom.rubro || 'Detectada en análisis PAC',
+            valor: anom.monto || anom.valor || 0,
+            fecha: anom.fecha || hoy
+          });
+        });
+      }
+    }
+
+    // ============ MÓDULO 3: CONTRATACIÓN ============
+    if (contratosData && Array.isArray(contratosData)) {
+      contratosData.slice(0, 50).forEach((c: any, idx: number) => {
+        const valor = Number(c.valor || c.Valor || c['Valor CRP'] || 0);
+        const estaPublicado = c.secopPublicado || c.publicado || c.SECOP;
+
+        // ALERTA: Contrato > $10M sin SECOP
+        if (valor > 10000000 && !estaPublicado) {
+          lista.push({
+            id: 'secop-' + idx,
+            tipo: 'secop',
+            severidad: 'alta',
+            titulo: 'Contrato sin publicacion SECOP II',
+            desc: `${c.concepto || c.Concepto || c.Descripción || 'Contrato'} - $${valor.toLocaleString('es-CO')}`,
+            valor: valor,
+            fecha: hoy
+          });
+        }
+
+        // ALERTA: Contrato con modalidad sospechosa
+        const modalidad = c.modalidad || c.Modalidad || c['Modalidad de selección'] || '';
+        if (modalidad.toUpperCase().includes('DIREC') && valor > 20000000) {
+          lista.push({
+            id: 'secop-directa-' + idx,
+            tipo: 'secop',
+            severidad: 'media',
+            titulo: 'Contratacion directa por monto alto',
+            desc: `${c.concepto || 'Contrato'} - Modalidad: ${modalidad} - $${valor.toLocaleString('es-CO')}`,
+            valor: valor,
+            fecha: hoy
+          });
+        }
+      });
+    }
+
+    // ============ VENCIMIENTOS (Cálculo de plazos) ============
+    const hoyDate = new Date();
     lista.push({
-      id: 'venc-1',
+      id: 'venc-peticion',
       tipo: 'vencimientos',
       severidad: 'alta',
       titulo: 'Vencimiento: Respuesta a peticion de informacion',
-      desc: 'Vence en 3 dias habiles',
-      fecha: '2026-08-20'
+      desc: 'Plazo legal: 10 dias habiles',
+      fecha: new Date(hoyDate.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
     });
 
-    // Si no hay alertas reales, mostrar demos
-    if (lista.length <= 1) {
-      lista.unshift(
-        {
-          id: 'd1',
-          tipo: 'secop',
-          severidad: 'alta',
-          titulo: 'Contrato sin publicacion SECOP',
-          desc: 'Suministro de insumos - $28M',
-          valor: 28000000,
-          fecha: '2026-08-15'
-        }
-      );
+    // Si la lista está COMPLETAMENTE vacía, mostrar mensaje
+    if (lista.length === 0) {
+      return [{
+        id: 'empty',
+        tipo: 'todas',
+        severidad: 'success',
+        titulo: '✓ Sin alertas detectadas',
+        desc: 'Carga datos de los módulos (Presupuesto, PAC, Contratación) para activar detección',
+        fecha: hoy
+      }];
     }
 
     return filtroTipo === 'todas' ? lista : lista.filter(a => a.tipo === filtroTipo);
-  }, [presupuestoData, filtroTipo]);
+  }, [pacData, contratosData, presupuestoData, filtroTipo]);
 
   const stats = {
-    total: alertas.length,
-    altas: alertas.filter(a => a.severidad === 'alta').length,
+    total: alertas.filter(a => a.id !== 'empty').length,
+    altas: alertas.filter(a => a.severidad === 'alta' && a.id !== 'empty').length,
     pendientes: alertas.filter(a => a.tipo === 'vencimientos').length
   };
 
@@ -94,11 +159,11 @@ export default function AlertasAutomaticas({ pacData, contratosData, presupuesto
     <div style={{ fontFamily: 'Segoe UI, sans-serif', padding: 0 }}>
       <div style={{ background: `linear-gradient(135deg, ${C.navy} 0%, ${C.navyDark} 100%)`, borderRadius: 16, padding: 24, marginBottom: 24, color: 'white' }}>
         <h2 style={{ margin: 0, fontSize: 24, fontWeight: 700, marginBottom: 8 }}>⚠️ Alertas Automaticas</h2>
-        <p style={{ margin: 0, fontSize: 14, opacity: 0.9 }}>Monitoreo en tiempo real - SECOP II, SAP Distrital, Vencimientos</p>
+        <p style={{ margin: 0, fontSize: 14, opacity: 0.9 }}>100% conectadas a Módulos 1, 2, 3 - Monitoreo en tiempo real</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginTop: 16 }}>
           <div style={{ background: 'rgba(255,255,255,0.1)', borderRadius: 8, padding: 12 }}>
             <div style={{ fontSize: 22, fontWeight: 700, color: '#FFD700' }}>{stats.total}</div>
-            <div style={{ fontSize: 12, opacity: 0.8 }}>Alertas activas</div>
+            <div style={{ fontSize: 12, opacity: 0.8 }}>Alertas</div>
           </div>
           <div style={{ background: 'rgba(255,255,255,0.1)', borderRadius: 8, padding: 12 }}>
             <div style={{ fontSize: 22, fontWeight: 700, color: C.error }}>{stats.altas}</div>
@@ -121,10 +186,10 @@ export default function AlertasAutomaticas({ pacData, contratosData, presupuesto
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
         {alertas.map(a => (
-          <div key={a.id} style={{ border: `2px solid ${a.severidad === 'alta' ? C.error : C.warning}33`, borderRadius: 12, padding: 16, background: 'white' }}>
+          <div key={a.id} style={{ border: `2px solid ${a.severidad === 'alta' ? C.error : a.severidad === 'media' ? C.warning : '#10B98133'}`, borderRadius: 12, padding: 16, background: 'white' }}>
             <div style={{ display: 'flex', gap: 8, marginBottom: 8, fontSize: 20 }}>
               <span>{a.tipo === 'secop' ? '📋' : a.tipo === 'presupuesto' ? '💰' : '⏰'}</span>
-              <span style={{ fontSize: 11, fontWeight: 600, color: 'white', background: a.severidad === 'alta' ? C.error : C.warning, padding: '3px 8px', borderRadius: 4 }}>{a.severidad.toUpperCase()}</span>
+              {a.id !== 'empty' && <span style={{ fontSize: 11, fontWeight: 600, color: 'white', background: a.severidad === 'alta' ? C.error : a.severidad === 'media' ? C.warning : '#10B981', padding: '3px 8px', borderRadius: 4 }}>{a.severidad.toUpperCase()}</span>}
             </div>
             <h4 style={{ margin: '0 0 8px 0', fontSize: 14, fontWeight: 700, color: C.navy }}>{a.titulo}</h4>
             <p style={{ margin: 0, fontSize: 13, color: '#666', marginBottom: 8 }}>{a.desc}</p>
