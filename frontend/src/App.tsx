@@ -19,19 +19,20 @@ interface DataRow { [key: string]: string | number; }
 
 interface ModuloItem { key: string; label: string; icon: string; isGroup?: boolean; children?: ModuloItem[] }
 const TODOS_MODULOS: ModuloItem[] = [
-  { key:"presupuesto-group", label:"1. Presupuesto FDL", icon:"💰", isGroup:true, children:[
-    { key:"presupuesto", label:"1.1 Análisis Presupuestal", icon:"📊" },
+  { key:"grupo-presupuesto", label:"1. Presupuesto FDL", icon:"📊", isGroup:true, children:[
+    { key:"presupuesto", label:"1.1 Analisis Presupuestal", icon:"📈" },
     { key:"simulador", label:"1.2 Simulador Presupuesto", icon:"🧮" },
-    { key:"historico", label:"1.3 Reportes de Pagos", icon:"📈" },
+    { key:"historico", label:"1.3 Reportes de Pagos", icon:"✅" },
   ]},
-  { key:"alertas", label:"2. Análisis PAC", icon:"🤖" },
-  { key:"contratacion", label:"3. Contratación", icon:"📋" },
-  { key:"planeacion", label:"4. Planeación Local", icon:"📐" },
-  { key:"ciberseguridad", label:"5. Ciberseguridad", icon:"🔐" },
-  { key:"licencias", label:"6. Licencias", icon:"🔑" },
-  { key:"generador-proposiciones", label:"7. Generador de Proposiciones", icon:"📝" },
-  { key:"alertas-automaticas", label:"8. Alertas Automaticas", icon:"⚠️" },
+  { key:"alertas", label:"2. Analisis PAC", icon:"🎯" },
+  { key:"contratacion", label:"3. Contratacion", icon:"📋" },
+  { key:"planeacion", label:"4. Planeacion Local", icon:"📐" },
+  { key:"generador-proposiciones", label:"5. Generador de Proposiciones", icon:"📝" },
+  { key:"alertas-automaticas", label:"6. Alertas Automaticas", icon:"⚠️" },
+  { key:"ciberseguridad", label:"7. Ciberseguridad", icon:"🔐" },
+  { key:"licencias", label:"8. Gestor de Licencias", icon:"🔑" },
 ];
+
 
 
 export default function App() {
@@ -45,7 +46,7 @@ export default function App() {
   const [isMobile,  setIsMobile]  = useState(window.innerWidth < 768);
   const [modulos,   setModulos]   = useState<string[]>(TODOS_MODULOS.map(m => m.key));
   const [planActual,setPlanActual]= useState<string>("");
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(["presupuesto-group"]));
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(["grupo-presupuesto"]));
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -118,7 +119,7 @@ export default function App() {
       <div style={{ display:"flex", flexDirection:isMobile?"column":"row", height:"100vh", fontFamily:"'Segoe UI',sans-serif", background:"#f0f2f5", color:"#2c3e50", overflow:"hidden" }}>
 
         {!isMobile && (
-          <aside style={{ width:220, background:"#B91C1C", color:"white", display:"flex", flexDirection:"column", boxShadow:"3px 0 10px rgba(0,0,0,.2)", flexShrink:0 }}>
+          <aside style={{ width:220, background:"#1F3A5F", color:"white", display:"flex", flexDirection:"column", boxShadow:"3px 0 10px rgba(0,0,0,.2)", flexShrink:0 }}>
             <div style={{ padding:"20px 16px", borderBottom:"1px solid rgba(255,255,255,.1)" }}>
               <div style={{ fontSize:28 }}>🏛️</div>
               <div style={{ fontSize:16, fontWeight:900, color:"#FFE082", textTransform:"uppercase", letterSpacing:2, marginTop:6 }}>XBOG Control</div>
@@ -162,7 +163,7 @@ export default function App() {
         )}
 
         <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden", minWidth:0 }}>
-          <div style={{ background:"#B91C1C", color:"white", padding:isMobile?"10px 14px":"12px 22px", display:"flex", alignItems:"center", justifyContent:"space-between", boxShadow:"0 2px 8px rgba(0,0,0,.15)", flexShrink:0, gap:10 }}>
+          <div style={{ background:"#1F3A5F", color:"white", padding:isMobile?"10px 14px":"12px 22px", display:"flex", alignItems:"center", justifyContent:"space-between", boxShadow:"0 2px 8px rgba(0,0,0,.15)", flexShrink:0, gap:10 }}>
             <div style={{ display:"flex", alignItems:"center", gap:10, minWidth:0 }}>
               {tab !== "presupuesto" && (
                 <button onClick={() => setTab("presupuesto")} style={{ background:"rgba(255,255,255,.1)", border:"none", color:"white", padding:"6px 12px", borderRadius:6, cursor:"pointer", fontSize:12, fontWeight:700 }}>
@@ -192,7 +193,7 @@ export default function App() {
           </div>
 
           {isMobile && menuOpen && (
-            <div style={{ background:"#B91C1C", position:"absolute", top:57, left:0, right:0, zIndex:1000, boxShadow:"0 8px 24px rgba(0,0,0,.3)" }}>
+            <div style={{ background:"#1F3A5F", position:"absolute", top:57, left:0, right:0, zIndex:1000, boxShadow:"0 8px 24px rgba(0,0,0,.3)" }}>
               {NAV_ITEMS.map(n => (
                 <div key={n.key} onClick={() => handleTabChange(n.key)} style={{ padding:"13px 18px", cursor:"pointer", display:"flex", alignItems:"center", gap:12, fontSize:14, background:tab===n.key?"#FFE082":"transparent", borderLeft:tab===n.key?"4px solid #5dade2":"4px solid transparent", color:tab===n.key?"#FFE082":"rgba(255,255,255,.8)", borderBottom:"1px solid rgba(255,255,255,.06)" }}>
                   <span style={{ fontSize:18 }}>{n.icon}</span>
