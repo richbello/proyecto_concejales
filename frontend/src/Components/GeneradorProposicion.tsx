@@ -140,9 +140,9 @@ export default function GeneradorProposicion(props: DatosProposicion) {
 
           <div style={{ borderTop: anomaliasDetectadas.length > 0 ? '1px solid rgba(255,255,255,0.2)' : 'none', paddingTop: anomaliasDetectadas.length > 0 ? 12 : 0 }}>
             <p style={{ fontSize: 12, opacity: 0.85, marginBottom: 8 }}>O escribe una manualmente:</p>
-            <input placeholder="Titulo del asunto" value={manualTitulo} onChange={e => setManualTitulo(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: 'none', marginBottom: 8, boxSizing: 'border-box' }} />
-            <input placeholder="Monto (ej: 50000000)" value={manualMonto} onChange={e => setManualMonto(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: 'none', marginBottom: 8, boxSizing: 'border-box' }} />
-            <textarea placeholder="Descripcion (opcional)" value={manualDesc} onChange={e => setManualDesc(e.target.value)} rows={2} style={{ width: '100%', padding: 8, borderRadius: 6, border: 'none', marginBottom: 8, boxSizing: 'border-box', resize: 'vertical' }} />
+            <input placeholder="Titulo del asunto" value={manualTitulo} onChange={e => setManualTitulo(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: 'none', marginBottom: 8, boxSizing: 'border-box', color: '#333' }} />
+            <input placeholder="Monto (ej: 50000000)" value={manualMonto} onChange={e => setManualMonto(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: 'none', marginBottom: 8, boxSizing: 'border-box', color: '#333' }} />
+            <textarea placeholder="Descripcion (opcional)" value={manualDesc} onChange={e => setManualDesc(e.target.value)} rows={2} style={{ width: '100%', padding: 8, borderRadius: 6, border: 'none', marginBottom: 8, boxSizing: 'border-box', resize: 'vertical', color: '#333' }} />
             <button onClick={crearAnomaliaManual} style={{ width: '100%', padding: 10, borderRadius: 6, border: '2px solid #FFD700', background: 'transparent', color: '#FFD700', fontWeight: 'bold', cursor: 'pointer' }}>Usar este asunto</button>
           </div>
         </div>
