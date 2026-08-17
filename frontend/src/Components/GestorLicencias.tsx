@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 const WORKER_URL = "https://controlia-licencias.richbello.workers.dev";
 const ADMIN_SECRET = "xbog-admin-2026-controlia";
 const PASSWORD_ADMIN = "Bogota.2026";
-const C = { navy:"#0a0f1e", card:"#161d2e", cyan:"#FFD100", verde:"#00ff88", amar:"#ffd60a", rojo:"#D10D0D", muted:"#4a5568", border:"#1e2a40", texto:"#e2e8f0", sub:"#94a3b8" };
+const C = { navy:"#152A4E", card:"#1F3A63", cyan:"#FFD100", verde:"#00ff88", amar:"#ffd60a", rojo:"#D10D0D", muted:"#4a5568", border:"#2C4B7C", texto:"#e2e8f0", sub:"#94a3b8" };
 const fmtCOP = (v:number) => v>=1e6?`$${(v/1e6).toFixed(1)}M`:v>=1e3?`$${(v/1e3).toFixed(0)}K`:`$${v}`;
 const PLANES_INFO: Record<string, {label:string; precio:number; color:string; modulos:number}> = {
   demo:    { label:"DEMO",       precio:0,       color:C.muted, modulos:4  },
@@ -163,7 +163,7 @@ export default function GestorLicencias() {
                 const expirada = lic.expira ? Date.now() > lic.expira : false;
                 const diasRest = lic.expira ? Math.max(0, Math.ceil((lic.expira - Date.now()) / 86400000)) : null;
                 return (
-                  <div key={i} style={{ background:"#0d1520", borderRadius:10, padding:"14px 18px", border:`1px solid ${lic.activa && !expirada ? info.color+"44" : C.border}`, borderLeft:`3px solid ${lic.activa && !expirada ? info.color : C.muted}` }}>
+                  <div key={i} style={{ background:"#1B3A6B", borderRadius:10, padding:"14px 18px", border:`1px solid ${lic.activa && !expirada ? info.color+"44" : C.border}`, borderLeft:`3px solid ${lic.activa && !expirada ? info.color : C.muted}` }}>
                     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap" as const, gap:10 }}>
                       <div style={{ flex:2, minWidth:180 }}>
                         <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4, flexWrap:"wrap" as const }}>
@@ -227,10 +227,10 @@ export default function GestorLicencias() {
                 <label style={{ display:"block", fontSize:11, color:C.sub, fontWeight:700, textTransform:"uppercase" as const, letterSpacing:1, marginBottom:6 }}>{f.label}</label>
                 <input value={(form as any)[f.key]} onChange={e => setForm(p => ({...p, [f.key]:e.target.value}))}
                   placeholder={f.placeholder}
-                  style={{ width:"100%", background:"#0a0f1e", border:`1.5px solid ${C.border}`, borderRadius:8, padding:"10px 14px", color:C.texto, fontSize:12, outline:"none", boxSizing:"border-box" as const }}/>
+                  style={{ width:"100%", background:"#152A4E", border:`1.5px solid ${C.border}`, borderRadius:8, padding:"10px 14px", color:C.texto, fontSize:12, outline:"none", boxSizing:"border-box" as const }}/>
               </div>
             ))}
-            <div style={{ background:"#0a0f1e", borderRadius:8, padding:"12px 14px", marginBottom:16, fontSize:11, color:C.sub }}>
+            <div style={{ background:"#152A4E", borderRadius:8, padding:"12px 14px", marginBottom:16, fontSize:11, color:C.sub }}>
               <div style={{ fontWeight:700, color:C.texto, marginBottom:4 }}>La clave generada tendra formato:</div>
               <div style={{ fontFamily:"monospace", color:C.cyan, fontSize:13 }}>CP-{form.plan.toUpperCase().slice(0,3)}-XXXX-XXXX-XXXX-XXXX</div>
               <div style={{ marginTop:4 }}>16 caracteres aleatorios - encriptada en Cloudflare KV</div>

@@ -98,7 +98,7 @@ const PBar: React.FC<{ v: number }> = ({ v }) => (
 );
 
 const KPI: React.FC<{ label: string; value: string; sub: string; color: string; icon: React.ReactNode }> = ({ label, value, sub, color, icon }) => (
-  <div style={{ background: '#1A2744', border: '1px solid #243058', borderRadius: 12, padding: '16px 18px', borderTop: `3px solid ${color}`, position: 'relative', overflow: 'hidden' }}>
+  <div style={{ background: '#1F3A63', border: '1px solid #243058', borderRadius: 12, padding: '16px 18px', borderTop: `3px solid ${color}`, position: 'relative', overflow: 'hidden' }}>
     <div style={{ position: 'absolute', right: 14, top: 14, opacity: .1, transform: 'scale(2)' }}>{icon}</div>
     <div style={{ fontSize: 10, color: '#94A3B8', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 6 }}>{label}</div>
     <div style={{ fontSize: 22, fontWeight: 800, color: '#FFFFFF', lineHeight: 1, marginBottom: 4 }}>{value}</div>
@@ -110,7 +110,7 @@ const KPI: React.FC<{ label: string; value: string; sub: string; color: string; 
 const TTip: React.FC<any> = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div style={{ background: '#0F172A', border: '1px solid #334155', borderRadius: 8, padding: '10px 14px', fontSize: 12, boxShadow: '0 8px 24px rgba(0,0,0,.5)' }}>
+    <div style={{ background: '#1B3A6B', border: '1px solid #334155', borderRadius: 8, padding: '10px 14px', fontSize: 12, boxShadow: '0 8px 24px rgba(0,0,0,.5)' }}>
       <div style={{ color: '#F1F5F9', marginBottom: 6, fontWeight: 700, borderBottom: '1px solid #1E293B', paddingBottom: 4 }}>{label}</div>
       {payload.map((p: any, i: number) => (
         <div key={i} style={{ color: p.color || '#E2E8F0', marginBottom: 3 }}>
@@ -125,7 +125,7 @@ const TTip: React.FC<any> = ({ active, payload, label }) => {
 const TTipCOP: React.FC<any> = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div style={{ background: '#0F172A', border: '1px solid #334155', borderRadius: 8, padding: '10px 14px', fontSize: 12, boxShadow: '0 8px 24px rgba(0,0,0,.5)' }}>
+    <div style={{ background: '#1B3A6B', border: '1px solid #334155', borderRadius: 8, padding: '10px 14px', fontSize: 12, boxShadow: '0 8px 24px rgba(0,0,0,.5)' }}>
       <div style={{ color: '#F1F5F9', marginBottom: 6, fontWeight: 700, borderBottom: '1px solid #1E293B', paddingBottom: 4 }}>{label}</div>
       {payload.map((p: any, i: number) => (
         <div key={i} style={{ color: p.color || '#E2E8F0', marginBottom: 3 }}>
@@ -285,7 +285,7 @@ const Planeacion: React.FC<PlaneacionProps> = ({ onDataLoad }) => {
   }, []);
 
   if (!sectores.length) return (
-    <div style={{ background: '#0B1221', minHeight: '100%', borderRadius: 10 }}>
+    <div style={{ background: '#152A4E', minHeight: '100%', borderRadius: 10 }}>
       {progreso && <SpinnerCarga pct={progreso.pct} etapa={progreso.etapa} />}
       <UploadScreen onFile={handleFile} />
     </div>
@@ -337,10 +337,10 @@ const Planeacion: React.FC<PlaneacionProps> = ({ onDataLoad }) => {
     { key: 'alertas' as const, label: 'Alertas', icon: <AlertCircle size={13}/> },
   ];
 
-  const cardStyle: React.CSSProperties = { background: '#1A2744', border: '1px solid #243058', borderRadius: 14, padding: 18 };
+  const cardStyle: React.CSSProperties = { background: '#1F3A63', border: '1px solid #243058', borderRadius: 14, padding: 18 };
   const titleStyle: React.CSSProperties = { fontSize: 13, fontWeight: 800, color: '#F1F5F9', marginBottom: 2 };
   const subStyle: React.CSSProperties = { fontSize: 10, color: '#64748B', marginBottom: 14 };
-  const thStyle: React.CSSProperties = { background: '#111929', color: '#94A3B8', fontSize: 10, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: .8, padding: '9px 12px', textAlign: 'left' as const, whiteSpace: 'nowrap' as const, borderBottom: '1px solid #1E3058' };
+  const thStyle: React.CSSProperties = { background: '#1B3A6B', color: '#94A3B8', fontSize: 10, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: .8, padding: '9px 12px', textAlign: 'left' as const, whiteSpace: 'nowrap' as const, borderBottom: '1px solid #1E3058' };
   const tdStyle: React.CSSProperties = { padding: '9px 12px', fontSize: 11, color: '#CBD5E1', borderBottom: '1px solid rgba(30,48,88,.5)', verticalAlign: 'middle' as const };
 
   // Tick blanco para ejes
@@ -348,7 +348,7 @@ const Planeacion: React.FC<PlaneacionProps> = ({ onDataLoad }) => {
   const tickStyleSm = { fill: '#94A3B8', fontSize: 9 };
 
   return (
-    <div style={{ background: '#0B1221', minHeight: '100%', fontFamily: "'Segoe UI',system-ui,sans-serif", color: '#E2E8F0' }}>
+    <div style={{ background: '#152A4E', minHeight: '100%', fontFamily: "'Segoe UI',system-ui,sans-serif", color: '#E2E8F0' }}>
 
       {/* HEADER */}
       <div style={{ background: 'linear-gradient(135deg,#1B3A6B,#1e3a6e)', borderBottom: '1px solid #1E3058', padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' as const, gap: 10 }}>
@@ -365,7 +365,7 @@ const Planeacion: React.FC<PlaneacionProps> = ({ onDataLoad }) => {
       </div>
 
       {/* TABS */}
-      <div style={{ background: '#111929', borderBottom: '1px solid #1E3058', padding: '0 12px', display: 'flex', gap: 2, overflowX: 'auto' as const }}>
+      <div style={{ background: '#1B3A6B', borderBottom: '1px solid #1E3058', padding: '0 12px', display: 'flex', gap: 2, overflowX: 'auto' as const }}>
         {NAV.map(n => (
           <button key={n.key} onClick={() => setTab(n.key)} style={{ padding: '10px 12px', fontSize: 11, fontWeight: 600, border: 'none', background: 'transparent', cursor: 'pointer', color: tab === n.key ? '#00C8E0' : '#64748B', borderBottom: tab === n.key ? '2px solid #00C8E0' : '2px solid transparent', display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' as const, transition: 'all .2s' }}>
             {n.icon}{n.label}
@@ -406,7 +406,7 @@ const Planeacion: React.FC<PlaneacionProps> = ({ onDataLoad }) => {
                     <Pie data={donutData} cx="50%" cy="50%" innerRadius={55} outerRadius={90} dataKey="value" paddingAngle={2}>
                       {donutData.map((d, i) => <Cell key={i} fill={d.color} stroke="#0B1221" strokeWidth={2} />)}
                     </Pie>
-                    <Tooltip formatter={(v: any) => ['$' + v + 'B', 'POAI']} contentStyle={{ background: '#0F172A', border: '1px solid #334155', borderRadius: 8, fontSize: 11, color: '#F1F5F9' }} />
+                    <Tooltip formatter={(v: any) => ['$' + v + 'B', 'POAI']} contentStyle={{ background: '#1B3A6B', border: '1px solid #334155', borderRadius: 8, fontSize: 11, color: '#F1F5F9' }} />
                     <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 10, color: '#94A3B8' }} />
                   </PieChart>
                 </ResponsiveContainer>
@@ -445,7 +445,7 @@ const Planeacion: React.FC<PlaneacionProps> = ({ onDataLoad }) => {
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(36,48,88,.4)" horizontal={false} />
                     <XAxis type="number" tick={tickStyle} domain={[0, 100]} tickFormatter={v => v + '%'} axisLine={false} />
                     <YAxis type="category" dataKey="name" tick={tickStyleSm} width={90} axisLine={false} tickLine={false} />
-                    <Tooltip formatter={(v: any) => [v + '%', '% Compromisos']} contentStyle={{ background: '#0F172A', border: '1px solid #334155', borderRadius: 8, fontSize: 11, color: '#F1F5F9' }} />
+                    <Tooltip formatter={(v: any) => [v + '%', '% Compromisos']} contentStyle={{ background: '#1B3A6B', border: '1px solid #334155', borderRadius: 8, fontSize: 11, color: '#F1F5F9' }} />
                     <Bar dataKey="valor" radius={[0,4,4,0]} label={{ position: 'right', fill: '#E2E8F0', fontSize: 10, fontWeight: 700, formatter: (v: number) => v + '%' }}>
                       {compBarH.map((d, i) => <Cell key={i} fill={d.valor >= 40 ? '#10B981' : d.valor >= 20 ? '#00C8E0' : '#F59E0B'} />)}
                     </Bar>
@@ -466,7 +466,7 @@ const Planeacion: React.FC<PlaneacionProps> = ({ onDataLoad }) => {
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(36,48,88,.4)" horizontal={false} />
                     <XAxis type="number" tick={tickStyle} tickFormatter={v => v + '%'} axisLine={false} />
                     <YAxis type="category" dataKey="name" tick={tickStyleSm} width={90} axisLine={false} tickLine={false} />
-                    <Tooltip formatter={(v: any) => [v + '%', '% Giros']} contentStyle={{ background: '#0F172A', border: '1px solid #334155', borderRadius: 8, fontSize: 11, color: '#F1F5F9' }} />
+                    <Tooltip formatter={(v: any) => [v + '%', '% Giros']} contentStyle={{ background: '#1B3A6B', border: '1px solid #334155', borderRadius: 8, fontSize: 11, color: '#F1F5F9' }} />
                     <Bar dataKey="valor" radius={[0,4,4,0]} label={{ position: 'right', fill: '#E2E8F0', fontSize: 10, fontWeight: 700, formatter: (v: number) => v + '%' }}>
                       {girosBarH.map((d, i) => <Cell key={i} fill={d.valor >= 20 ? '#10B981' : d.valor >= 5 ? '#00C8E0' : '#EF4444'} />)}
                     </Bar>
@@ -516,7 +516,7 @@ const Planeacion: React.FC<PlaneacionProps> = ({ onDataLoad }) => {
                     <Radar name="% Compromisos" dataKey="comp" stroke="#00C8E0" fill="rgba(0,200,224,.15)" strokeWidth={2} />
                     <Radar name="% Giros" dataKey="giros" stroke="#10B981" fill="rgba(16,185,129,.12)" strokeWidth={2} />
                     <Legend wrapperStyle={{ fontSize: 11, color: '#94A3B8' }} />
-                    <Tooltip contentStyle={{ background: '#0F172A', border: '1px solid #334155', borderRadius: 8, fontSize: 11, color: '#F1F5F9' }} formatter={(v: any) => [v + '%']} />
+                    <Tooltip contentStyle={{ background: '#1B3A6B', border: '1px solid #334155', borderRadius: 8, fontSize: 11, color: '#F1F5F9' }} formatter={(v: any) => [v + '%']} />
                   </RadarChart>
                 </ResponsiveContainer>
                 <InsightBox nivel="info" texto="Sectores con área cian grande pero área verde pequeña tienen compromisos altos pero giros bajos — contratos firmados sin pago. Eso indica posibles demoras en trámites de pago o controversias contractuales." />
@@ -531,7 +531,7 @@ const Planeacion: React.FC<PlaneacionProps> = ({ onDataLoad }) => {
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(36,48,88,.4)" horizontal={false} />
                     <XAxis type="number" tick={tickStyle} tickFormatter={v => v + '%'} axisLine={false} />
                     <YAxis type="category" dataKey="name" tick={tickStyleSm} width={80} axisLine={false} tickLine={false} />
-                    <Tooltip formatter={(v: any) => [v + '%', 'Giros/Comp.']} contentStyle={{ background: '#0F172A', border: '1px solid #334155', borderRadius: 8, fontSize: 11, color: '#F1F5F9' }} />
+                    <Tooltip formatter={(v: any) => [v + '%', 'Giros/Comp.']} contentStyle={{ background: '#1B3A6B', border: '1px solid #334155', borderRadius: 8, fontSize: 11, color: '#F1F5F9' }} />
                     <Bar dataKey="ef" radius={[0,4,4,0]} label={{ position: 'right', fill: '#E2E8F0', fontSize: 10, fontWeight: 700, formatter: (v: number) => v + '%' }}>
                       {eficienciaData.map((d, i) => <Cell key={i} fill={d.ef >= 50 ? '#10B981' : d.ef >= 20 ? '#00C8E0' : '#F59E0B'} />)}
                     </Bar>
@@ -542,7 +542,7 @@ const Planeacion: React.FC<PlaneacionProps> = ({ onDataLoad }) => {
             </div>
 
             {/* Tabla sectores */}
-            <div style={{ background: '#1A2744', border: '1px solid #243058', borderRadius: 14, overflow: 'hidden' }}>
+            <div style={{ background: '#1F3A63', border: '1px solid #243058', borderRadius: 14, overflow: 'hidden' }}>
               <div style={{ padding: '14px 18px', borderBottom: '1px solid #1E3058', fontSize: 13, fontWeight: 700, color: '#F1F5F9' }}>Tabla Resumen por Sector</div>
               <div style={{ overflowX: 'auto' as const }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' as const }}>
@@ -583,7 +583,7 @@ const Planeacion: React.FC<PlaneacionProps> = ({ onDataLoad }) => {
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(36,48,88,.4)" horizontal={false} />
                   <XAxis type="number" tick={tickStyle} tickFormatter={v => '$' + v + 'M'} axisLine={false} />
                   <YAxis type="category" dataKey="name" tick={{ fill: '#CBD5E1', fontSize: 9 }} width={170} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={{ background: '#0F172A', border: '1px solid #334155', borderRadius: 8, fontSize: 11, color: '#F1F5F9' }} formatter={(v: any) => ['$' + v + 'M']} />
+                  <Tooltip contentStyle={{ background: '#1B3A6B', border: '1px solid #334155', borderRadius: 8, fontSize: 11, color: '#F1F5F9' }} formatter={(v: any) => ['$' + v + 'M']} />
                   <Legend wrapperStyle={{ fontSize: 11, color: '#94A3B8' }} />
                   <Bar name="Compromisos $M" dataKey="comp" fill="rgba(16,185,129,.75)" radius={[0,4,4,0]} />
                   <Bar name="Giros $M" dataKey="giros" fill="rgba(0,200,224,.65)" radius={[0,4,4,0]} />
