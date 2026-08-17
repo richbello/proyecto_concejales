@@ -13,6 +13,7 @@ import HistoricoPagos from "./Components/HistoricoPagos";
 import Ciberseguridad from "./Components/Ciberseguridad";
 import GestorLicencias from "./Components/GestorLicencias";
 import GeneradorProposicion from "./Components/GeneradorProposicion";
+import AlertasAutomaticas from "./Components/AlertasAutomaticas";
 
 interface DataRow { [key: string]: string | number; }
 
@@ -29,6 +30,7 @@ const TODOS_MODULOS: ModuloItem[] = [
   { key:"ciberseguridad", label:"5. Ciberseguridad", icon:"🔐" },
   { key:"licencias", label:"6. Licencias", icon:"🔑" },
   { key:"generador-proposiciones", label:"7. Generador de Proposiciones", icon:"📝" },
+  { key:"alertas-automaticas", label:"8. Alertas Automaticas", icon:"⚠️" },
 ];
 
 
@@ -106,6 +108,7 @@ export default function App() {
       case "ciberseguridad": return <Ciberseguridad />;
       case "licencias":      return <GestorLicencias />;
       case "generador-proposiciones": return <GeneradorProposicion anomaliasData={pacData} localidad="FDL Usme" edil="Edil" />;
+      case "alertas-automaticas": return <AlertasAutomaticas pacData={pacData} contratosData={contratosData} presupuestoData={crpData} />;
       default:               return null;
     }
   };
