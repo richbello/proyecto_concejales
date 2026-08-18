@@ -264,8 +264,14 @@ Responde basándote en estos datos reales cuando la pregunta sea sobre presupues
   };
 
   const panelStyle: React.CSSProperties = {
-    position:'fixed', bottom:24, right:24, zIndex:9999,
-    width:384, height:600,
+    position:'fixed',
+    bottom: window.innerWidth < 768 ? 0 : 24,
+    right: window.innerWidth < 768 ? 0 : 24,
+    left: window.innerWidth < 768 ? 0 : 'auto',
+    top: window.innerWidth < 768 ? 0 : 'auto',
+    zIndex:9999,
+    width: window.innerWidth < 768 ? '100%' : 384,
+    height: window.innerWidth < 768 ? '100dvh' : 600,
     background:'white', borderRadius:16,
     boxShadow:'0 20px 60px rgba(0,0,0,.2)',
     display:'flex', flexDirection:'column', overflow:'hidden',
