@@ -120,16 +120,8 @@ export default function App() {
 
         {!isMobile && (
           <aside style={{ width:220, background:"linear-gradient(160deg,#8E1616 0%,#A01B1B 45%,#B93A3A 100%)", color:"white", display:"flex", flexDirection:"column", boxShadow:"3px 0 18px rgba(120,0,0,.35)", flexShrink:0 }}>
-            <div style={{ padding:"20px 16px", borderBottom:"1px solid rgba(255,255,255,.1)" }}>
-              
-              <div style={{ fontSize:11, fontWeight:700, color:"#5dade2", textTransform:"uppercase", letterSpacing:"2px", marginTop:4, marginBottom:8 }}>XBOG Technologies</div>
-              <div style={{ fontSize:26, fontWeight:900, color:"#F4CF6A", fontFamily:"'Fraunces', Georgia, serif", letterSpacing:"1.5px", lineHeight:"1", textShadow:"0 2px 8px rgba(0,0,0,.4)" }}>XBOG<br/><span style={{ fontWeight:500, fontStyle:"italic", fontSize:20, color:"#E8B84B" }}>Control</span></div>
-              <div style={{ fontSize:11, color:"rgba(244,207,106,.85)", marginTop:6, fontFamily:"'Fraunces', serif", fontWeight:500, letterSpacing:"1px", lineHeight:"1.4", textTransform:"uppercase" }}>Sistema de Control Legislativo</div>
-              {false && planActual && (
-                <div style={{ marginTop:8, background:"rgba(93,173,226,.15)", borderRadius:6, padding:"4px 8px", fontSize:9, color:"#FFE082", fontWeight:700 }}>
-                  🔑 {planActual}
-                </div>
-              )}
+            <div style={{ padding:"16px", borderBottom:"1px solid rgba(255,255,255,.1)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+              <img src="/xbog-smart.png" alt="XBOG Smart" style={{ maxWidth:"100%", height:"auto", maxHeight:120 }} />
             </div>
             <ul style={{ listStyle:"none", padding:0, margin:0, flex:1, paddingTop:6, overflowY:"auto" }}>
               {NAV_ITEMS.map(n => (
