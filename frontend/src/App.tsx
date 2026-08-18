@@ -188,11 +188,27 @@ export default function App() {
           {isMobile && menuOpen && (
             <div style={{ background:"linear-gradient(160deg,#8E1616 0%,#A01B1B 60%,#B93A3A 100%)", position:"absolute", top:57, left:0, right:0, zIndex:1000, boxShadow:"0 8px 24px rgba(0,0,0,.3)" }}>
               {NAV_ITEMS.map(n => (
-                <div key={n.key} onClick={() => handleTabChange(n.key)} style={{ padding:"13px 18px", cursor:"pointer", display:"flex", alignItems:"center", gap:12, fontSize:14, background:tab===n.key?"#FFE082":"transparent", borderLeft:tab===n.key?"4px solid #5dade2":"4px solid transparent", color:tab===n.key?"#FFE082":"rgba(255,255,255,.8)", borderBottom:"1px solid rgba(255,255,255,.06)" }}>
+                n.isGroup ? (
+                  <div key={n.key}>
+                    <div onClick={() => toggleGroup(n.key)} style={{ padding:"13px 18px", cursor:"pointer", display:"flex", alignItems:"center", gap:12, fontSize:14, fontWeight:700, color:"#FFE082", borderBottom:"1px solid rgba(255,255,255,.06)" }}>
+                      <span style={{ fontSize:18 }}>{n.icon}</span>
+                      <span>{n.label}</span>
+                      <span style={{ marginLeft:"auto", fontSize:11 }}>{expandedGroups.has(n.key) ? "▼" : "▶"}</span>
+                    </div>
+                    {expandedGroups.has(n.key) && n.children?.map(child => (
+                      <div key={child.key} onClick={() => handleTabChange(child.key)} style={{ padding:"11px 18px 11px 44px", cursor:"pointer", display:"flex", alignItems:"center", gap:10, fontSize:13, background:tab===child.key?"#FFE082":"transparent", borderLeft:tab===child.key?"4px solid #5dade2":"4px solid transparent", color:tab===child.key?"#7A1414":"rgba(255,255,255,.75)", borderBottom:"1px solid rgba(255,255,255,.04)" }}>
+                        <span style={{ fontSize:15 }}>{child.icon}</span>
+                        <span>{child.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                <div key={n.key} onClick={() => handleTabChange(n.key)} style={{ padding:"13px 18px", cursor:"pointer", display:"flex", alignItems:"center", gap:12, fontSize:14, background:tab===n.key?"#FFE082":"transparent", borderLeft:tab===n.key?"4px solid #5dade2":"4px solid transparent", color:tab===n.key?"#7A1414":"rgba(255,255,255,.8)", borderBottom:"1px solid rgba(255,255,255,.06)" }}>
                   <span style={{ fontSize:18 }}>{n.icon}</span>
                   <span>{n.label}</span>
-                  {tab===n.key && <span style={{ marginLeft:"auto", fontSize:10, color:"#FFE082" }}>●</span>}
+                  {tab===n.key && <span style={{ marginLeft:"auto", fontSize:10 }}>●</span>}
                 </div>
+                )
               ))}
             </div>
           )}
