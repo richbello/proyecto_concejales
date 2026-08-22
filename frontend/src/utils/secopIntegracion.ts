@@ -1,40 +1,44 @@
-// ─── Integración con SECOP II (datos.gov.co) ───────────────────────────────
+// ─── Integración con SECOP II (datos.gov.co) - Dataset jbjy-vk9h ───────────
 
-export interface SecopContrato {
-  numero_contrato: string;
-  nombre_contratista: string;
-  tipo_identificacion: string;
-  fecha_inicio: string;
-  fecha_termino_inicial: string;
-  valor_contrato: number;
-  valor_adiciones: number;
-  fecha_termino_real: string;
-  estado_contrato: string;
-  localidad: string;
-  objeto_contrato: string;
-  rut_contratista: string;
-}
+const DATASET_ID = "jbjy-vk9h";
+const BASE_URL = `https://www.datos.gov.co/resource/${DATASET_ID}.json`;
+
+// ─── Mapa de localidades a nombre FDL en SECOP ─────────────────────────────
+const FDL_NOMBRES: Record<string, string> = {
+  "Usaquén": "FONDO DE DESARROLLO LOCAL DE USAQUEN",
+  "Chapinero": "FONDO DE DESARROLLO LOCAL DE CHAPINERO",
+  "Santa Fe": "FONDO DE DESARROLLO LOCAL DE SANTA FE",
+  "San Cristóbal": "FONDO DE DESARROLLO LOCAL DE SAN CRISTOBAL",
+  "Usme": "FONDO DE DESARROLLO LOCAL DE USME",
+  "Tunjuelito": "FONDO DE DESARROLLO LOCAL DE TUNJUELITO",
+  "Bosa": "FONDO DE DESARROLLO LOCAL DE BOSA",
+  "Kennedy": "FONDO DE DESARROLLO LOCAL DE KENNEDY",
+  "Fontibón": "FONDO DE DESARROLLO LOCAL DE FONTIBON",
+  "Engativá": "FONDO DE DESARROLLO LOCAL DE ENGATIVA",
+  "Suba": "FONDO DE DESARROLLO LOCAL DE SUBA",
+  "Barrios Unidos": "FONDO DE DESARROLLO LOCAL DE BARRIOS UNIDOS",
+  "Teusaquillo": "FONDO DE DESARROLLO LOCAL DE TEUSAQUILLO",
+  "Los Mártires": "FONDO DE DESARROLLO LOCAL DE LOS MARTIRES",
+  "Antonio Nariño": "FONDO DE DESARROLLO LOCAL DE ANTONIO NARINO",
+  "Puente Aranda": "FONDO DE DESARROLLO LOCAL DE PUENTE ARANDA",
+  "La Candelaria": "FONDO DE DESARROLLO LOCAL DE LA CANDELARIA",
+  "Rafael Uribe": "FONDO DE DESARROLLO LOCAL DE RAFAEL URIBE URIBE",
+  "Ciudad Bolívar": "FONDO DE DESARROLLO LOCAL DE CIUDAD BOLIVAR",
+  "Sumapaz": "FONDO DE DESARROLLO LOCAL DE SUMAPAZ",
+};
 
 // ─── Función principal: Cargar desde SECOP II ──────────────────────────────
 export const cargarSecopII = async (localidad: string): Promise<any[]> => {
   try {
-    // URL base de SECOP II en datos.gov.co
-    const baseUrl = "https://www.datos.gov.co/api/views/p6yq-wvsx/rows.json";
+    const nombreFDL = FDL_NOMBRES[localidad] || `FONDO DE DESARROLLO LOCAL DE ${localidad.toUpperCase()}`;
     
-    // Normalizar nombre de localidad para búsqueda
-    const localidadNormalizada = normalizeLocalidad(localidad);
+    // Query con nombre de entidad exacto
+    const whereClause = encodeURIComponent(`nombre_entidad='${nombreFDL}'`);
+    const url = `${BASE_URL}?$where=${whereClause}&$limit=5000`;
     
-    // Construir query
-    const query = `$where=localidad like '%${localidadNormalizada}%'&$limit=50000`;
-    const url = `${baseUrl}?${query}`;
+    console.log(`[SECOP II] Cargando contratos de ${nombreFDL}...`);
     
-    console.log(`[SECOP II] Cargando contratos de ${localidad}...`);
-    console.log(`[SECOP II] URL: ${url}`);
-    
-    const response = await fetch(url, {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-    });
+    const response = await fetch(url);
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -55,37 +59,8 @@ export const cargarSecopII = async (localidad: string): Promise<any[]> => {
   }
 };
 
-// ─── Normalizar nombre de localidad ────────────────────────────────────────
-function normalizeLocalidad(localidad: string): string {
-  const mapa: Record<string, string> = {
-    "usme": "Usme",
-    "tunjuelito": "Tunjuelito",
-    "bosa": "Bosa",
-    "kennedy": "Kennedy",
-    "antonio nariño": "Antonio Nariño",
-    "la candelaria": "La Candelaria",
-    "santa fe": "Santa Fe",
-    "chapinero": "Chapinero",
-    "barrios unidos": "Barrios Unidos",
-    "teusaquillo": "Teusaquillo",
-    "engativá": "Engativá",
-    "suba": "Suba",
-    "usaquén": "Usaquén",
-    "san cristóbal": "San Cristóbal",
-    "rafael uribe": "Rafael Uribe Uribe",
-    "ciudad bolívar": "Ciudad Bolívar",
-    "puente aranda": "Puente Aranda",
-    "los mártires": "Los Mártires",
-    "ráquira": "Ráquira",
-  };
-
-  const lower = localidad.toLowerCase().trim();
-  return mapa[lower] || localidad;
-}
-
-// ─── Convertir SECOP a formato interno ─────────────────────────────────────
+// ─── Convertir SECOP a formato interno del módulo ──────────────────────────
 export const convertirSecopAFormato = (secopData: any[]): any[][] => {
-  // Headers que esperamos
   const headers = [
     "CONTRATO",
     "NOMBRE DEL CONTRATISTA",
@@ -98,18 +73,22 @@ export const convertirSecopAFormato = (secopData: any[]): any[][] => {
     "ESTADO ACTUAL DEL CONTRATO",
   ];
 
-  // Convertir cada fila de SECOP
-  const rows = secopData.map((row) => [
-    row.numero_contrato || "",
-    row.nombre_contratista || "",
-    row.tipo_identificacion || "",
-    formatFecha(row.fecha_inicio),
-    formatFecha(row.fecha_termino_inicial),
-    parseFloat(row.valor_contrato) || 0,
-    parseFloat(row.valor_contrato) + parseFloat(row.valor_adiciones || 0),
-    formatFecha(row.fecha_termino_real),
-    (row.estado_contrato || "SIN ESTADO").toUpperCase(),
-  ]);
+  const rows = secopData.map((row) => {
+    const valorContrato = parseFloat(row.valor_del_contrato) || 0;
+    const valorPagado = parseFloat(row.valor_pagado) || 0;
+    
+    return [
+      row.referencia_del_contrato || row.id_contrato || "",
+      row.proveedor_adjudicado || "N/D",
+      row.tipodocproveedor || "",
+      formatFecha(row.fecha_de_inicio_del_contrato),
+      formatFecha(row.fecha_de_fin_del_contrato),
+      valorContrato,
+      valorContrato,  // Valor final = valor contrato (SECOP no separa)
+      formatFecha(row.fecha_de_fin_del_contrato),
+      (row.estado_contrato || "SIN ESTADO").toUpperCase(),
+    ];
+  });
 
   return [headers, ...rows];
 };
@@ -122,9 +101,9 @@ function formatFecha(fecha: any): string {
     const d = new Date(fecha);
     if (isNaN(d.getTime())) return "";
     
-    const day = String(d.getDate()).padStart(2, "0");
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const year = d.getFullYear();
+    const day = String(d.getUTCDate()).padStart(2, "0");
+    const month = String(d.getUTCMonth() + 1).padStart(2, "0");
+    const year = d.getUTCFullYear();
     
     return `${day}/${month}/${year}`;
   } catch {
@@ -134,16 +113,5 @@ function formatFecha(fecha: any): string {
 
 // ─── Obtener lista de localidades disponibles ──────────────────────────────
 export const obtenerLocalidades = async (): Promise<string[]> => {
-  try {
-    const url = "https://www.datos.gov.co/api/views/p6yq-wvsx/rows.json?$select=localidad&$limit=1000";
-    const response = await fetch(url);
-    const data = await response.json();
-
-    const localidadesArray = data.map((r: any) => r.localidad).filter(Boolean) as string[];
-    const localidadesUnicas = [...new Set(localidadesArray)].sort();
-    return localidadesUnicas;
-  } catch (error) {
-    console.error("[SECOP II] Error obteniendo localidades:", error);
-    return [];
-  }
+  return Object.keys(FDL_NOMBRES);
 };
