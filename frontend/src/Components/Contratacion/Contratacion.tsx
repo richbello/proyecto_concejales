@@ -4,6 +4,9 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, ComposedChart, Area,
 } from "recharts";
+import { generarTotdasAlertas, Alerta } from "../../utils/alertas";
+import { cargarSecopII, convertirSecopAFormato, obtenerLocalidades } from "../../utils/secopIntegracion";
+import { consultarPolitiko, analizarContratista, analizarAlertas } from "../../utils/politikoIA";
 
 // ─── Paleta ───────────────────────────────────────────────────────────────────
 const C = {
@@ -226,6 +229,10 @@ export default function Contratacion({ onDataLoad }: Props) {
   const [fechaDesde,  setFechaDesde]  = useState("");
   const [fechaHasta,  setFechaHasta]  = useState("");
   const [pagina,      setPagina]      = useState(0);
+  const [alertas,     setAlertas]     = useState<Alerta[]>([]);
+  const [cargandoIA,  setCargandoIA]  = useState(false);
+  const [localidades, setLocalidades] = useState<string[]>([]);
+  const [localidadSeleccionada, setLocalidadSeleccionada] = useState("Usme");
   const inputRef = useRef<HTMLInputElement>(null);
   const FILAS_PAG = 25;
 
@@ -247,6 +254,43 @@ export default function Contratacion({ onDataLoad }: Props) {
     };
     reader.readAsArrayBuffer(file);
   },[]);
+
+  // ── Cargar desde SECOP II ─────────────────────────────────────────────────
+  const cargarSecopDirecto = useCallback(async (localidad: string) => {
+    setCargando(true);
+    try {
+      const secopData = await cargarSecopII(localidad);
+      if (secopData.length === 0) {
+        alert(`No se encontraron contratos de ${localidad} en SECOP II`);
+        setCargando(false);
+        return;
+      }
+      const raw = convertirSecopAFormato(secopData);
+      const resumen = procesarContratos(raw);
+      setDatos(resumen);
+      onDataLoad?.(resumen);
+      
+      // Generar alertas
+      const alertasDetectadas = generarTotdasAlertas(resumen.contratos);
+      setAlertas(alertasDetectadas);
+      
+      setBusqueda(""); setFiltroEst("TODOS"); setFiltroTipoId("TODOS");
+      setFechaDesde(""); setFechaHasta(""); setPagina(0);
+    } catch (err) {
+      console.error(err);
+      alert("Error cargando SECOP II. Verifica conexión.");
+    } finally {
+      setCargando(false);
+    }
+  }, []);
+
+  // ── Generar Alertas cuando datos cambien ──────────────────────────────────
+  const actualizarAlertas = useCallback(() => {
+    if (datos) {
+      const alertasDetectadas = generarTotdasAlertas(datos.contratos);
+      setAlertas(alertasDetectadas);
+    }
+  }, [datos]);
 
   // ── Pantalla carga ───────────────────────────────────────────────────────────
   if(!datos){
@@ -347,6 +391,26 @@ export default function Contratacion({ onDataLoad }: Props) {
           <KpiCard emoji="🏷️" label="Estados distintos" valor={datos.estadosUnicos.length}       color={C.violet}/>
         </div>
       </div>
+
+      {/* PANEL DE ALERTAS */}
+      {alertas.length > 0 && (
+        <div style={{background:"#fff5f5",borderRadius:12,padding:"16px 20px",marginBottom:16,borderLeft:`4px solid #e74c3c`,boxShadow:"0 2px 10px rgba(0,0,0,.06)"}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
+            <span style={{fontSize:18}}>🚨</span>
+            <div style={{fontWeight:700,fontSize:13,color:"#c0392b"}}>ALERTAS CRÍTICAS ({alertas.length})</div>
+            <button onClick={() => setAlertas([])} style={{marginLeft:"auto",background:"transparent",border:"none",color:"#c0392b",cursor:"pointer",fontWeight:600}}>✕</button>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(320px, 1fr))",gap:10}}>
+            {alertas.slice(0, 6).map(a => (
+              <div key={a.id} style={{background:"white",borderRadius:8,padding:"10px 12px",borderLeft:`3px solid ${a.severidad==="CRÍTICO"?"#e74c3c":a.severidad==="ALTO"?"#f39c12":"#3498db"}`,fontSize:11}}>
+                <div style={{fontWeight:700,color:"#2c3e50",marginBottom:4}}>{a.título}</div>
+                <div style={{color:"#7f8c8d",fontSize:10,lineHeight:1.4}}>{a.descripción.slice(0,120)}...</div>
+                {a.valor && <div style={{fontSize:9,color:"#e74c3c",fontWeight:600,marginTop:4}}>Valor: ${a.valor.toLocaleString("es-CO")}</div>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Filtros */}
       <div style={{background:"white",borderRadius:12,padding:"16px 20px",marginBottom:16,boxShadow:"0 2px 10px rgba(0,0,0,.06)"}}>
