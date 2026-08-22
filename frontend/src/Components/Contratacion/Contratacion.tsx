@@ -319,6 +319,31 @@ export default function Contratacion({ onDataLoad }: Props) {
                 <div style={{fontSize:11,color:"rgba(255,255,255,.35)",marginTop:5}}>.xlsx · .xls</div></>}
           </div>
           <input ref={inputRef} type="file" accept=".xlsx,.xls" style={{display:"none"}} onChange={e=>{if(e.target.files?.[0])procesar(e.target.files[0]);}}/>
+
+          {/* SEPARADOR */}
+          <div style={{display:"flex",alignItems:"center",gap:12,margin:"20px 0"}}>
+            <div style={{flex:1,height:1,background:"rgba(255,255,255,.2)"}}/>
+            <span style={{fontSize:11,color:"rgba(255,255,255,.5)"}}>O CARGA AUTOMÁTICA</span>
+            <div style={{flex:1,height:1,background:"rgba(255,255,255,.2)"}}/>
+          </div>
+
+          {/* CARGA SECOP II */}
+          <div style={{display:"flex",gap:8,flexDirection:"column" as const}}>
+            <select value={localidadSeleccionada} onChange={e => setLocalidadSeleccionada(e.target.value)}
+              style={{fontSize:13,padding:"10px 14px",borderRadius:8,border:"1.5px solid rgba(93,173,226,.5)",background:"rgba(255,255,255,.1)",color:"white",cursor:"pointer"}}>
+              <option value="" style={{color:"#333"}}>-- Selecciona tu localidad --</option>
+              {["Usme","Tunjuelito","Bosa","Kennedy","Antonio Nariño","La Candelaria","Santa Fe","Chapinero","Barrios Unidos","Teusaquillo","Engativá","Suba","Usaquén","San Cristóbal","Rafael Uribe","Ciudad Bolívar","Puente Aranda","Los Mártires"].map(l => (
+                <option key={l} value={l} style={{color:"#333"}}>{l}</option>
+              ))}
+            </select>
+            <button onClick={() => cargarSecopDirecto(localidadSeleccionada)} disabled={!localidadSeleccionada||cargando}
+              style={{padding:"12px 20px",background:localidadSeleccionada?"#5dade2":"rgba(93,173,226,.3)",color:"white",border:"none",borderRadius:8,fontWeight:700,fontSize:13,cursor:localidadSeleccionada?"pointer":"default"}}>
+              📥 {cargando?"Cargando de SECOP II...":"Cargar desde SECOP II (datos.gov.co)"}
+            </button>
+            <div style={{fontSize:10,color:"rgba(255,255,255,.4)",textAlign:"center" as const}}>
+              Datos oficiales en tiempo real · Sin necesidad de Excel
+            </div>
+          </div>
         </div>
       </div>
     );
