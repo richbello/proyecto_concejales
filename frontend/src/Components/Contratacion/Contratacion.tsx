@@ -412,6 +412,35 @@ export default function Contratacion({ onDataLoad }: Props) {
         </div>
       )}
 
+      {/* BOTONES SECOP II + IA */}
+      {datos && (
+        <div style={{background:"white",borderRadius:12,padding:"16px 20px",marginBottom:16,boxShadow:"0 2px 10px rgba(0,0,0,.06)"}}>
+          <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:12}}>⚙️ Herramientas Avanzadas</div>
+          <div style={{display:"flex",gap:8,flexWrap:"wrap" as const,alignItems:"center"}}>
+            <select value={localidadSeleccionada} onChange={e => setLocalidadSeleccionada(e.target.value)}
+              style={{flex:1,minWidth:160,fontSize:12,padding:"8px 12px",borderRadius:8,border:`1.5px solid ${C.cyan}`,background:"white"}}>
+              <option value="">-- Seleccionar localidad --</option>
+              {["Usme","Tunjuelito","Bosa","Kennedy","Antonio Nariño","La Candelaria","Santa Fe","Chapinero","Barrios Unidos","Teusaquillo","Engativá","Suba","Usaquén","San Cristóbal","Rafael Uribe","Ciudad Bolívar","Puente Aranda","Los Mártires"].map(l => (
+                <option key={l} value={l}>{l}</option>
+              ))}
+            </select>
+            <button onClick={() => cargarSecopDirecto(localidadSeleccionada)} disabled={!localidadSeleccionada||cargando}
+              style={{padding:"8px 16px",background:C.cyan,color:"white",border:"none",borderRadius:8,fontWeight:600,fontSize:12,cursor:"pointer",opacity:cargando?.5:1}}>
+              📥 {cargando?"Cargando...":"Cargar SECOP II"}
+            </button>
+            <button onClick={actualizarAlertas} 
+              style={{padding:"8px 16px",background:C.rojo,color:"white",border:"none",borderRadius:8,fontWeight:600,fontSize:12,cursor:"pointer"}}>
+              🚨 Detectar Alertas
+            </button>
+            <button onClick={async () => {setCargandoIA(true);const res=await analizarAlertas(alertas.slice(0,3).map(a=>a.título).join("; "));alert(res);setCargandoIA(false);}} disabled={alertas.length===0||cargandoIA}
+              style={{padding:"8px 16px",background:C.violet,color:"white",border:"none",borderRadius:8,fontWeight:600,fontSize:12,cursor:"pointer",opacity:alertas.length===0?.5:1}}>
+              🤖 {cargandoIA?"Analizando...":"Consultar IA"}
+            </button>
+          </div>
+        </div>
+      )}
+
+
       {/* Filtros */}
       <div style={{background:"white",borderRadius:12,padding:"16px 20px",marginBottom:16,boxShadow:"0 2px 10px rgba(0,0,0,.06)"}}>
         <div style={{fontSize:13,fontWeight:700,color:C.navy,marginBottom:10}}>🔍 Filtros</div>
