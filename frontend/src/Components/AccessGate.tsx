@@ -1,4 +1,5 @@
 import { useState, useEffect, ReactNode } from "react";
+import { validarSesionUnica, cerrarSesion } from "../utils/sessionControl";
 
 const WORKER_URL = "https://controlia-licencias.richbello.workers.dev";
 const STORAGE_KEY = "cp_licencia_v1";
@@ -42,6 +43,16 @@ export default function AccessGate({ children, onLicencia }: Props) {
           .then(r => r.json())
           .then(res => {
             if (res.ok) {
+              // Validar sesión única en carga inicial
+              const sessionValidation = await validarSesionUnica(data.clave);
+              
+              if (!sessionValidation.permitido) {
+                localStorage.removeItem(STORAGE_KEY);
+                setError("⚠️ " + (sessionValidation.mensaje || "Sesión duplicada detectada"));
+                setValidando(false);
+                return;
+              }
+              
               licenciaActual = { ...res, clave: data.clave };
               setLicencia(res);
               onLicencia?.(res);
@@ -78,6 +89,14 @@ export default function AccessGate({ children, onLicencia }: Props) {
       if (data.ok) {
         const stored = { ...data, clave: clave.trim().toUpperCase() };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+        // Validar que solo 1 sesión activa por licencia
+        const sessionValidation = await validarSesionUnica(clave.trim().toUpperCase());
+        
+        if (!sessionValidation.permitido) {
+          setError("⚠️ " + (sessionValidation.mensaje || "Acceso denegado"));
+          return;
+        }
+        
         licenciaActual = stored;
         setLicencia(data);
         setError("");
@@ -91,7 +110,10 @@ export default function AccessGate({ children, onLicencia }: Props) {
     setCargando(false);
   };
 
-  const cerrar = () => {
+  const cerrar = async () => {
+    if (licencia) {
+      await cerrarSesion(clave || licencia.cliente);
+    }
     localStorage.removeItem(STORAGE_KEY);
     licenciaActual = null;
     setLicencia(null);
