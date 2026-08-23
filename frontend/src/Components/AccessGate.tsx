@@ -31,50 +31,57 @@ export default function AccessGate({ children, onLicencia }: Props) {
   const [validando, setValidando] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
+    const validarLicenciaGuardada = async () => {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (!stored) {
+        setValidando(false);
+        return;
+      }
+      
       try {
         const data = JSON.parse(stored);
-        fetch(WORKER_URL + "/validar", {
+        
+        // 1. Validar en servidor
+        const res = await fetch(WORKER_URL + "/validar", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ clave: data.clave }),
-        })
-          .then(r => r.json())
-          .then(res => {
-            if (res.ok) {
-              // Validar sesión única en carga inicial
-              const sessionValidation = await validarSesionUnica(data.clave);
-              
-              if (!sessionValidation.permitido) {
-                localStorage.removeItem(STORAGE_KEY);
-                setError("⚠️ " + (sessionValidation.mensaje || "Sesión duplicada detectada"));
-                setValidando(false);
-                return;
-              }
-              
-              licenciaActual = { ...res, clave: data.clave };
-              setLicencia(res);
-              onLicencia?.(res);
-            } else {
-              localStorage.removeItem(STORAGE_KEY);
-              setError("Licencia inválida o expirada.");
-            }
-            setValidando(false);
-          })
-          .catch(() => {
-            localStorage.removeItem(STORAGE_KEY);
-            setError("No hay conexión con el servidor. Verifica tu internet e intenta nuevamente.");
-            setValidando(false);
-          });
-      } catch {
+        });
+        
+        const result = await res.json();
+        
+        if (!result.ok) {
+          localStorage.removeItem(STORAGE_KEY);
+          setError("Licencia inválida o expirada.");
+          setValidando(false);
+          return;
+        }
+        
+        // 2. Validar sesión única
+        const sessionValidation = await validarSesionUnica(data.clave);
+        
+        if (!sessionValidation.permitido) {
+          localStorage.removeItem(STORAGE_KEY);
+          setError("⚠️ " + (sessionValidation.mensaje || "Sesión duplicada detectada"));
+          setValidando(false);
+          return;
+        }
+        
+        // 3. Éxito - cargar licencia
+        licenciaActual = { ...result, clave: data.clave };
+        setLicencia(result);
+        onLicencia?.(result);
+        setValidando(false);
+        
+      } catch (err) {
         localStorage.removeItem(STORAGE_KEY);
+        setError("No hay conexión con el servidor. Verifica tu internet e intenta nuevamente.");
         setValidando(false);
       }
-    } else {
-      setValidando(false);
-    }
-  }, []);
+    };
+    
+    validarLicenciaGuardada();
+  }, [onLicencia]);
 
   const validar = async () => {
     if (!clave.trim()) { setError("Ingresa tu clave de licencia."); return; }
