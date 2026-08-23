@@ -179,7 +179,7 @@ export default function AccessGate({ children, onLicencia }: Props) {
 
             <div style={{ marginTop:20, padding:"12px 14px", background:"#0a0f1e", borderRadius:8, fontSize:11, color:"#4a5568", textAlign:"center" as const }}>
               ¿No tienes licencia? Contacta a XBOG Technologies<br/>
-              <span style={{ color:"#5dade2" }}>xbogtechnologies@zohomail.com</span>
+              <span style={{ color:"#5dade2" }}>gerencia@xbogtechnologies.com</span>
             </div>
           </div>
 
