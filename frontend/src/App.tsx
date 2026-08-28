@@ -31,6 +31,7 @@ const TODOS_MODULOS: ModuloItem[] = [
   { key:"generador-proposiciones", label:"5. Generador de Proposiciones", icon:"📝" },
   { key:"alertas-automaticas", label:"6. Alertas Automaticas", icon:"⚠️" },
   { key:"ciberseguridad", label:"7. Ciberseguridad", icon:"🔐" },
+  { key:"vigilancia-fiscal", label:"🔴 Vigilancia Fiscal IA", icon:"⚖️" },
   { key:"licencias", label:"8. Gestor de Licencias", icon:"🔑" },
 ];
 
