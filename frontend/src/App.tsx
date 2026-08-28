@@ -14,6 +14,7 @@ import Ciberseguridad from "./Components/Ciberseguridad";
 import GestorLicencias from "./Components/GestorLicencias";
 import GeneradorProposicion from "./Components/GeneradorProposicion";
 import AlertasAutomaticas from "./Components/AlertasAutomaticas";
+import VigilanciaFiscal from "./pages/VigilanciaFiscal";
 
 interface DataRow { [key: string]: string | number; }
 
@@ -110,7 +111,9 @@ export default function App() {
       case "licencias":      return <GestorLicencias />;
       case "generador-proposiciones": return <GeneradorProposicion anomaliasData={pacData} localidad="FDL Usme" edil="Edil" />;
       case "alertas-automaticas": return <AlertasAutomaticas pacData={pacData} contratosData={contratosData} presupuestoData={crpData} />;
-      default:               return null;
+      case "vigilancia-fiscal":
+      return <VigilanciaFiscal />;
+    default:               return null;
     }
   };
 
