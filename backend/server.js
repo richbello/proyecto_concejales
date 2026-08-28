@@ -1,26 +1,43 @@
 const express = require("express");
+const cors = require("cors");
 const { spawn } = require("child_process");
 const app = express();
 const PORT = 4000;
 
+app.use(cors());
+
 app.post("/api/vfi/analizar", (req, res) => {
   const entidad = req.query.entidad || "USME";
-  const python = spawn("python3", ["motor_vfi.py", entidad]);
+  const max = req.query.max || 3500;
+  
+  const python = spawn("python3", ["motor_vfi.py", entidad, String(max)]);
   let data = "";
-  python.stdout.on("data", (chunk) => { data += chunk.toString(); });
-  python.on("close", () => {
-    try { res.json(JSON.parse(data)); }
-    catch (e) { res.json({ error: "Error VFI" }); }
+  let error = "";
+  
+  python.stdout.on("data", (chunk) => {
+    data += chunk.toString();
+  });
+  
+  python.stderr.on("data", (chunk) => {
+    error += chunk.toString();
+  });
+  
+  python.on("close", (code) => {
+    try {
+      const result = JSON.parse(data);
+      res.json(result);
+    } catch (e) {
+      res.status(500).json({ error: "Error VFI", details: error || e.message });
+    }
   });
 });
 
 app.get("/api/proyectos", (req, res) => {
   res.json([
-    { nombre: "Parque Central", estado: "En ejecución", avance: 45 },
-    { nombre: "Colegio Nuevo", estado: "Planeado", avance: 0 }
+    { nombre: "Parque Central", estado: "En ejecución", avance: 45 }
   ]);
 });
 
 app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  console.log(`Servidor backend corriendo en http://localhost:${PORT}`);
 });
