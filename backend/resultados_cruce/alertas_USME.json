@@ -1,7 +1,9 @@
 {
   "entidad": "USME",
-  "fecha_analisis": "2026-08-29 13:33",
+  "fecha_analisis": "2026-08-29 14:28",
   "total_contratos": 3500,
+  "registros_siri": 14611,
+  "registros_boletin": 6441,
   "total_alertas": 8,
   "criticas": 0,
   "altas": 4,

@@ -253,6 +253,8 @@ def procesar(entidad, max_reg):
         "entidad": entidad,
         "fecha_analisis": datetime.now().strftime("%Y-%m-%d %H:%M"),
         "total_contratos": len(contratos),
+        "registros_siri": len(siri),
+        "registros_boletin": len(boletin),
         "total_alertas": len(alertas),
         "criticas": len([a for a in alertas if a["nivel"] == "CRITICA"]),
         "altas": len([a for a in alertas if a["nivel"] == "ALTA"]),
