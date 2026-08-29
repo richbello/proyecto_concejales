@@ -1,3 +1,3 @@
-﻿export default function AccessGate({ children }: any) {
+export default function AccessGate({ children }: any) {
   return children;
 }

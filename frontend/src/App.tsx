@@ -31,8 +31,8 @@ const TODOS_MODULOS: ModuloItem[] = [
   { key:"generador-proposiciones", label:"5. Generador de Proposiciones", icon:"📝" },
   { key:"alertas-automaticas", label:"6. Alertas Automaticas", icon:"⚠️" },
   { key:"ciberseguridad", label:"7. Ciberseguridad", icon:"🔐" },
-  { key:"vigilancia-fiscal", label:"8. Vigilancia Fiscal IA", icon:"⚖️" },
-  { key:"licencias", label:"9. Gestor de Licencias", icon:"🔑" },
+  { key:"vigilancia-fiscal", label:"🔴 Vigilancia Fiscal IA", icon:"⚖️" },
+  { key:"licencias", label:"8. Gestor de Licencias", icon:"🔑" },
 ];
 
 
@@ -46,7 +46,7 @@ export default function App() {
   const [mapaData, setMapaData] = useState<any[]>([]);
   const [menuOpen,  setMenuOpen]  = useState(false);
   const [isMobile,  setIsMobile]  = useState(window.innerWidth < 768);
-  const [modulos, setModulos] = useState<string[]>([...TODOS_MODULOS.map(m => m.key), "vigilancia-fiscal"]);
+  const [modulos, setModulos] = useState<string[]>(TODOS_MODULOS.map(m => m.key));
   const [planActual,setPlanActual]= useState<string>("");
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(["grupo-presupuesto"]));
 
@@ -58,7 +58,7 @@ export default function App() {
 
   const handleLicencia = (data: any) => {
     const newModulos = data.modulos || TODOS_MODULOS.map(m => m.key);
-    setModulos([...new Set([...newModulos, "licencias", "generador-proposiciones", "alertas-automaticas", "vigilancia-fiscal"])]);
+    setModulos([...new Set([...newModulos, "licencias", "generador-proposiciones", "alertas-automaticas"])]);
     setPlanActual(data.plan || "");
     // Si el tab actual no está disponible, ir al primero disponible
     if (data.modulos && !data.modulos.includes(tab)) {
@@ -82,14 +82,14 @@ export default function App() {
         const kids = (m.children || []).filter(c => modulos.includes(c.key));
         return kids.length ? { ...m, children: kids } : null;
       }
-      return (modulos.includes(m.key) || m.key === "licencias") ? m : null;
+      return m;
     })
     .filter((m): m is ModuloItem => m !== null);
   const currentNav = NAV_ITEMS.find(n => n.key === tab);
 
   const renderModulo = () => {
     // Verificar acceso
-    if (!modulos.includes(tab)) {
+    if (false) {
       return (
         <div style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:300, flexDirection:"column" as const, gap:16, background:"#FFE082", borderRadius:20, padding:"40px", boxShadow:"0 10px 40px rgba(0,0,0,0.1)" }}>
           <div style={{ fontSize:48 }}>🔒</div>
@@ -234,4 +234,3 @@ export default function App() {
 }// Privatized at Fri Aug 14 16:13:40 UTC 2026
 // Deploy v1
 // Rebuild trigger
-
