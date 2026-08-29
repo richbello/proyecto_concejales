@@ -30,9 +30,9 @@ const TODOS_MODULOS: ModuloItem[] = [
   { key:"planeacion", label:"4. Planeacion Local", icon:"📐" },
   { key:"generador-proposiciones", label:"5. Generador de Proposiciones", icon:"📝" },
   { key:"alertas-automaticas", label:"6. Alertas Automaticas", icon:"⚠️" },
-  { key:"ciberseguridad", label:"7. Ciberseguridad", icon:"🔐" },
-  { key:"vigilancia-fiscal", label:"🔴 Vigilancia Fiscal IA", icon:"⚖️" },
-  { key:"licencias", label:"8. Gestor de Licencias", icon:"🔑" },
+  { key:"vigilancia-fiscal", label:"7. Vigilancia Fiscal IA", icon:"⚖️" },
+  { key:"ciberseguridad", label:"8. Ciberseguridad", icon:"🔐" },
+  { key:"licencias", label:"9. Gestor de Licencias", icon:"🔑" },
 ];
 
 
@@ -46,7 +46,7 @@ export default function App() {
   const [mapaData, setMapaData] = useState<any[]>([]);
   const [menuOpen,  setMenuOpen]  = useState(false);
   const [isMobile,  setIsMobile]  = useState(window.innerWidth < 768);
-  const [modulos, setModulos] = useState<string[]>(TODOS_MODULOS.map(m => m.key));
+  const [modulos,   setModulos]   = useState<string[]>(TODOS_MODULOS.map(m => m.key));
   const [planActual,setPlanActual]= useState<string>("");
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(["grupo-presupuesto"]));
 
@@ -79,7 +79,7 @@ export default function App() {
   const NAV_ITEMS = TODOS_MODULOS
     .map(m => {
       if (m.isGroup) {
-        const kids = (m.children || []).filter(c => modulos.includes(c.key));
+        const kids = (m.children || []);
         return kids.length ? { ...m, children: kids } : null;
       }
       return m;
@@ -88,16 +88,6 @@ export default function App() {
   const currentNav = NAV_ITEMS.find(n => n.key === tab);
 
   const renderModulo = () => {
-    // Verificar acceso
-    if (false) {
-      return (
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:300, flexDirection:"column" as const, gap:16, background:"#FFE082", borderRadius:20, padding:"40px", boxShadow:"0 10px 40px rgba(0,0,0,0.1)" }}>
-          <div style={{ fontSize:48 }}>🔒</div>
-          <div style={{ fontSize:28, fontWeight:900, color:"#1a2742", fontFamily:"'Fraunces', serif" }}>Módulo no disponible en tu plan</div>
-          <div style={{ fontSize:14, color:"#4a5568", fontWeight:600 }}>Actualiza tu licencia para acceder a este módulo</div>
-        </div>
-      );
-    }
     switch(tab) {
       case "mapa":           return <MapaProyectos onDataLoad={setMapaData} />;
       case "sesiones":       return <PanelLegislativo />;

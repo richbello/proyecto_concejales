@@ -10,7 +10,7 @@ app.post("/api/vfi/analizar", (req, res) => {
   const entidad = req.query.entidad || "USME";
   const max = req.query.max || 3500;
   
-  const python = spawn("python3", ["motor_vfi.py", entidad, String(max)]);
+  const python = spawn("python", ["motor_cruce.py", entidad, String(max)]);
   let data = "";
   let error = "";
   
@@ -29,6 +29,20 @@ app.post("/api/vfi/analizar", (req, res) => {
     } catch (e) {
       res.status(500).json({ error: "Error VFI", details: error || e.message });
     }
+  });
+});
+
+
+app.post("/api/vfi/buscar", (req, res) => {
+  const doc = req.query.doc || "";
+  const python = spawn("python", ["buscar_documento.py", String(doc)]);
+  let data = "";
+  let error = "";
+  python.stdout.on("data", (chunk) => { data += chunk.toString(); });
+  python.stderr.on("data", (chunk) => { error += chunk.toString(); });
+  python.on("close", () => {
+    try { res.json(JSON.parse(data)); }
+    catch (e) { res.status(500).json({ error: "Error busqueda", details: error || e.message }); }
   });
 });
 
