@@ -46,6 +46,16 @@ export default function VigilanciaFiscal() {
     setDocLoading(false);
   };
 
+
+  const limpiar = () => {
+    setResultado(null);
+    setDocResult(null);
+    setDocBusca('');
+    setBusqueda('');
+    setFiltro('TODAS');
+    setAbierta(null);
+  };
+
   const alertas = (resultado?.alertas || []).filter(a => {
     const okNivel = filtro === 'TODAS' || a.nivel === filtro;
     const q = busqueda.toLowerCase();
@@ -91,6 +101,7 @@ export default function VigilanciaFiscal() {
             style={{ background: loading ? '#94a3b8' : 'linear-gradient(135deg,#2563eb,#1d4ed8)', color: '#fff', border: 'none', borderRadius: 9, padding: '12px 26px', fontWeight: 700, fontSize: 14, cursor: loading ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
             {loading ? 'Analizando…' : 'Analizar'}
           </button>
+
         </div>
         {loading && <div style={{ marginTop: 12, fontSize: 12, color: '#64748b' }}>Descargando contratos de SECOP y cruzando con antecedentes… puede tardar 1–2 minutos.</div>}
       </div>
@@ -104,6 +115,10 @@ export default function VigilanciaFiscal() {
           <button onClick={buscarDoc} disabled={docLoading}
             style={{ background: docLoading ? '#94a3b8' : 'linear-gradient(135deg,#059669,#047857)', color: '#fff', border: 'none', borderRadius: 9, padding: '12px 26px', fontWeight: 700, fontSize: 14, cursor: docLoading ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
             {docLoading ? 'Buscando…' : 'Buscar documento'}
+          </button>
+          <button onClick={limpiar}
+            style={{ background: '#f1f5f9', color: '#475569', border: '1.5px solid #cbd5e1', borderRadius: 9, padding: '12px 22px', fontWeight: 700, fontSize: 14, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            Limpiar
           </button>
         </div>
         {docResult && (
