@@ -31,8 +31,8 @@ const TODOS_MODULOS: ModuloItem[] = [
   { key:"generador-proposiciones", label:"5. Generador de Proposiciones", icon:"📝" },
   { key:"alertas-automaticas", label:"6. Alertas Automaticas", icon:"⚠️" },
   { key:"ciberseguridad", label:"7. Ciberseguridad", icon:"🔐" },
-  { key:"vigilancia-fiscal", label:"🔴 Vigilancia Fiscal IA", icon:"⚖️" },
-  { key:"licencias", label:"8. Gestor de Licencias", icon:"🔑" },
+  { key:"vigilancia-fiscal", label:"8. Vigilancia Fiscal IA", icon:"⚖️" },
+  { key:"licencias", label:"9. Gestor de Licencias", icon:"🔑" },
 ];
 
 
@@ -46,7 +46,7 @@ export default function App() {
   const [mapaData, setMapaData] = useState<any[]>([]);
   const [menuOpen,  setMenuOpen]  = useState(false);
   const [isMobile,  setIsMobile]  = useState(window.innerWidth < 768);
-  const [modulos,   setModulos]   = useState<string[]>(TODOS_MODULOS.map(m => m.key));
+  const [modulos, setModulos] = useState<string[]>([...TODOS_MODULOS.map(m => m.key), "vigilancia-fiscal"]);
   const [planActual,setPlanActual]= useState<string>("");
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(["grupo-presupuesto"]));
 
@@ -58,7 +58,7 @@ export default function App() {
 
   const handleLicencia = (data: any) => {
     const newModulos = data.modulos || TODOS_MODULOS.map(m => m.key);
-    setModulos([...new Set([...newModulos, "licencias", "generador-proposiciones", "alertas-automaticas"])]);
+    setModulos([...new Set([...newModulos, "licencias", "generador-proposiciones", "alertas-automaticas", "vigilancia-fiscal"])]);
     setPlanActual(data.plan || "");
     // Si el tab actual no está disponible, ir al primero disponible
     if (data.modulos && !data.modulos.includes(tab)) {
