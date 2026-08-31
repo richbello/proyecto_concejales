@@ -33,7 +33,7 @@ export default function VigilanciaFiscal() {
     setLoading(true); setAbierta(null); setResultado(null); setProgreso([]); setCronometro(0);
     const t0 = Date.now();
     const timer = setInterval(() => setCronometro(Math.floor((Date.now() - t0) / 1000)), 1000);
-    const es = new EventSource(`http://localhost:4000/api/vfi/analizar-stream?entidad=${encodeURIComponent(entidad)}`);
+    const es = new EventSource(`https://controlia-licencias.richbello.workers.dev/api/vfi/analizar-stream?entidad=${encodeURIComponent(entidad)}`);
     es.addEventListener('progress', (e: any) => {
       setProgreso(prev => [...prev, JSON.parse(e.data)]);
     });
