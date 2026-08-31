@@ -51,7 +51,7 @@ export default function VigilanciaFiscal() {
     if (!docBusca.trim()) return;
     setDocLoading(true); setDocResult(null);
     try {
-      const r = await fetch(`http://localhost:4000/api/vfi/buscar?doc=${encodeURIComponent(docBusca)}`, { method: 'POST' });
+      const r = await fetch(`https://controlia-licencias.richbello.workers.dev/api/vfi/buscar?doc=${encodeURIComponent(docBusca)}`, { method: 'POST' });
       setDocResult(await r.json());
     } catch { alert('Error conectando al backend.'); }
     setDocLoading(false);
@@ -332,3 +332,4 @@ function FuenteChip({ color, titulo, detalle }: { color: string; titulo: string;
     </div>
   );
 }
+
