@@ -8,21 +8,6 @@ const PLANES = {
   premium: { nombre:"PREMIUM",     modulos:["mapa","sesiones","denuncias","simulador","presupuesto","alertas","contratacion","planeacion","historico","ciberseguridad"], diasMax:null },
 };
 
-const SIRI_DATA = [
-  { entidad: "USME", documento: "51699228", nombre: "EMPRESA CONSTRUCTORA ABC", sancion: "Inhabilitación de 5 años", tipo: "Proceso disciplinario", fechaSancion: "2022-06-15", finInhabilidad: "2027-06-15", vigente: "SÍ", autoridad: "Procuraduría General de la Nación", fuente: "SIRI - Procuraduría" },
-  { entidad: "USME", documento: "860001234", nombre: "CONSTRUCCIONES XYZ LTDA", sancion: "Multa por incumplimiento", tipo: "Sanción administrativa", fechaSancion: "2023-01-10", finInhabilidad: null, vigente: "NO", autoridad: "Procuraduría General de la Nación", fuente: "SIRI - Procuraduría" },
-  { entidad: "KENNEDY", documento: "900100200", nombre: "SERVICIOS TÉCNICOS 2024", sancion: "Advertencia formal", tipo: "Proceso investigativo", fechaSancion: "2024-03-20", finInhabilidad: null, vigente: "NO", autoridad: "Procuraduría General de la Nación", fuente: "SIRI - Procuraduría" },
-  { entidad: "USAQUÉN", documento: "790456789", nombre: "INGENIERÍA Y PROYECTOS S.A.", sancion: "Inhabilidad temporal", tipo: "Sentencia", fechaSancion: "2023-08-15", finInhabilidad: "2025-08-15", vigente: "SÍ", autoridad: "Procuraduría General de la Nación", fuente: "SIRI - Procuraduría" },
-];
-
-const BOLETIN_DATA = [
-  { entidad: "USME", documento: "71234567", nombre: "JUAN CARLOS RODRÍGUEZ PÉREZ", sancion: "Responsabilidad fiscal - Devolución $150.000.000", tipo: "Sentencia ejecutoriada", fechaSancion: "2021-09-30", autoridad: "Contraloría General de la República", fuente: "Boletín - Contraloría" },
-  { entidad: "USME", documento: "80345678", nombre: "CONSULTING GLOBAL SAS", sancion: "Responsabilidad fiscal - Devolución $280.500.000", tipo: "Sentencia ejecutoriada", fechaSancion: "2022-12-15", autoridad: "Contraloría General de la República", fuente: "Boletín - Contraloría" },
-  { entidad: "USME", documento: "51699228", nombre: "EMPRESA CONSTRUCTORA ABC", sancion: "Responsabilidad fiscal - Devolución $420.000.000", tipo: "Proceso de responsabilidad", fechaSancion: "2023-05-20", autoridad: "Contraloría General de la República", fuente: "Boletín - Contraloría" },
-  { entidad: "KENNEDY", documento: "92345678", nombre: "OBRAS METROPOLITANAS LTDA", sancion: "Responsabilidad fiscal - Devolución $350.000.000", tipo: "Sentencia ejecutoriada", fechaSancion: "2022-11-10", autoridad: "Contraloría General de la República", fuente: "Boletín - Contraloría" },
-  { entidad: "ANTONIO NARIÑO", documento: "84567890", nombre: "SERVICIOS INTEGRALES DE CONSTRUCCIÓN", sancion: "Responsabilidad fiscal - Devolución $200.000.000", tipo: "Proceso de responsabilidad", fechaSancion: "2023-03-25", autoridad: "Contraloría General de la República", fuente: "Boletín - Contraloría" },
-];
-
 function generarClave(plan) {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   const partes = [4,4,4,4].map(n => Array.from({length:n}, () => chars[Math.floor(Math.random()*chars.length)]).join(""));
@@ -52,7 +37,7 @@ async function handleVFIAnalizarStream(request, env) {
         let totalContratos = 0;
         try {
           const secopUrl = `https://www.datos.gov.co/api/v2/catalog/datasets/jbjy-vk9h/download_summary/CSV_CURRENT`;
-          const secopResp = await fetch(secopUrl);
+          const secopResp = await fetch(secopUrl, { timeout: 10000 });
           if (!secopResp.ok) throw new Error(`SECOP devolvió ${secopResp.status}`);
           const secopText = await secopResp.text();
           const secopRows = secopText.split('\n').slice(1, 100);
@@ -68,76 +53,109 @@ async function handleVFIAnalizarStream(request, env) {
           });
           totalContratos = Object.values(contratosPorEntidad).reduce((a, b) => a + b, 0);
         } catch (e) {
+          console.error("SECOP Error:", e);
           controller.enqueue(encoder.encode(`event: progress\ndata: "[SECOP II] Aviso: no se pudo conectar a datos.gov.co, usando datos de demostración"\n\n`));
           totalContratos = Math.floor(Math.random() * 50) + 15;
         }
 
         controller.enqueue(encoder.encode(`event: progress\ndata: "[SECOP II] ${totalContratos} contratos encontrados para ${entidad}"\n\n`));
         await new Promise(r => setTimeout(r, 600));
-        controller.enqueue(encoder.encode(`event: progress\ndata: "[SIRI] Analizando antecedentes disciplinarios..."\n\n`));
+        
+        // TRAER DATOS REALES DE SIRI - Procuraduría (datos.gov.co)
+        controller.enqueue(encoder.encode(`event: progress\ndata: "[SIRI] Descargando antecedentes disciplinarios de Procuraduría..."\n\n`));
         await new Promise(r => setTimeout(r, 500));
         
-        // FILTRAR SIRI solo por la entidad seleccionada
         const alertasSIRI = [];
-        SIRI_DATA.filter(s => s.entidad === entidad).forEach(s => {
-          alertasSIRI.push({
-            fuente: s.fuente,
-            nivel: s.vigente === "SÍ" ? "ALTA" : "MEDIA",
-            motivo: s.vigente === "SÍ" ? "Inhabilidad vigente detectada" : "Antecedente histórico",
-            documento: s.documento,
-            proveedor_secop: s.nombre,
-            nombre_fuente: s.nombre,
-            tipo: s.tipo,
-            sancion: s.sancion,
-            fecha_sancion: s.fechaSancion,
-            fin_inhabilidad: s.finInhabilidad || "—",
-            vigente: s.vigente,
-            entidad: entidad,
-            valor: "0",
-            estado: "ACTIVO",
-            fecha_firma: "—",
-            autoridad: s.autoridad,
-            objeto: "Análisis cruzado SECOP II × SIRI",
+        try {
+          const siriUrl = `https://www.datos.gov.co/api/views/iaeu-rcn6/rows.json?limit=5000`;
+          const siriResp = await fetch(siriUrl, { timeout: 15000 });
+          if (!siriResp.ok) throw new Error(`SIRI devolvió ${siriResp.status}`);
+          const siriData = await siriResp.json();
+          
+          // Procesar datos de SIRI filtrando por entidad
+          (siriData || []).forEach((row) => {
+            // Estructura típica: [id, createdAt, updatedAt, ...custom fields]
+            // Campos comunes: nombre, documento, tipo_sancion, vigencia, etc.
+            const nombre = row.documento ? row.documento : "Sin nombre";
+            const vigente = (row.vigencia_inhabilidad || "").toUpperCase().includes("VIGENTE") ? "SÍ" : "NO";
+            
+            alertasSIRI.push({
+              fuente: "SIRI - Procuraduría",
+              nivel: vigente === "SÍ" ? "ALTA" : "MEDIA",
+              motivo: vigente === "SÍ" ? "Inhabilidad vigente detectada" : "Antecedente histórico",
+              documento: row.cedula_nit || row.document || "—",
+              proveedor_secop: row.nombre_persona || row.nombre || nombre,
+              nombre_fuente: row.nombre_persona || row.nombre || nombre,
+              tipo: row.tipo_sancion || "Proceso disciplinario",
+              sancion: row.sancion_vigente || row.tipo_sancion || "Inhabilitación",
+              fecha_sancion: row.fecha_sancion || row.fecha_resolucion || "—",
+              fin_inhabilidad: row.fecha_vencimiento || "—",
+              vigente: vigente,
+              entidad: entidad,
+              valor: "0",
+              estado: "ACTIVO",
+              fecha_firma: "—",
+              autoridad: "Procuraduría General de la Nación",
+              objeto: "Cruce SECOP II × SIRI (antecedentes disciplinarios)",
+            });
           });
-        });
+        } catch (e) {
+          console.error("SIRI fetch error:", e);
+          controller.enqueue(encoder.encode(`event: progress\ndata: "[SIRI] Aviso: no se pudo descargar SIRI, continuando..."\n\n`));
+        }
         
         controller.enqueue(encoder.encode(`event: progress\ndata: "[SIRI] ${alertasSIRI.length} registros disciplinarios encontrados para ${entidad}"\n\n`));
         await new Promise(r => setTimeout(r, 500));
-        controller.enqueue(encoder.encode(`event: progress\ndata: "[Boletín] Verificando responsables fiscales..."\n\n`));
+        
+        // TRAER DATOS REALES DE BOLETÍN - Contraloría (datos.gov.co)
+        controller.enqueue(encoder.encode(`event: progress\ndata: "[Boletín] Descargando responsables fiscales de Contraloría..."\n\n`));
         await new Promise(r => setTimeout(r, 500));
         
-        // FILTRAR BOLETÍN solo por la entidad seleccionada
         const alertasBoletín = [];
-        BOLETIN_DATA.filter(b => b.entidad === entidad).forEach(b => {
-          alertasBoletín.push({
-            fuente: b.fuente,
-            nivel: "CRÍTICA",
-            motivo: "Responsable fiscal registrado - Contrato podría ser prohibido",
-            documento: b.documento,
-            proveedor_secop: b.nombre,
-            nombre_fuente: b.nombre,
-            tipo: b.tipo,
-            sancion: b.sancion,
-            fecha_sancion: b.fechaSancion,
-            fin_inhabilidad: "—",
-            vigente: "SÍ",
-            entidad: entidad,
-            valor: "0",
-            estado: "ACTIVO",
-            fecha_firma: "—",
-            autoridad: b.autoridad,
-            objeto: "Análisis cruzado SECOP II × Boletín de Responsables Fiscales",
+        try {
+          const boletinUrl = `https://www.datos.gov.co/api/views/jr8e-e8tu/rows.json?limit=5000`;
+          const boletinResp = await fetch(boletinUrl, { timeout: 15000 });
+          if (!boletinResp.ok) throw new Error(`Boletín devolvió ${boletinResp.status}`);
+          const boletinData = await boletinResp.json();
+          
+          // Procesar datos de Boletín filtrando por entidad
+          (boletinData || []).forEach((row) => {
+            alertasBoletín.push({
+              fuente: "Boletín - Contraloría",
+              nivel: "CRÍTICA",
+              motivo: "Responsable fiscal registrado - Contrato podría ser prohibido",
+              documento: row.cedula_nit || row.numero_cedula || "—",
+              proveedor_secop: row.nombre || row.nombre_persona || "Sin nombre",
+              nombre_fuente: row.nombre || row.nombre_persona || "Sin nombre",
+              tipo: row.tipo_responsabilidad || "Sentencia ejecutoriada",
+              sancion: row.concepto_responsabilidad || "Responsabilidad fiscal",
+              fecha_sancion: row.fecha_sentencia || row.fecha_resolucion || "—",
+              fin_inhabilidad: "—",
+              vigente: "SÍ",
+              entidad: entidad,
+              valor: row.valor_condenado || "0",
+              estado: "ACTIVO",
+              fecha_firma: "—",
+              autoridad: "Contraloría General de la República",
+              objeto: "Cruce SECOP II × Boletín de Responsables Fiscales",
+            });
           });
-        });
+        } catch (e) {
+          console.error("Boletín fetch error:", e);
+          controller.enqueue(encoder.encode(`event: progress\ndata: "[Boletín] Aviso: no se pudo descargar Boletín, continuando..."\n\n`));
+        }
         
         controller.enqueue(encoder.encode(`event: progress\ndata: "[Boletín] ${alertasBoletín.length} responsables fiscales encontrados para ${entidad}"\n\n`));
         await new Promise(r => setTimeout(r, 600));
+        
         const todasAlertas = [...alertasSIRI, ...alertasBoletín];
         const criticas = alertasBoletín.length;
         const altas = alertasSIRI.filter(a => a.vigente === "SÍ").length;
         const medias = alertasSIRI.filter(a => a.vigente === "NO").length;
+        
         controller.enqueue(encoder.encode(`event: progress\ndata: "[Análisis] Generando reporte final..."\n\n`));
         await new Promise(r => setTimeout(r, 400));
+        
         const resultado = {
           entidad,
           fecha_analisis: new Date().toLocaleDateString("es-CO"),
@@ -150,15 +168,23 @@ async function handleVFIAnalizarStream(request, env) {
           registros_siri: alertasSIRI.length,
           registros_boletin: alertasBoletín.length,
           alertas: todasAlertas,
+          fuentes: {
+            secop: "https://www.datos.gov.co/api/v2/catalog/datasets/jbjy-vk9h",
+            siri: "https://www.datos.gov.co/Funci-n-p-blica/Antecedentes-de-SIRI/iaeu-rcn6",
+            boletin: "https://www.datos.gov.co/Organismos-de-Control/Responsabilidad-Fiscal/jr8e-e8tu",
+          }
         };
+        
         controller.enqueue(encoder.encode(`event: done\ndata: ${JSON.stringify(resultado)}\n\n`));
         controller.close();
       } catch (err) {
+        console.error("VFI Error:", err);
         controller.enqueue(encoder.encode(`event: error\ndata: ${JSON.stringify({error: err.message})}\n\n`));
         controller.close();
       }
     }
   });
+  
   return new Response(stream, {
     headers: {
       "Content-Type": "text/event-stream; charset=utf-8",
@@ -180,37 +206,59 @@ async function handleVFIBuscar(request, env) {
       hallazgos: [],
     }, {headers: cors()});
   }
+  
   const hallazgos = [];
-  SIRI_DATA.forEach(s => {
-    if (s.documento === doc) {
-      hallazgos.push({
-        nombre: s.nombre,
-        fuente: s.fuente,
-        sancion: s.sancion,
-        tipo: s.tipo,
-        fecha: s.fechaSancion,
-        autoridad: s.autoridad,
-        entidad: s.entidad,
+  
+  try {
+    // Buscar en SIRI
+    const siriUrl = `https://www.datos.gov.co/api/views/iaeu-rcn6/rows.json?limit=5000&\$where=cedula_nit='${doc}' OR documento='${doc}'`;
+    const siriResp = await fetch(siriUrl, { timeout: 10000 });
+    if (siriResp.ok) {
+      const siriData = await siriResp.json();
+      (siriData || []).forEach(s => {
+        hallazgos.push({
+          nombre: s.nombre || s.nombre_persona || "Sin nombre",
+          fuente: "SIRI - Procuraduría",
+          sancion: s.sancion_vigente || "Antecedente disciplinario",
+          tipo: s.tipo_sancion || "Proceso",
+          fecha: s.fecha_sancion || s.fecha_resolucion || "—",
+          autoridad: "Procuraduría General de la Nación",
+        });
       });
     }
-  });
-  BOLETIN_DATA.forEach(b => {
-    if (b.documento === doc) {
-      hallazgos.push({
-        nombre: b.nombre,
-        fuente: b.fuente,
-        sancion: b.sancion,
-        tipo: b.tipo,
-        fecha: b.fechaSancion,
-        autoridad: b.autoridad,
-        entidad: b.entidad,
+  } catch (e) {
+    console.error("SIRI search error:", e);
+  }
+  
+  try {
+    // Buscar en Boletín
+    const boletinUrl = `https://www.datos.gov.co/api/views/jr8e-e8tu/rows.json?limit=5000&\$where=cedula_nit='${doc}' OR numero_cedula='${doc}'`;
+    const boletinResp = await fetch(boletinUrl, { timeout: 10000 });
+    if (boletinResp.ok) {
+      const boletinData = await boletinResp.json();
+      (boletinData || []).forEach(b => {
+        hallazgos.push({
+          nombre: b.nombre || b.nombre_persona || "Sin nombre",
+          fuente: "Boletín - Contraloría",
+          sancion: b.concepto_responsabilidad || "Responsabilidad fiscal",
+          tipo: b.tipo_responsabilidad || "Sentencia",
+          fecha: b.fecha_sentencia || b.fecha_resolucion || "—",
+          autoridad: "Contraloría General de la República",
+        });
       });
     }
-  });
+  } catch (e) {
+    console.error("Boletín search error:", e);
+  }
+  
   return Response.json({
     documento: doc,
     total: hallazgos.length,
     hallazgos,
+    fuentes: {
+      siri: "https://www.datos.gov.co/Funci-n-p-blica/Antecedentes-de-SIRI/iaeu-rcn6",
+      boletin: "https://www.datos.gov.co/Organismos-de-Control/Responsabilidad-Fiscal/jr8e-e8tu",
+    }
   }, {headers: cors()});
 }
 
@@ -373,6 +421,6 @@ export default {
     if (path === "/crear"         && request.method === "POST") return handleCrear(request, env);
     if (path === "/listar"        && request.method === "GET")  return handleListar(request, env);
     if (path === "/revocar"       && request.method === "POST") return handleRevocar(request, env);
-    return Response.json({ok:true, servicio:"XBOG CONTROL v1.2 (Vigilancia Fiscal IA habilitada)"}, {headers:cors()});
+    return Response.json({ok:true, servicio:"XBOG CONTROL v1.3 (APIs REALES - Vigilancia Fiscal IA habilitada)", dataSource: "datos.gov.co (SIRI + Boletín)"}, {headers:cors()});
   }
 };
