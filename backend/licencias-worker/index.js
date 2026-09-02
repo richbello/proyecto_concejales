@@ -9,15 +9,18 @@ const PLANES = {
 };
 
 const SIRI_DATA = [
-  { documento: "51699228", nombre: "EMPRESA CONSTRUCTORA ABC", sancion: "Inhabilitación de 5 años", tipo: "Proceso disciplinario", fechaSancion: "2022-06-15", finInhabilidad: "2027-06-15", vigente: "SÍ", autoridad: "Procuraduría General de la Nación", fuente: "SIRI - Procuraduría" },
-  { documento: "860001234", nombre: "CONSTRUCCIONES XYZ LTDA", sancion: "Multa por incumplimiento", tipo: "Sanción administrativa", fechaSancion: "2023-01-10", finInhabilidad: null, vigente: "NO", autoridad: "Procuraduría General de la Nación", fuente: "SIRI - Procuraduría" },
-  { documento: "900100200", nombre: "SERVICIOS TÉCNICOS 2024", sancion: "Advertencia formal", tipo: "Proceso investigativo", fechaSancion: "2024-03-20", finInhabilidad: null, vigente: "NO", autoridad: "Procuraduría General de la Nación", fuente: "SIRI - Procuraduría" },
+  { entidad: "USME", documento: "51699228", nombre: "EMPRESA CONSTRUCTORA ABC", sancion: "Inhabilitación de 5 años", tipo: "Proceso disciplinario", fechaSancion: "2022-06-15", finInhabilidad: "2027-06-15", vigente: "SÍ", autoridad: "Procuraduría General de la Nación", fuente: "SIRI - Procuraduría" },
+  { entidad: "USME", documento: "860001234", nombre: "CONSTRUCCIONES XYZ LTDA", sancion: "Multa por incumplimiento", tipo: "Sanción administrativa", fechaSancion: "2023-01-10", finInhabilidad: null, vigente: "NO", autoridad: "Procuraduría General de la Nación", fuente: "SIRI - Procuraduría" },
+  { entidad: "KENNEDY", documento: "900100200", nombre: "SERVICIOS TÉCNICOS 2024", sancion: "Advertencia formal", tipo: "Proceso investigativo", fechaSancion: "2024-03-20", finInhabilidad: null, vigente: "NO", autoridad: "Procuraduría General de la Nación", fuente: "SIRI - Procuraduría" },
+  { entidad: "USAQUÉN", documento: "790456789", nombre: "INGENIERÍA Y PROYECTOS S.A.", sancion: "Inhabilidad temporal", tipo: "Sentencia", fechaSancion: "2023-08-15", finInhabilidad: "2025-08-15", vigente: "SÍ", autoridad: "Procuraduría General de la Nación", fuente: "SIRI - Procuraduría" },
 ];
 
 const BOLETIN_DATA = [
-  { documento: "71234567", nombre: "JUAN CARLOS RODRÍGUEZ PÉREZ", sancion: "Responsabilidad fiscal - Devolución $150.000.000", tipo: "Sentencia ejecutoriada", fechaSancion: "2021-09-30", autoridad: "Contraloría General de la República", fuente: "Boletín - Contraloría" },
-  { documento: "80345678", nombre: "CONSULTING GLOBAL SAS", sancion: "Responsabilidad fiscal - Devolución $280.500.000", tipo: "Sentencia ejecutoriada", fechaSancion: "2022-12-15", autoridad: "Contraloría General de la República", fuente: "Boletín - Contraloría" },
-  { documento: "51699228", nombre: "EMPRESA CONSTRUCTORA ABC", sancion: "Responsabilidad fiscal - Devolución $420.000.000", tipo: "Proceso de responsabilidad", fechaSancion: "2023-05-20", autoridad: "Contraloría General de la República", fuente: "Boletín - Contraloría" },
+  { entidad: "USME", documento: "71234567", nombre: "JUAN CARLOS RODRÍGUEZ PÉREZ", sancion: "Responsabilidad fiscal - Devolución $150.000.000", tipo: "Sentencia ejecutoriada", fechaSancion: "2021-09-30", autoridad: "Contraloría General de la República", fuente: "Boletín - Contraloría" },
+  { entidad: "USME", documento: "80345678", nombre: "CONSULTING GLOBAL SAS", sancion: "Responsabilidad fiscal - Devolución $280.500.000", tipo: "Sentencia ejecutoriada", fechaSancion: "2022-12-15", autoridad: "Contraloría General de la República", fuente: "Boletín - Contraloría" },
+  { entidad: "USME", documento: "51699228", nombre: "EMPRESA CONSTRUCTORA ABC", sancion: "Responsabilidad fiscal - Devolución $420.000.000", tipo: "Proceso de responsabilidad", fechaSancion: "2023-05-20", autoridad: "Contraloría General de la República", fuente: "Boletín - Contraloría" },
+  { entidad: "KENNEDY", documento: "92345678", nombre: "OBRAS METROPOLITANAS LTDA", sancion: "Responsabilidad fiscal - Devolución $350.000.000", tipo: "Sentencia ejecutoriada", fechaSancion: "2022-11-10", autoridad: "Contraloría General de la República", fuente: "Boletín - Contraloría" },
+  { entidad: "ANTONIO NARIÑO", documento: "84567890", nombre: "SERVICIOS INTEGRALES DE CONSTRUCCIÓN", sancion: "Responsabilidad fiscal - Devolución $200.000.000", tipo: "Proceso de responsabilidad", fechaSancion: "2023-03-25", autoridad: "Contraloría General de la República", fuente: "Boletín - Contraloría" },
 ];
 
 function generarClave(plan) {
@@ -58,7 +61,7 @@ async function handleVFIAnalizarStream(request, env) {
             const cols = row.split(',');
             if (cols.length > 5) {
               const ent = (cols[1] || '').toUpperCase().trim();
-              if (ent.includes(entidad.toUpperCase()) || entidad.toUpperCase() === 'USME') {
+              if (ent.includes(entidad.toUpperCase())) {
                 contratosPorEntidad[ent] = (contratosPorEntidad[ent] || 0) + 1;
               }
             }
@@ -73,8 +76,10 @@ async function handleVFIAnalizarStream(request, env) {
         await new Promise(r => setTimeout(r, 600));
         controller.enqueue(encoder.encode(`event: progress\ndata: "[SIRI] Analizando antecedentes disciplinarios..."\n\n`));
         await new Promise(r => setTimeout(r, 500));
+        
+        // FILTRAR SIRI solo por la entidad seleccionada
         const alertasSIRI = [];
-        SIRI_DATA.forEach(s => {
+        SIRI_DATA.filter(s => s.entidad === entidad).forEach(s => {
           alertasSIRI.push({
             fuente: s.fuente,
             nivel: s.vigente === "SÍ" ? "ALTA" : "MEDIA",
@@ -95,12 +100,15 @@ async function handleVFIAnalizarStream(request, env) {
             objeto: "Análisis cruzado SECOP II × SIRI",
           });
         });
-        controller.enqueue(encoder.encode(`event: progress\ndata: "[SIRI] ${alertasSIRI.length} registros disciplinarios encontrados"\n\n`));
+        
+        controller.enqueue(encoder.encode(`event: progress\ndata: "[SIRI] ${alertasSIRI.length} registros disciplinarios encontrados para ${entidad}"\n\n`));
         await new Promise(r => setTimeout(r, 500));
         controller.enqueue(encoder.encode(`event: progress\ndata: "[Boletín] Verificando responsables fiscales..."\n\n`));
         await new Promise(r => setTimeout(r, 500));
+        
+        // FILTRAR BOLETÍN solo por la entidad seleccionada
         const alertasBoletín = [];
-        BOLETIN_DATA.forEach(b => {
+        BOLETIN_DATA.filter(b => b.entidad === entidad).forEach(b => {
           alertasBoletín.push({
             fuente: b.fuente,
             nivel: "CRÍTICA",
@@ -121,7 +129,8 @@ async function handleVFIAnalizarStream(request, env) {
             objeto: "Análisis cruzado SECOP II × Boletín de Responsables Fiscales",
           });
         });
-        controller.enqueue(encoder.encode(`event: progress\ndata: "[Boletín] ${alertasBoletín.length} responsables fiscales encontrados"\n\n`));
+        
+        controller.enqueue(encoder.encode(`event: progress\ndata: "[Boletín] ${alertasBoletín.length} responsables fiscales encontrados para ${entidad}"\n\n`));
         await new Promise(r => setTimeout(r, 600));
         const todasAlertas = [...alertasSIRI, ...alertasBoletín];
         const criticas = alertasBoletín.length;
@@ -181,6 +190,7 @@ async function handleVFIBuscar(request, env) {
         tipo: s.tipo,
         fecha: s.fechaSancion,
         autoridad: s.autoridad,
+        entidad: s.entidad,
       });
     }
   });
@@ -193,6 +203,7 @@ async function handleVFIBuscar(request, env) {
         tipo: b.tipo,
         fecha: b.fechaSancion,
         autoridad: b.autoridad,
+        entidad: b.entidad,
       });
     }
   });
