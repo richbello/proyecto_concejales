@@ -35,12 +35,14 @@ async function handleVFIAnalizarStream(request, env) {
         await new Promise(r => setTimeout(r, 500));
 
         let totalContratos = 0;
+        let totalRegistrosSECOP = 0;
         try {
           const secopUrl = `https://www.datos.gov.co/api/v2/catalog/datasets/jbjy-vk9h/download_summary/CSV_CURRENT`;
           const secopResp = await fetch(secopUrl, { timeout: 10000 });
           if (!secopResp.ok) throw new Error(`SECOP devolvió ${secopResp.status}`);
           const secopText = await secopResp.text();
-          const secopRows = secopText.split('\n').slice(1, 100);
+          const secopRows = secopText.split('\n').slice(1, 5000); // Procesar hasta 5000 registros
+          totalRegistrosSECOP = secopRows.length;
           const contratosPorEntidad = {};
           secopRows.forEach((row, idx) => {
             const cols = row.split(',');
@@ -55,10 +57,11 @@ async function handleVFIAnalizarStream(request, env) {
         } catch (e) {
           console.error("SECOP Error:", e);
           controller.enqueue(encoder.encode(`event: progress\ndata: "[SECOP II] Aviso: no se pudo conectar a datos.gov.co, usando datos de demostración"\n\n`));
+          totalRegistrosSECOP = 0;
           totalContratos = Math.floor(Math.random() * 50) + 15;
         }
 
-        controller.enqueue(encoder.encode(`event: progress\ndata: "[SECOP II] ${totalContratos} contratos encontrados para ${entidad}"\n\n`));
+        controller.enqueue(encoder.encode(`event: progress\ndata: "[SECOP II] 📊 Consultados: ${totalRegistrosSECOP} registros | 🎯 Filtrados para ${entidad}: ${totalContratos}"\n\n`));
         await new Promise(r => setTimeout(r, 600));
         
         // TRAER DATOS REALES DE SIRI - Procuraduría (datos.gov.co)
@@ -66,17 +69,18 @@ async function handleVFIAnalizarStream(request, env) {
         await new Promise(r => setTimeout(r, 500));
         
         const alertasSIRI = [];
+        let totalRegistrosSIRI = 0;
         try {
           const siriUrl = `https://www.datos.gov.co/api/views/iaeu-rcn6/rows.json?limit=5000`;
           const siriResp = await fetch(siriUrl, { timeout: 15000 });
           if (!siriResp.ok) throw new Error(`SIRI devolvió ${siriResp.status}`);
           const siriData = await siriResp.json();
           
+          totalRegistrosSIRI = (siriData || []).length;
+          
           // Procesar datos de SIRI filtrando por entidad
           (siriData || []).forEach((row) => {
-            // Estructura típica: [id, createdAt, updatedAt, ...custom fields]
-            // Campos comunes: nombre, documento, tipo_sancion, vigencia, etc.
-            const nombre = row.documento ? row.documento : "Sin nombre";
+            const nombre = row.nombre || row.nombre_persona || "Sin nombre";
             const vigente = (row.vigencia_inhabilidad || "").toUpperCase().includes("VIGENTE") ? "SÍ" : "NO";
             
             alertasSIRI.push({
@@ -101,10 +105,11 @@ async function handleVFIAnalizarStream(request, env) {
           });
         } catch (e) {
           console.error("SIRI fetch error:", e);
-          controller.enqueue(encoder.encode(`event: progress\ndata: "[SIRI] Aviso: no se pudo descargar SIRI, continuando..."\n\n`));
+          controller.enqueue(encoder.encode(`event: progress\ndata: "[SIRI] ⚠️ Error al descargar, continuando..."\n\n`));
+          totalRegistrosSIRI = 0;
         }
         
-        controller.enqueue(encoder.encode(`event: progress\ndata: "[SIRI] ${alertasSIRI.length} registros disciplinarios encontrados para ${entidad}"\n\n`));
+        controller.enqueue(encoder.encode(`event: progress\ndata: "[SIRI] 📊 Consultados: ${totalRegistrosSIRI} registros | 🎯 Filtrados para ${entidad}: ${alertasSIRI.length}"\n\n`));
         await new Promise(r => setTimeout(r, 500));
         
         // TRAER DATOS REALES DE BOLETÍN - Contraloría (datos.gov.co)
@@ -112,11 +117,14 @@ async function handleVFIAnalizarStream(request, env) {
         await new Promise(r => setTimeout(r, 500));
         
         const alertasBoletín = [];
+        let totalRegistrosBoletin = 0;
         try {
           const boletinUrl = `https://www.datos.gov.co/api/views/jr8e-e8tu/rows.json?limit=5000`;
           const boletinResp = await fetch(boletinUrl, { timeout: 15000 });
           if (!boletinResp.ok) throw new Error(`Boletín devolvió ${boletinResp.status}`);
           const boletinData = await boletinResp.json();
+          
+          totalRegistrosBoletin = (boletinData || []).length;
           
           // Procesar datos de Boletín filtrando por entidad
           (boletinData || []).forEach((row) => {
@@ -142,10 +150,11 @@ async function handleVFIAnalizarStream(request, env) {
           });
         } catch (e) {
           console.error("Boletín fetch error:", e);
-          controller.enqueue(encoder.encode(`event: progress\ndata: "[Boletín] Aviso: no se pudo descargar Boletín, continuando..."\n\n`));
+          controller.enqueue(encoder.encode(`event: progress\ndata: "[Boletín] ⚠️ Error al descargar, continuando..."\n\n`));
+          totalRegistrosBoletin = 0;
         }
         
-        controller.enqueue(encoder.encode(`event: progress\ndata: "[Boletín] ${alertasBoletín.length} responsables fiscales encontrados para ${entidad}"\n\n`));
+        controller.enqueue(encoder.encode(`event: progress\ndata: "[Boletín] 📊 Consultados: ${totalRegistrosBoletin} registros | 🎯 Filtrados para ${entidad}: ${alertasBoletín.length}"\n\n`));
         await new Promise(r => setTimeout(r, 600));
         
         const todasAlertas = [...alertasSIRI, ...alertasBoletín];
@@ -168,10 +177,23 @@ async function handleVFIAnalizarStream(request, env) {
           registros_siri: alertasSIRI.length,
           registros_boletin: alertasBoletín.length,
           alertas: todasAlertas,
-          fuentes: {
-            secop: "https://www.datos.gov.co/api/v2/catalog/datasets/jbjy-vk9h",
-            siri: "https://www.datos.gov.co/Funci-n-p-blica/Antecedentes-de-SIRI/iaeu-rcn6",
-            boletin: "https://www.datos.gov.co/Organismos-de-Control/Responsabilidad-Fiscal/jr8e-e8tu",
+          // 🆕 INFORMACIÓN DE CONSULTAS
+          estadisticas_consulta: {
+            secop_ii: {
+              total_consultados: totalRegistrosSECOP,
+              total_filtrados: totalContratos,
+              fuente: "https://www.datos.gov.co/Contrataci-n-p-blica/SECOP-II-Registros-de-Contratos-Electr-nicos-/jbjy-vk9h"
+            },
+            siri_procuraduria: {
+              total_consultados: totalRegistrosSIRI,
+              total_filtrados: alertasSIRI.length,
+              fuente: "https://www.datos.gov.co/Funci-n-p-blica/Antecedentes-de-SIRI/iaeu-rcn6"
+            },
+            boletin_contraloria: {
+              total_consultados: totalRegistrosBoletin,
+              total_filtrados: alertasBoletín.length,
+              fuente: "https://www.datos.gov.co/Organismos-de-Control/Responsabilidad-Fiscal/jr8e-e8tu"
+            }
           }
         };
         
@@ -421,6 +443,6 @@ export default {
     if (path === "/crear"         && request.method === "POST") return handleCrear(request, env);
     if (path === "/listar"        && request.method === "GET")  return handleListar(request, env);
     if (path === "/revocar"       && request.method === "POST") return handleRevocar(request, env);
-    return Response.json({ok:true, servicio:"XBOG CONTROL v1.3 (APIs REALES - Vigilancia Fiscal IA habilitada)", dataSource: "datos.gov.co (SIRI + Boletín)"}, {headers:cors()});
+    return Response.json({ok:true, servicio:"XBOG CONTROL v1.4 (APIs REALES + LOGGING - Vigilancia Fiscal IA)", dataSource: "datos.gov.co (SIRI + Boletín + SECOP II)"}, {headers:cors()});
   }
 };
