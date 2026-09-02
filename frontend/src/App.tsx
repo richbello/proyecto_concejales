@@ -15,6 +15,7 @@ import GestorLicencias from "./Components/GestorLicencias";
 import GeneradorProposicion from "./Components/GeneradorProposicion";
 import AlertasAutomaticas from "./Components/AlertasAutomaticas";
 import VigilanciaFiscal from "./pages/VigilanciaFiscal";
+import IMGSubsidiosModule from "./Components/IMGSubsidiosModule";
 
 interface DataRow { [key: string]: string | number; }
 
@@ -33,6 +34,7 @@ const TODOS_MODULOS: ModuloItem[] = [
   { key:"vigilancia-fiscal", label:"7. Vigilancia Fiscal IA", icon:"⚖️" },
   { key:"ciberseguridad", label:"8. Ciberseguridad", icon:"🔐" },
   { key:"licencias", label:"9. Gestor de Licencias", icon:"🔑" },
+  { key:"subsidios-img", label:"10. Análisis Subsidios IMG", icon:"💰" },
 ];
 
 
@@ -100,7 +102,8 @@ export default function App() {
       case "historico":      return <HistoricoPagos />;
       case "ciberseguridad": return <Ciberseguridad />;
       case "licencias":      return <GestorLicencias />;
-      case "generador-proposiciones": return <GeneradorProposicion anomaliasData={pacData} localidad="FDL Usme" edil="Edil" />;
+      
+      case "subsidios-img": return <IMGSubsidiosModule />;case "generador-proposiciones": return <GeneradorProposicion anomaliasData={pacData} localidad="FDL Usme" edil="Edil" />;
       case "alertas-automaticas": return <AlertasAutomaticas pacData={pacData} contratosData={contratosData} presupuestoData={crpData} />;
       case "vigilancia-fiscal":
       return <VigilanciaFiscal />;
