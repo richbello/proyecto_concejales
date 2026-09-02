@@ -1,4 +1,5 @@
 const ADMIN_SECRET = "xbog-admin-2026-controlia";
+const CACHE_EXPIRY = 86400000; // 24 horas
 
 const PLANES = {
   demo:    { nombre:"codespage Demo",        modulos:["mapa","sesiones","denuncias","presupuesto"], diasMax:15 },
@@ -24,6 +25,72 @@ function cors() {
   };
 }
 
+// Descargar datos de SIRI con retry
+async function descargarSIRI(env) {
+  try {
+    const cached = await env.LICENCIAS.get("CACHE:SIRI");
+    if (cached) {
+      const data = JSON.parse(cached);
+      if (Date.now() - data.timestamp < CACHE_EXPIRY) {
+        console.log("📦 SIRI desde cache");
+        return data.records;
+      }
+    }
+    
+    console.log("🔄 Descargando SIRI desde datos.gov.co...");
+    const url = `https://www.datos.gov.co/api/views/iaeu-rcn6/rows.json?limit=10000`;
+    const resp = await fetch(url, { timeout: 30000 });
+    
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    
+    // Cachear por 24 horas
+    await env.LICENCIAS.put("CACHE:SIRI", JSON.stringify({
+      timestamp: Date.now(),
+      records: data || []
+    }));
+    
+    console.log(`✅ SIRI: ${(data || []).length} registros descargados`);
+    return data || [];
+  } catch (e) {
+    console.error("❌ SIRI error:", e.message);
+    return [];
+  }
+}
+
+// Descargar datos de Boletín con retry
+async function descargarBoletin(env) {
+  try {
+    const cached = await env.LICENCIAS.get("CACHE:BOLETIN");
+    if (cached) {
+      const data = JSON.parse(cached);
+      if (Date.now() - data.timestamp < CACHE_EXPIRY) {
+        console.log("📦 Boletín desde cache");
+        return data.records;
+      }
+    }
+    
+    console.log("🔄 Descargando Boletín desde datos.gov.co...");
+    const url = `https://www.datos.gov.co/api/views/jr8e-e8tu/rows.json?limit=10000`;
+    const resp = await fetch(url, { timeout: 30000 });
+    
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    
+    // Cachear por 24 horas
+    await env.LICENCIAS.put("CACHE:BOLETIN", JSON.stringify({
+      timestamp: Date.now(),
+      records: data || []
+    }));
+    
+    console.log(`✅ Boletín: ${(data || []).length} registros descargados`);
+    return data || [];
+  } catch (e) {
+    console.error("❌ Boletín error:", e.message);
+    return [];
+  }
+}
+
 async function handleVFIAnalizarStream(request, env) {
   const url = new URL(request.url);
   const entidad = decodeURIComponent(url.searchParams.get("entidad") || "USME");
@@ -38,10 +105,10 @@ async function handleVFIAnalizarStream(request, env) {
         let totalRegistrosSECOP = 0;
         try {
           const secopUrl = `https://www.datos.gov.co/api/v2/catalog/datasets/jbjy-vk9h/download_summary/CSV_CURRENT`;
-          const secopResp = await fetch(secopUrl, { timeout: 10000 });
+          const secopResp = await fetch(secopUrl, { timeout: 15000 });
           if (!secopResp.ok) throw new Error(`SECOP devolvió ${secopResp.status}`);
           const secopText = await secopResp.text();
-          const secopRows = secopText.split('\n').slice(1, 5000); // Procesar hasta 5000 registros
+          const secopRows = secopText.split('\n').slice(1, 5000);
           totalRegistrosSECOP = secopRows.length;
           const contratosPorEntidad = {};
           secopRows.forEach((row, idx) => {
@@ -56,105 +123,81 @@ async function handleVFIAnalizarStream(request, env) {
           totalContratos = Object.values(contratosPorEntidad).reduce((a, b) => a + b, 0);
         } catch (e) {
           console.error("SECOP Error:", e);
-          controller.enqueue(encoder.encode(`event: progress\ndata: "[SECOP II] Aviso: no se pudo conectar a datos.gov.co, usando datos de demostración"\n\n`));
+          controller.enqueue(encoder.encode(`event: progress\ndata: "[SECOP II] ⚠️ No se pudo conectar a datos.gov.co"\n\n`));
           totalRegistrosSECOP = 0;
-          totalContratos = Math.floor(Math.random() * 50) + 15;
+          totalContratos = 0;
         }
 
-        controller.enqueue(encoder.encode(`event: progress\ndata: "[SECOP II] 📊 Consultados: ${totalRegistrosSECOP} registros | 🎯 Filtrados para ${entidad}: ${totalContratos}"\n\n`));
+        controller.enqueue(encoder.encode(`event: progress\ndata: "[SECOP II] 📊 Consultados: ${totalRegistrosSECOP} | 🎯 Filtrados para ${entidad}: ${totalContratos}"\n\n`));
         await new Promise(r => setTimeout(r, 600));
         
-        // TRAER DATOS REALES DE SIRI - Procuraduría (datos.gov.co)
-        controller.enqueue(encoder.encode(`event: progress\ndata: "[SIRI] Descargando antecedentes disciplinarios de Procuraduría..."\n\n`));
-        await new Promise(r => setTimeout(r, 500));
+        // SIRI desde cache/download
+        controller.enqueue(encoder.encode(`event: progress\ndata: "[SIRI] Cargando antecedentes disciplinarios..."\n\n`));
+        await new Promise(r => setTimeout(r, 300));
         
+        const siriRawData = await descargarSIRI(env);
+        const totalRegistrosSIRI = siriRawData.length;
         const alertasSIRI = [];
-        let totalRegistrosSIRI = 0;
-        try {
-          const siriUrl = `https://www.datos.gov.co/api/views/iaeu-rcn6/rows.json?limit=5000`;
-          const siriResp = await fetch(siriUrl, { timeout: 15000 });
-          if (!siriResp.ok) throw new Error(`SIRI devolvió ${siriResp.status}`);
-          const siriData = await siriResp.json();
+        
+        siriRawData.forEach((row) => {
+          const nombre = row.nombre || row.nombre_persona || "Sin nombre";
+          const vigente = (row.vigencia_inhabilidad || "").toUpperCase().includes("VIGENTE") ? "SÍ" : "NO";
           
-          totalRegistrosSIRI = (siriData || []).length;
-          
-          // Procesar datos de SIRI filtrando por entidad
-          (siriData || []).forEach((row) => {
-            const nombre = row.nombre || row.nombre_persona || "Sin nombre";
-            const vigente = (row.vigencia_inhabilidad || "").toUpperCase().includes("VIGENTE") ? "SÍ" : "NO";
-            
-            alertasSIRI.push({
-              fuente: "SIRI - Procuraduría",
-              nivel: vigente === "SÍ" ? "ALTA" : "MEDIA",
-              motivo: vigente === "SÍ" ? "Inhabilidad vigente detectada" : "Antecedente histórico",
-              documento: row.cedula_nit || row.document || "—",
-              proveedor_secop: row.nombre_persona || row.nombre || nombre,
-              nombre_fuente: row.nombre_persona || row.nombre || nombre,
-              tipo: row.tipo_sancion || "Proceso disciplinario",
-              sancion: row.sancion_vigente || row.tipo_sancion || "Inhabilitación",
-              fecha_sancion: row.fecha_sancion || row.fecha_resolucion || "—",
-              fin_inhabilidad: row.fecha_vencimiento || "—",
-              vigente: vigente,
-              entidad: entidad,
-              valor: "0",
-              estado: "ACTIVO",
-              fecha_firma: "—",
-              autoridad: "Procuraduría General de la Nación",
-              objeto: "Cruce SECOP II × SIRI (antecedentes disciplinarios)",
-            });
+          alertasSIRI.push({
+            fuente: "SIRI - Procuraduría",
+            nivel: vigente === "SÍ" ? "ALTA" : "MEDIA",
+            motivo: vigente === "SÍ" ? "Inhabilidad vigente detectada" : "Antecedente histórico",
+            documento: row.cedula_nit || row.document || "—",
+            proveedor_secop: row.nombre_persona || row.nombre || nombre,
+            nombre_fuente: row.nombre_persona || row.nombre || nombre,
+            tipo: row.tipo_sancion || "Proceso disciplinario",
+            sancion: row.sancion_vigente || row.tipo_sancion || "Inhabilitación",
+            fecha_sancion: row.fecha_sancion || row.fecha_resolucion || "—",
+            fin_inhabilidad: row.fecha_vencimiento || "—",
+            vigente: vigente,
+            entidad: entidad,
+            valor: "0",
+            estado: "ACTIVO",
+            fecha_firma: "—",
+            autoridad: "Procuraduría General de la Nación",
+            objeto: "Cruce SECOP II × SIRI",
           });
-        } catch (e) {
-          console.error("SIRI fetch error:", e);
-          controller.enqueue(encoder.encode(`event: progress\ndata: "[SIRI] ⚠️ Error al descargar, continuando..."\n\n`));
-          totalRegistrosSIRI = 0;
-        }
+        });
         
-        controller.enqueue(encoder.encode(`event: progress\ndata: "[SIRI] 📊 Consultados: ${totalRegistrosSIRI} registros | 🎯 Filtrados para ${entidad}: ${alertasSIRI.length}"\n\n`));
+        controller.enqueue(encoder.encode(`event: progress\ndata: "[SIRI] 📊 Consultados: ${totalRegistrosSIRI} | 🎯 Filtrados para ${entidad}: ${alertasSIRI.length}"\n\n`));
         await new Promise(r => setTimeout(r, 500));
         
-        // TRAER DATOS REALES DE BOLETÍN - Contraloría (datos.gov.co)
-        controller.enqueue(encoder.encode(`event: progress\ndata: "[Boletín] Descargando responsables fiscales de Contraloría..."\n\n`));
-        await new Promise(r => setTimeout(r, 500));
+        // BOLETÍN desde cache/download
+        controller.enqueue(encoder.encode(`event: progress\ndata: "[Boletín] Cargando responsables fiscales..."\n\n`));
+        await new Promise(r => setTimeout(r, 300));
         
+        const boletinRawData = await descargarBoletin(env);
+        const totalRegistrosBoletin = boletinRawData.length;
         const alertasBoletín = [];
-        let totalRegistrosBoletin = 0;
-        try {
-          const boletinUrl = `https://www.datos.gov.co/api/views/jr8e-e8tu/rows.json?limit=5000`;
-          const boletinResp = await fetch(boletinUrl, { timeout: 15000 });
-          if (!boletinResp.ok) throw new Error(`Boletín devolvió ${boletinResp.status}`);
-          const boletinData = await boletinResp.json();
-          
-          totalRegistrosBoletin = (boletinData || []).length;
-          
-          // Procesar datos de Boletín filtrando por entidad
-          (boletinData || []).forEach((row) => {
-            alertasBoletín.push({
-              fuente: "Boletín - Contraloría",
-              nivel: "CRÍTICA",
-              motivo: "Responsable fiscal registrado - Contrato podría ser prohibido",
-              documento: row.cedula_nit || row.numero_cedula || "—",
-              proveedor_secop: row.nombre || row.nombre_persona || "Sin nombre",
-              nombre_fuente: row.nombre || row.nombre_persona || "Sin nombre",
-              tipo: row.tipo_responsabilidad || "Sentencia ejecutoriada",
-              sancion: row.concepto_responsabilidad || "Responsabilidad fiscal",
-              fecha_sancion: row.fecha_sentencia || row.fecha_resolucion || "—",
-              fin_inhabilidad: "—",
-              vigente: "SÍ",
-              entidad: entidad,
-              valor: row.valor_condenado || "0",
-              estado: "ACTIVO",
-              fecha_firma: "—",
-              autoridad: "Contraloría General de la República",
-              objeto: "Cruce SECOP II × Boletín de Responsables Fiscales",
-            });
-          });
-        } catch (e) {
-          console.error("Boletín fetch error:", e);
-          controller.enqueue(encoder.encode(`event: progress\ndata: "[Boletín] ⚠️ Error al descargar, continuando..."\n\n`));
-          totalRegistrosBoletin = 0;
-        }
         
-        controller.enqueue(encoder.encode(`event: progress\ndata: "[Boletín] 📊 Consultados: ${totalRegistrosBoletin} registros | 🎯 Filtrados para ${entidad}: ${alertasBoletín.length}"\n\n`));
+        boletinRawData.forEach((row) => {
+          alertasBoletín.push({
+            fuente: "Boletín - Contraloría",
+            nivel: "CRÍTICA",
+            motivo: "Responsable fiscal registrado - Contrato podría ser prohibido",
+            documento: row.cedula_nit || row.numero_cedula || "—",
+            proveedor_secop: row.nombre || row.nombre_persona || "Sin nombre",
+            nombre_fuente: row.nombre || row.nombre_persona || "Sin nombre",
+            tipo: row.tipo_responsabilidad || "Sentencia ejecutoriada",
+            sancion: row.concepto_responsabilidad || "Responsabilidad fiscal",
+            fecha_sancion: row.fecha_sentencia || row.fecha_resolucion || "—",
+            fin_inhabilidad: "—",
+            vigente: "SÍ",
+            entidad: entidad,
+            valor: row.valor_condenado || "0",
+            estado: "ACTIVO",
+            fecha_firma: "—",
+            autoridad: "Contraloría General de la República",
+            objeto: "Cruce SECOP II × Boletín",
+          });
+        });
+        
+        controller.enqueue(encoder.encode(`event: progress\ndata: "[Boletín] 📊 Consultados: ${totalRegistrosBoletin} | 🎯 Filtrados para ${entidad}: ${alertasBoletín.length}"\n\n`));
         await new Promise(r => setTimeout(r, 600));
         
         const todasAlertas = [...alertasSIRI, ...alertasBoletín];
@@ -177,7 +220,6 @@ async function handleVFIAnalizarStream(request, env) {
           registros_siri: alertasSIRI.length,
           registros_boletin: alertasBoletín.length,
           alertas: todasAlertas,
-          // 🆕 INFORMACIÓN DE CONSULTAS
           estadisticas_consulta: {
             secop_ii: {
               total_consultados: totalRegistrosSECOP,
@@ -231,47 +273,35 @@ async function handleVFIBuscar(request, env) {
   
   const hallazgos = [];
   
-  try {
-    // Buscar en SIRI
-    const siriUrl = `https://www.datos.gov.co/api/views/iaeu-rcn6/rows.json?limit=5000&\$where=cedula_nit='${doc}' OR documento='${doc}'`;
-    const siriResp = await fetch(siriUrl, { timeout: 10000 });
-    if (siriResp.ok) {
-      const siriData = await siriResp.json();
-      (siriData || []).forEach(s => {
-        hallazgos.push({
-          nombre: s.nombre || s.nombre_persona || "Sin nombre",
-          fuente: "SIRI - Procuraduría",
-          sancion: s.sancion_vigente || "Antecedente disciplinario",
-          tipo: s.tipo_sancion || "Proceso",
-          fecha: s.fecha_sancion || s.fecha_resolucion || "—",
-          autoridad: "Procuraduría General de la Nación",
-        });
+  // Buscar en SIRI cacheado
+  const siriData = await descargarSIRI(env);
+  siriData.forEach(s => {
+    if ((s.cedula_nit === doc) || (s.documento === doc)) {
+      hallazgos.push({
+        nombre: s.nombre || s.nombre_persona || "Sin nombre",
+        fuente: "SIRI - Procuraduría",
+        sancion: s.sancion_vigente || "Antecedente disciplinario",
+        tipo: s.tipo_sancion || "Proceso",
+        fecha: s.fecha_sancion || s.fecha_resolucion || "—",
+        autoridad: "Procuraduría General de la Nación",
       });
     }
-  } catch (e) {
-    console.error("SIRI search error:", e);
-  }
+  });
   
-  try {
-    // Buscar en Boletín
-    const boletinUrl = `https://www.datos.gov.co/api/views/jr8e-e8tu/rows.json?limit=5000&\$where=cedula_nit='${doc}' OR numero_cedula='${doc}'`;
-    const boletinResp = await fetch(boletinUrl, { timeout: 10000 });
-    if (boletinResp.ok) {
-      const boletinData = await boletinResp.json();
-      (boletinData || []).forEach(b => {
-        hallazgos.push({
-          nombre: b.nombre || b.nombre_persona || "Sin nombre",
-          fuente: "Boletín - Contraloría",
-          sancion: b.concepto_responsabilidad || "Responsabilidad fiscal",
-          tipo: b.tipo_responsabilidad || "Sentencia",
-          fecha: b.fecha_sentencia || b.fecha_resolucion || "—",
-          autoridad: "Contraloría General de la República",
-        });
+  // Buscar en Boletín cacheado
+  const boletinData = await descargarBoletin(env);
+  boletinData.forEach(b => {
+    if ((b.cedula_nit === doc) || (b.numero_cedula === doc)) {
+      hallazgos.push({
+        nombre: b.nombre || b.nombre_persona || "Sin nombre",
+        fuente: "Boletín - Contraloría",
+        sancion: b.concepto_responsabilidad || "Responsabilidad fiscal",
+        tipo: b.tipo_responsabilidad || "Sentencia",
+        fecha: b.fecha_sentencia || b.fecha_resolucion || "—",
+        autoridad: "Contraloría General de la República",
       });
     }
-  } catch (e) {
-    console.error("Boletín search error:", e);
-  }
+  });
   
   return Response.json({
     documento: doc,
@@ -443,6 +473,6 @@ export default {
     if (path === "/crear"         && request.method === "POST") return handleCrear(request, env);
     if (path === "/listar"        && request.method === "GET")  return handleListar(request, env);
     if (path === "/revocar"       && request.method === "POST") return handleRevocar(request, env);
-    return Response.json({ok:true, servicio:"XBOG CONTROL v1.4 (APIs REALES + LOGGING - Vigilancia Fiscal IA)", dataSource: "datos.gov.co (SIRI + Boletín + SECOP II)"}, {headers:cors()});
+    return Response.json({ok:true, servicio:"XBOG CONTROL v1.5 (CACHE KV + APIs REALES)", dataSource: "datos.gov.co (SIRI + Boletín + SECOP II)"}, {headers:cors()});
   }
 };
