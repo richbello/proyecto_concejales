@@ -38,7 +38,7 @@ const TODOS_MODULOS: ModuloItem[] = [
   { key:"licencias", label:"9. Gestor de Licencias", icon:"🔑" },
   { key:"sisben-pua", label:"11. SISBEN × PUA 2024", icon:"🔗" },
   { key:"subsidios-img", label:"10. Análisis Subsidios IMG", icon:"💰" },
-    { key:"pua-detallado", label:"12. Análisis PUA Detallado", icon:"📊" },
+  { key:"pua-detallado", label:"12. Análisis PUA Detallado", icon:"📊" },
 ];
 
 
@@ -106,7 +106,8 @@ export default function App() {
       case "historico":      return <HistoricoPagos />;
       case "ciberseguridad": return <Ciberseguridad />;
       case "licencias":      return <GestorLicencias />;
-      case "sisben-pua": return <SisbenPuaModule />, { key:"pua-detallado", label:"12. Análisis PUA Detallado", icon:"📊" };
+      case "sisben-pua": return <SisbenPuaModule />;
+      case "pua-detallado": return <PuaAnalisisDetailadoModule />;
       case "subsidios-img": return <IMGSubsidiosModule />;case "generador-proposiciones": return <GeneradorProposicion anomaliasData={pacData} localidad="FDL Usme" edil="Edil" />;
       case "alertas-automaticas": return <AlertasAutomaticas pacData={pacData} contratosData={contratosData} presupuestoData={crpData} />;
       case "vigilancia-fiscal":
