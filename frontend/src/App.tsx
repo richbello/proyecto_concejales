@@ -153,7 +153,7 @@ export default function App() {
         )}
 
         <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden", minWidth:0 }}>
-          <div style={{ background:"linear-gradient(90deg,#8E1616 0%,#A01B1B 60%,#B93A3A 100%)", color:"white", padding:isMobile?"10px 14px":"12px 22px", display:"flex", alignItems:"center", justifyContent:"space-between", boxShadow:"0 2px 12px rgba(120,0,0,.25)", flexShrink:0, gap:10 }}>
+          <div style={{ background:"linear-gradient(90deg,#0f172a 0%,#0d9488 60%,#06b6d4 100%)", color:"white", padding:isMobile?"10px 14px":"12px 22px", display:"flex", alignItems:"center", justifyContent:"space-between", boxShadow:"0 2px 12px rgba(120,0,0,.25)", flexShrink:0, gap:10 }}>
             <div style={{ display:"flex", alignItems:"center", gap:10, minWidth:0 }}>
               {tab !== "presupuesto" && (
                 <button onClick={() => setTab("presupuesto")} style={{ background:"rgba(255,255,255,.1)", border:"none", color:"white", padding:"6px 12px", borderRadius:6, cursor:"pointer", fontSize:12, fontWeight:700 }}>
