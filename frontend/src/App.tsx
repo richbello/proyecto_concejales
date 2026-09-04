@@ -183,7 +183,7 @@ export default function App() {
           </div>
 
           {isMobile && menuOpen && (
-            <div style={{ background:"linear-gradient(160deg,#8E1616 0%,#A01B1B 60%,#B93A3A 100%)", position:"absolute", top:57, left:0, right:0, zIndex:1000, boxShadow:"0 8px 24px rgba(0,0,0,.3)" }}>
+            <div style={{ background:"linear-gradient(160deg,#0f172a 0%,#0d9488 60%,#06b6d4 100%)", position:"absolute", top:57, left:0, right:0, zIndex:1000, boxShadow:"0 8px 24px rgba(0,0,0,.3)" }}>
               {NAV_ITEMS.map(n => (
                 n.isGroup ? (
                   <div key={n.key}>
