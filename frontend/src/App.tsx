@@ -116,7 +116,7 @@ export default function App() {
       <div style={{ display:"flex", flexDirection:isMobile?"column":"row", height:"100vh", fontFamily:"'Segoe UI',sans-serif", background:"#f0f2f5", color:"#2c3e50", overflow:"hidden" }}>
 
         {!isMobile && (
-          <aside style={{ width:220, background:"linear-gradient(160deg,#8E1616 0%,#A01B1B 45%,#B93A3A 100%)", color:"white", display:"flex", flexDirection:"column", boxShadow:"3px 0 18px rgba(120,0,0,.35)", flexShrink:0 }}>
+          <aside style={{ width:220, background:"linear-gradient(160deg,#0f172a 0%,#0d9488 45%,#06b6d4 100%)", color:"white", display:"flex", flexDirection:"column", boxShadow:"3px 0 18px rgba(120,0,0,.35)", flexShrink:0 }}>
             <div style={{ padding:"16px", borderBottom:"1px solid rgba(255,255,255,.1)", display:"flex", alignItems:"center", justifyContent:"center" }}>
               <img src="/xbog-smart.png" alt="XBOG Smart" style={{ maxWidth:"100%", height:"auto", maxHeight:120 }} />
             </div>
