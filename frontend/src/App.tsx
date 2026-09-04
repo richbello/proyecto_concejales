@@ -35,7 +35,7 @@ const TODOS_MODULOS: ModuloItem[] = [
   { key:"vigilancia-fiscal", label:"7. Vigilancia Fiscal IA", icon:"⚖️" },
   { key:"ciberseguridad", label:"8. Ciberseguridad", icon:"🔐" },
   { key:"licencias", label:"9. Gestor de Licencias", icon:"🔑" },
-  { key:"sisben-pua", label:"11. SISBEN × PUA 2024", icon:"🔗" }
+  { key:"sisben-pua", label:"11. SISBEN × PUA 2024", icon:"🔗" },
   { key:"subsidios-img", label:"10. Análisis Subsidios IMG", icon:"💰" },
 ];
 
