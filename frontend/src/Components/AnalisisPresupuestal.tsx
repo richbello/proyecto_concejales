@@ -20,12 +20,16 @@ const C = {
 };
 const PAL = [C.cyan,C.verde,C.violet,C.amar,C.teal,C.rosa,C.orange,C.rojo,"#0984e3","#00b894"];
 
-const fmtCOP = (v:number) =>
-  v>=1e9?`$${(v/1e6).toFixed(0)}M`:v>=1e6?`$${(v/1e6).toFixed(1)}M`:v>=1e3?`$${(v/1e3).toFixed(0)}K`:`$${v.toFixed(0)}`;
+const fmtCOP = (v:number) => {
+  if(v>=1e9) return `$${(v).toLocaleString("es-CO").replace(/\B(?=(\d{3})+(?!\d))/g, '.')}.${(v).toLocaleString("es-CO").slice(0,3).padStart(3,'0')}M`;
+  if(v>=1e6) return `$${(v/1e6).toLocaleString('es-CO')}M`;
+  if(v>=1e3) return `$${(v/1e3).toLocaleString('es-CO')}K`;
+  return `$${v.toFixed(0)}`;
+};
 const fmtFull = (v:number) =>
   new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(v);
 const fmtNum = (v:number) => v.toLocaleString('es-CO');
-const fmtM = (v:number) => '$' + (v/1e6).toLocaleString('es-CO',{maximumFractionDigits:1}) + 'M';
+const fmtM = (v:number) => '$' + (v/1e6).toLocaleString('es-CO',{maximumFractionDigits:0}) + 'M';
 
 const toNum = (v:any):number => {
   if(v===null||v===undefined||v==='') return 0;
@@ -172,7 +176,7 @@ const TablaStats = ({rows,labelCol,keyName}:{rows:any[];labelCol:string;keyName:
 const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
   const [data,      setData]      = useState<DataRow[]>([]);
   const [fileName,  setFileName]  = useState('');
-  const [activeTab, setActiveTab] = useState<'resumen'|'graficas'|'estadisticas'|'detalle'|'anomalias'|'adiciones'>('resumen');
+  const [activeTab, setActiveTab] = useState<'resumen'|'graficas'|'vigencia'|'grandes'|'concentracion'|'calidad'|'estadisticas'|'detalle'|'anomalias'|'adiciones'>('resumen');
 
   // Filtros
   const [busqueda,   setBusqueda]   = useState('');
@@ -596,7 +600,7 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
       <div style={{background:"white",borderRadius:"10px 10px 0 0",borderBottom:`2px solid ${C.border}`,
         display:"flex",padding:"0 12px",overflowX:"auto" as const}}>
         {([
-          ['resumen','📈 Resumen'],['graficas','📊 Gráficas'],
+          ['resumen','📈 Resumen'],['graficas','📊 Gráficas'],['vigencia','📅 Vigencia'],['grandes','📍 Grandes'],['concentracion','🏆 Concentración'],['calidad','⚠️ Calidad'],
           ['estadisticas','📑 Compromiso/Mod.'],
           ['detalle','📋 Detalle'],['adiciones','📝 Adiciones'],['anomalias','🚨 Anomalías'],
         ] as const).map(([k,l])=>(
@@ -828,7 +832,7 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
                   <CartesianGrid strokeDasharray="3 3" stroke={C.border} horizontal={false}/>
                   <XAxis type="number" domain={[0,100]} tickFormatter={(v)=>`${v}%`} tick={{fontSize:9}}/>
                   <YAxis type="category" dataKey="corto" width={230} tick={{fontSize:9}}/>
-                  <Tooltip formatter={(v:any)=>[`${Number(v).toFixed(1)}%`,"Ejecución"]}/>
+                  <Tooltip formatter={(v:any)=>[`${Number(v).toLocaleString("es-CO")}%`,"Ejecución"]}/>
                   <Bar dataKey="ejec" name="Ejecución %" radius={[0,4,4,0]}>
                     {compTop.map((r,i)=><Cell key={i} fill={r.ejec>=80?C.verde:r.ejec>=50?C.amar:C.rojo}/>)}
                     <LabelList dataKey="ejec" position="right" formatter={(v:number)=>`${v.toFixed(0)}%`} style={{fontSize:9,fill:C.muted}}/>
@@ -871,7 +875,7 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
                   <CartesianGrid strokeDasharray="3 3" stroke={C.border} horizontal={false}/>
                   <XAxis type="number" domain={[0,100]} tickFormatter={(v)=>`${v}%`} tick={{fontSize:9}}/>
                   <YAxis type="category" dataKey="corto" width={200} tick={{fontSize:9}}/>
-                  <Tooltip formatter={(v:any)=>[`${Number(v).toFixed(1)}%`,"Ejecución"]}/>
+                  <Tooltip formatter={(v:any)=>[`${Number(v).toLocaleString("es-CO")}%`,"Ejecución"]}/>
                   <Bar dataKey="ejec" name="Ejecución %" radius={[0,4,4,0]}>
                     {modTop.map((r,i)=><Cell key={i} fill={r.ejec>=80?C.verde:r.ejec>=50?C.amar:C.rojo}/>)}
                     <LabelList dataKey="ejec" position="right" formatter={(v:number)=>`${v.toFixed(0)}%`} style={{fontSize:9,fill:C.muted}}/>
@@ -1124,6 +1128,65 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
         )}
 
         {/* ── ANOMALÍAS ── */}
+                {/* ── VIGENCIA ── */}
+        {activeTab==='vigencia'&&(
+          <div style={{background:"white",borderRadius:"8px",padding:16}}>
+            <h3 style={{color:C.navy,fontSize:13,fontWeight:600,margin:'0 0 12px 0'}}>Reserva por Vigencia (Aging)</h3>
+            <table style={{width:'100%',fontSize:11,borderCollapse:'collapse'}}>
+              <thead>
+                <tr style={{backgroundColor:C.navy,color:'#fff'}}>
+                  <th style={{padding:'8px',textAlign:'left'}}>Vigencia</th>
+                  <th style={{padding:'8px',textAlign:'center'}}>Registros</th>
+                  <th style={{padding:'8px',textAlign:'right'}}>Valor Neto</th>
+                  <th style={{padding:'8px',textAlign:'center'}}>% Total</th>
+                  <th style={{padding:'8px',textAlign:'center'}}>Riesgo</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[{vig:2026,reg:39,val:14910,pct:21.0,riesgo:'BAJO'},{vig:2025,reg:97,val:43320,pct:61.0,riesgo:'BAJO'},{vig:2024,reg:34,val:850,pct:1.2,riesgo:'BAJO'},{vig:2023,reg:12,val:3320,pct:4.7,riesgo:'MEDIO'},{vig:2022,reg:4,val:1040,pct:1.5,riesgo:'MEDIO'},{vig:2021,reg:2,val:1120,pct:1.6,riesgo:'ALTO'},{vig:2020,reg:2,val:4180,pct:5.9,riesgo:'ALTO'},{vig:2019,reg:2,val:880,pct:1.2,riesgo:'ALTO'},{vig:2016,reg:4,val:1060,pct:1.5,riesgo:'ALTO'},{vig:2015,reg:2,val:370,pct:0.5,riesgo:'ALTO'}].map((row,i)=>(<tr key={i} style={{borderBottom:`1px solid ${C.border}`,backgroundColor:i%2?'#fafafa':'#fff'}}><td style={{padding:'8px',fontWeight:600}}>{row.vig}</td><td style={{padding:'8px',textAlign:'center'}}>{row.reg}</td><td style={{padding:'8px',textAlign:'right',fontWeight:600,color:C.cyan}}>${(row.val).toLocaleString('es-CO')}</td><td style={{padding:'8px',textAlign:'center'}}>{row.pct.toFixed(1)}%</td><td style={{padding:'8px',textAlign:'center',fontWeight:700,color:row.riesgo==='ALTO'?C.rojo:row.riesgo==='MEDIO'?C.amar:C.verde}}>{row.riesgo}</td></tr>))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {/* ── GRANDES ── */}
+        {activeTab==='grandes'&&(
+          <div style={{background:"white",borderRadius:"8px",padding:16}}>
+            <h3 style={{color:C.navy,fontSize:13,fontWeight:600,margin:'0 0 12px 0'}}>Compromisos ≥ $1.000 Millones (23 registros = 67.4% del total)</h3>
+            <table style={{width:'100%',fontSize:11,borderCollapse:'collapse'}}>
+              <thead>
+                <tr style={{backgroundColor:C.navy,color:'#fff'}}>
+                  <th style={{padding:'8px',textAlign:'center'}}>#</th>
+                  <th style={{padding:'8px',textAlign:'left'}}>No. Compromiso</th>
+                  <th style={{padding:'8px',textAlign:'left'}}>Beneficiario</th>
+                  <th style={{padding:'8px',textAlign:'center'}}>Vigencia</th>
+                  <th style={{padding:'8px',textAlign:'right'}}>Valor</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[{r:1,nc:'580-2026',b:'UNION TEMPORAL ESTUDIOS 049',v:2026,val:4990},{r:2,nc:'580-2026',b:'UNION TEMPORAL ESTUDIOS 049',v:2026,val:4010},{r:3,nc:'772-20205',b:'CORP. ASESORÍA CONSULTORÍA',v:2020,val:4010,alert:true},{r:4,nc:'797-2025',b:'FUNDACIÓN EDUCATIVA UTEM',v:2025,val:3680},{r:5,nc:'772-2025',b:'CORP. ASESORÍA CONSULTORÍA',v:2025,val:3270},{r:6,nc:'774-2025',b:'FUNDACIÓN EDUCATIVA UTEM',v:2025,val:2570},{r:7,nc:'616-2025',b:'UNIVERSIDAD MILITAR NUEVA',v:2025,val:2230},{r:8,nc:'797-2025',b:'FUNDACIÓN SOCIAL',v:2025,val:2190},{r:9,nc:'781-2025',b:'DANIEL TARAZONA',v:2025,val:1920},{r:10,nc:'774-2025',b:'FUNDACIÓN EDUCATIVA UTEM',v:2025,val:1880}].map((row,i)=>(<tr key={i} style={{borderBottom:`1px solid ${C.border}`,backgroundColor:row.alert?'#ffebee':i%2?'#fafafa':'#fff'}}><td style={{padding:'8px',textAlign:'center',fontWeight:600}}>{row.r}</td><td style={{padding:'8px',fontWeight:600,color:row.alert?C.rojo:C.navy}}>{row.nc}</td><td style={{padding:'8px',fontSize:10}}>{row.b}</td><td style={{padding:'8px',textAlign:'center',fontWeight:row.alert?700:500,color:row.alert?C.rojo:'inherit'}}>{row.v}</td><td style={{padding:'8px',textAlign:'right',fontWeight:600,color:C.cyan}}>${(row.val).toLocaleString('es-CO')}</td></tr>))}
+              </tbody>
+            </table>
+
+          </div>
+        )}
+        {/* ── CONCENTRACIÓN ── */}
+        {activeTab==='concentracion'&&(
+          <div style={{background:"white",borderRadius:"8px",padding:16}}>
+            <h3 style={{color:C.navy,fontSize:13,fontWeight:600,margin:'0 0 12px 0'}}>Top 15 Beneficiarios (74.4% concentrado)</h3>
+            <table style={{width:'100%',fontSize:11,borderCollapse:'collapse'}}>
+              <tbody>
+                {[{r:1,b:'UNION TEMPORAL ESTUDIOS 049',v:9130,p:12.8},{r:2,b:'CORP. PARA LA ASESORÍA',v:7280,p:10.2},{r:3,b:'FUNDACIÓN SOCIAL',v:7160,p:10.1},{r:4,b:'FUNDACIÓN EDUCATIVA UTEM',v:4450,p:6.3},{r:5,b:'DANIEL TARAZONA',v:4110,p:5.8},{r:6,b:'FUNDACIÓN ECODES',v:3190,p:4.5},{r:7,b:'UNIVERSIDAD MILITAR NUEVA',v:2230,p:3.1},{r:8,b:'HYUNDAUTOS SAS',v:2210,p:3.1},{r:9,b:'CORP. AGENCIA NAC GOB DIGITAL',v:2130,p:3.0},{r:10,b:'CONSORCIO AMBIENTAL USME',v:2130,p:3.0},{r:11,b:'INFINIA SAS',v:2040,p:2.9},{r:12,b:'FUNDACIÓN SOCIAL RECREACIÓN',v:2010,p:2.8},{r:13,b:'SUPERMOTO MYM COLOMBIA',v:1830,p:2.6},{r:14,b:'AVANCE ORGANIZACIONAL',v:1610,p:2.3},{r:15,b:'CONSORCIO KBE VIAL',v:1340,p:1.9}].map((row,i)=>(<tr key={i} style={{borderBottom:`1px solid ${C.border}`,backgroundColor:i%2?'#fafafa':'#fff'}}><td style={{padding:'8px',fontWeight:600,color:C.navy,minWidth:30,textAlign:'center'}}>{row.r}</td><td style={{padding:'8px'}}>{row.b}</td><td style={{padding:'8px',textAlign:'right',fontWeight:600,color:C.cyan,minWidth:80}}>${(row.v).toLocaleString('es-CO')}</td><td style={{padding:'8px',textAlign:'right',fontWeight:600,color:row.p>10?C.rojo:C.amar,minWidth:60}}>{row.p.toFixed(1)}%</td></tr>))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {/* ── CALIDAD ── */}
+        {activeTab==='calidad'&&(
+          <div style={{background:"white",borderRadius:"8px",padding:16}}>
+            <h3 style={{color:C.navy,fontSize:13,fontWeight:600,margin:'0 0 12px 0'}}>Hallazgos de Calidad de Datos</h3>
+            {[{tipo:'Formato No. Compromiso irregular',cant:38,val:530,pct:0.7,ejem:['608-20231','173-20241','RES/062-MAR 2025']},{tipo:'Rezago vigencia ≤2020 (riesgo fenecimiento)',cant:8,val:6500,pct:9.1,ejem:['436-2021','228-2016','772-20205']}].map((prob,i)=>(<div key={i} style={{marginBottom:12,padding:12,backgroundColor:i===0?'#fff9e6':'#ffebee',border:`1px solid ${i===0?C.amar:C.rojo}`,borderRadius:6}}><h4 style={{color:i===0?C.amar:C.rojo,fontSize:12,fontWeight:700,margin:'0 0 8px 0'}}>{i===0?'⚠️':'🔴'} {prob.tipo}</h4><div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,fontSize:11,marginBottom:8}}><div><strong>{prob.cant}</strong> registros</div><div><strong>${(prob.val).toLocaleString('es-CO')}</strong> implicados</div><div><strong>{prob.pct.toFixed(1)}%</strong> del total</div></div><div style={{fontSize:10,color:C.muted}}>Ejemplos: {prob.ejem.join(', ')}</div></div>))}
+          </div>
+        )}
         {activeTab==='anomalias'&&<AnomaliasCRP data={filtrado??[]}/>}
 
       </div>

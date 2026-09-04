@@ -14,7 +14,7 @@ const C = {
 const PAL = [C.cyan,C.verde,C.amar,C.rojo,C.violet,C.orange,C.teal,"#d63031","#0984e3","#e84393"];
 
 const fmtCOP = (v:number) =>
-  v>=1e9?`$${(v/1e9).toFixed(2)}MM`:v>=1e6?`$${(v/1e6).toFixed(1)}M`:`$${(v/1e3).toFixed(0)}K`;
+  v>=1e9?`$${(v).toLocaleString("es-CO")}MM`:v>=1e6?`$${(v).toLocaleString("es-CO")}M`:`$${(v).toLocaleString("es-CO")}K`;
 const fmtNum = (v:number) => v.toLocaleString("es-CO");
 
 interface Fila {

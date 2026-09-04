@@ -15,9 +15,9 @@ interface Props { data?: DataRow[]; }
 const fmtCOP = (v: number) => {
   const sign = v < 0 ? '-' : '';
   v = Math.abs(v);
-  if (v >= 1e9) return sign + '$' + (v/1e9).toFixed(2) + 'B';
-  if (v >= 1e6) return sign + '$' + (v/1e6).toFixed(1) + 'M';
-  if (v >= 1e3) return sign + '$' + (v/1e3).toFixed(0) + 'K';
+  if (v >= 1e9) return sign + '$' + (v).toLocaleString("es-CO") + 'B';
+  if (v >= 1e6) return sign + '$' + (v).toLocaleString("es-CO") + 'M';
+  if (v >= 1e3) return sign + '$' + (v).toLocaleString("es-CO") + 'K';
   return sign + '$' + v.toLocaleString('es-CO');
 };
 const fmtNum = (v: number) => Math.round(v).toLocaleString('es-CO');
@@ -464,7 +464,7 @@ ${proyeccion.map(p=>`<tr><td><strong>${p.año}</strong></td><td>${fmtCOP(p['Esce
                 <XAxis dataKey="name" tick={{fontSize:9}} angle={-15} textAnchor="end" height={54}/>
                 <YAxis yAxisId="l" tickFormatter={v=>fmtCOP(v*1e6)} tick={{fontSize:9}} width={58}/>
                 <YAxis yAxisId="r" orientation="right" domain={[0,100]} tickFormatter={v=>v+'%'} tick={{fontSize:9}} width={40}/>
-                <Tooltip formatter={(v:any,n:any)=> n==='Ejecución %' ? (v as number).toFixed(1)+'%' : fmtCOP((v as number)*1e6)}/>
+                <Tooltip formatter={(v:any,n:any)=> n==='Ejecución %' ? (v).toLocaleString("es-CO")+'%' : fmtCOP((v as number)*1e6)}/>
                 <Legend wrapperStyle={{fontSize:11}}/>
                 <Bar yAxisId="l" dataKey="Base" fill="#94a3b8" radius={[3,3,0,0]}/>
                 <Bar yAxisId="l" dataKey="Simulado" fill="#2563eb" radius={[3,3,0,0]}/>

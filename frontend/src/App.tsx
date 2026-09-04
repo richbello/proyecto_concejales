@@ -1,3 +1,4 @@
+import Hallazgos from './Components/Hallazgos';
 import React, { useState, useEffect } from "react";
 import AnalisisPresupuestal from "./Components/AnalisisPresupuestal";
 import MapaProyectos from "./Components/MapaProyectos";
@@ -25,6 +26,7 @@ const TODOS_MODULOS: ModuloItem[] = [
     { key:"presupuesto", label:"1.1 Analisis Presupuestal", icon:"📈" },
     { key:"simulador", label:"1.2 Simulador Presupuesto", icon:"🧮" },
     { key:"historico", label:"1.3 Reportes de Pagos", icon:"✅" },
+    { key:"hallazgos", label:"1.4 Hallazgos", icon:"📍" },
   ]},
   { key:"alertas", label:"2. Analisis PAC", icon:"🎯" },
   { key:"contratacion", label:"3. Contratacion", icon:"📋" },
@@ -101,6 +103,7 @@ export default function App() {
       case "planeacion":     return <Planeacion onDataLoad={setPlanData} />;
       case "generador-proposiciones": return <GeneradorProposicion anomaliasData={pacData} localidad="FDL Usme" edil="Edil" />;
       case "historico":      return <HistoricoPagos />;
+      case "hallazgos":      return <Hallazgos data={crpData}/>
       case "ciberseguridad": return <Ciberseguridad />;
       case "licencias":      return <GestorLicencias />;
       case "analisis-social": return <AnalisisSocialModule />;
