@@ -33,7 +33,7 @@ export default function VigilanciaFiscal() {
     setLoading(true); setAbierta(null); setResultado(null); setProgreso([]); setCronometro(0);
     const t0 = Date.now();
     const timer = setInterval(() => setCronometro(Math.floor((Date.now() - t0) / 1000)), 1000);
-    const es = new EventSource(`http://localhost:4000/api/vfi/analizar-stream?entidad=${encodeURIComponent(entidad)}`);
+    const es = new EventSource(`https://proyecto-concejales.onrender.com/api/vfi/analizar-stream?entidad=${encodeURIComponent(entidad)}`);
     es.addEventListener('progress', (e: any) => {
       setProgreso(prev => [...prev, JSON.parse(e.data)]);
     });
@@ -51,7 +51,7 @@ export default function VigilanciaFiscal() {
     if (!docBusca.trim()) return;
     setDocLoading(true); setDocResult(null);
     try {
-      const r = await fetch(`http://localhost:4000/api/vfi/buscar?doc=${encodeURIComponent(docBusca)}`, { method: 'POST' });
+      const r = await fetch(`https://proyecto-concejales.onrender.com/api/vfi/buscar?doc=${encodeURIComponent(docBusca)}`, { method: 'POST' });
       setDocResult(await r.json());
     } catch { alert('Error conectando al backend.'); }
     setDocLoading(false);
