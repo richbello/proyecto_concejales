@@ -1,0 +1,501 @@
+[
+  {
+    "localidad": "CIUDAD BOLIVAR",
+    "total": 152623,
+    "servicios": {
+      "BIENESTAR ALIMENTARIO": 6732,
+      "COMISARIAS": 8708,
+      "FORTALECIMIENTO GESTION TERRITORIAL": 2791,
+      "HABITANTE DE CALLE": 131,
+      "INCLUSIÓN SOCIAL": 2423,
+      "INFANCIA": 6135,
+      "INGRESO MINIMO GARANTIZADO": 110521,
+      "JÓVENES": 3878,
+      "VEJEZ": 11304
+    },
+    "discapacidad": 8789,
+    "victimas": 17095,
+    "lgbti": 677,
+    "migrantes": 4998,
+    "etario": {
+      "0-12": 33856,
+      "13-17": 15347,
+      "18-59": 80730,
+      "60+": 22651
+    }
+  },
+  {
+    "localidad": "BOSA",
+    "total": 133673,
+    "servicios": {
+      "BIENESTAR ALIMENTARIO": 4416,
+      "COMISARIAS": 8107,
+      "FORTALECIMIENTO GESTION TERRITORIAL": 2139,
+      "HABITANTE DE CALLE": 143,
+      "INCLUSIÓN SOCIAL": 3914,
+      "INFANCIA": 7398,
+      "INGRESO MINIMO GARANTIZADO": 95656,
+      "JÓVENES": 3516,
+      "VEJEZ": 8384
+    },
+    "discapacidad": 8944,
+    "victimas": 13422,
+    "lgbti": 416,
+    "migrantes": 4392,
+    "etario": {
+      "0-12": 30339,
+      "13-17": 13062,
+      "18-59": 71797,
+      "60+": 18424
+    }
+  },
+  {
+    "localidad": "KENNEDY",
+    "total": 121075,
+    "servicios": {
+      "BIENESTAR ALIMENTARIO": 3326,
+      "COMISARIAS": 11872,
+      "FORTALECIMIENTO GESTION TERRITORIAL": 7354,
+      "HABITANTE DE CALLE": 225,
+      "INCLUSIÓN SOCIAL": 3140,
+      "INFANCIA": 5692,
+      "INGRESO MINIMO GARANTIZADO": 79030,
+      "JÓVENES": 4153,
+      "VEJEZ": 6283
+    },
+    "discapacidad": 7575,
+    "victimas": 11031,
+    "lgbti": 868,
+    "migrantes": 8717,
+    "etario": {
+      "0-12": 26123,
+      "13-17": 11512,
+      "18-59": 67041,
+      "60+": 16309
+    }
+  },
+  {
+    "localidad": "SUBA",
+    "total": 100911,
+    "servicios": {
+      "BIENESTAR ALIMENTARIO": 3144,
+      "COMISARIAS": 9166,
+      "FORTALECIMIENTO GESTION TERRITORIAL": 2865,
+      "HABITANTE DE CALLE": 133,
+      "INCLUSIÓN SOCIAL": 2533,
+      "INFANCIA": 4999,
+      "INGRESO MINIMO GARANTIZADO": 70747,
+      "JÓVENES": 2737,
+      "VEJEZ": 4587
+    },
+    "discapacidad": 6392,
+    "victimas": 7231,
+    "lgbti": 608,
+    "migrantes": 6860,
+    "etario": {
+      "0-12": 22611,
+      "13-17": 9571,
+      "18-59": 56146,
+      "60+": 12547
+    }
+  },
+  {
+    "localidad": "USME",
+    "total": 93579,
+    "servicios": {
+      "BIENESTAR ALIMENTARIO": 5913,
+      "COMISARIAS": 4900,
+      "FORTALECIMIENTO GESTION TERRITORIAL": 2893,
+      "HABITANTE DE CALLE": 89,
+      "INCLUSIÓN SOCIAL": 1957,
+      "INFANCIA": 4919,
+      "INGRESO MINIMO GARANTIZADO": 64331,
+      "JÓVENES": 1311,
+      "VEJEZ": 7266
+    },
+    "discapacidad": 5228,
+    "victimas": 10037,
+    "lgbti": 233,
+    "migrantes": 2444,
+    "etario": {
+      "0-12": 21554,
+      "13-17": 9146,
+      "18-59": 48830,
+      "60+": 14004
+    }
+  },
+  {
+    "localidad": "SAN CRISTOBAL",
+    "total": 78989,
+    "servicios": {
+      "BIENESTAR ALIMENTARIO": 5042,
+      "COMISARIAS": 5144,
+      "FORTALECIMIENTO GESTION TERRITORIAL": 2757,
+      "HABITANTE DE CALLE": 698,
+      "INCLUSIÓN SOCIAL": 2557,
+      "INFANCIA": 2840,
+      "INGRESO MINIMO GARANTIZADO": 51583,
+      "JÓVENES": 1822,
+      "VEJEZ": 6546
+    },
+    "discapacidad": 6090,
+    "victimas": 5758,
+    "lgbti": 339,
+    "migrantes": 2061,
+    "etario": {
+      "0-12": 15203,
+      "13-17": 7933,
+      "18-59": 41893,
+      "60+": 13922
+    }
+  },
+  {
+    "localidad": "ENGATIVA",
+    "total": 72162,
+    "servicios": {
+      "BIENESTAR ALIMENTARIO": 1987,
+      "COMISARIAS": 7953,
+      "FORTALECIMIENTO GESTION TERRITORIAL": 711,
+      "HABITANTE DE CALLE": 256,
+      "INCLUSIÓN SOCIAL": 2119,
+      "INFANCIA": 2351,
+      "INGRESO MINIMO GARANTIZADO": 48721,
+      "JÓVENES": 2296,
+      "VEJEZ": 5768
+    },
+    "discapacidad": 5781,
+    "victimas": 4113,
+    "lgbti": 432,
+    "migrantes": 3778,
+    "etario": {
+      "0-12": 13194,
+      "13-17": 6440,
+      "18-59": 39947,
+      "60+": 12550
+    }
+  },
+  {
+    "localidad": "RAFAEL URIBE",
+    "total": 70030,
+    "servicios": {
+      "BIENESTAR ALIMENTARIO": 2742,
+      "COMISARIAS": 4006,
+      "FORTALECIMIENTO GESTION TERRITORIAL": 2279,
+      "HABITANTE DE CALLE": 201,
+      "INCLUSIÓN SOCIAL": 1866,
+      "INFANCIA": 3013,
+      "INGRESO MINIMO GARANTIZADO": 48347,
+      "JÓVENES": 1480,
+      "VEJEZ": 6096
+    },
+    "discapacidad": 4470,
+    "victimas": 5171,
+    "lgbti": 536,
+    "migrantes": 2868,
+    "etario": {
+      "0-12": 13961,
+      "13-17": 6539,
+      "18-59": 36633,
+      "60+": 12879
+    }
+  },
+  {
+    "localidad": "USAQUEN",
+    "total": 36587,
+    "servicios": {
+      "BIENESTAR ALIMENTARIO": 1084,
+      "COMISARIAS": 4138,
+      "FORTALECIMIENTO GESTION TERRITORIAL": 2958,
+      "HABITANTE DE CALLE": 110,
+      "INCLUSIÓN SOCIAL": 946,
+      "INFANCIA": 2042,
+      "INGRESO MINIMO GARANTIZADO": 21684,
+      "JÓVENES": 1486,
+      "VEJEZ": 2139
+    },
+    "discapacidad": 2063,
+    "victimas": 2072,
+    "lgbti": 168,
+    "migrantes": 2289,
+    "etario": {
+      "0-12": 8398,
+      "13-17": 3591,
+      "18-59": 19190,
+      "60+": 5382
+    }
+  },
+  {
+    "localidad": "TUNJUELITO",
+    "total": 29278,
+    "servicios": {
+      "BIENESTAR ALIMENTARIO": 1967,
+      "COMISARIAS": 2474,
+      "FORTALECIMIENTO GESTION TERRITORIAL": 1000,
+      "HABITANTE DE CALLE": 113,
+      "INCLUSIÓN SOCIAL": 871,
+      "INFANCIA": 1595,
+      "INGRESO MINIMO GARANTIZADO": 18434,
+      "JÓVENES": 727,
+      "VEJEZ": 2097
+    },
+    "discapacidad": 2196,
+    "victimas": 2180,
+    "lgbti": 157,
+    "migrantes": 1170,
+    "etario": {
+      "0-12": 6026,
+      "13-17": 2565,
+      "18-59": 15274,
+      "60+": 5397
+    }
+  },
+  {
+    "localidad": "FONTIBON",
+    "total": 28504,
+    "servicios": {
+      "BIENESTAR ALIMENTARIO": 1215,
+      "COMISARIAS": 3825,
+      "FORTALECIMIENTO GESTION TERRITORIAL": 2082,
+      "HABITANTE DE CALLE": 173,
+      "INCLUSIÓN SOCIAL": 1226,
+      "INFANCIA": 1672,
+      "INGRESO MINIMO GARANTIZADO": 14808,
+      "JÓVENES": 1699,
+      "VEJEZ": 1804
+    },
+    "discapacidad": 1912,
+    "victimas": 1560,
+    "lgbti": 237,
+    "migrantes": 2416,
+    "etario": {
+      "0-12": 5674,
+      "13-17": 2415,
+      "18-59": 15719,
+      "60+": 4680
+    }
+  },
+  {
+    "localidad": "SANTA FE",
+    "total": 26081,
+    "servicios": {
+      "BIENESTAR ALIMENTARIO": 2227,
+      "COMISARIAS": 1652,
+      "FORTALECIMIENTO GESTION TERRITORIAL": 1185,
+      "HABITANTE DE CALLE": 469,
+      "INCLUSIÓN SOCIAL": 602,
+      "INFANCIA": 1824,
+      "INGRESO MINIMO GARANTIZADO": 12758,
+      "JÓVENES": 2518,
+      "VEJEZ": 2846
+    },
+    "discapacidad": 1798,
+    "victimas": 1701,
+    "lgbti": 357,
+    "migrantes": 1299,
+    "etario": {
+      "0-12": 4696,
+      "13-17": 1794,
+      "18-59": 13975,
+      "60+": 5599
+    }
+  },
+  {
+    "localidad": "LOS MARTIRES",
+    "total": 24810,
+    "servicios": {
+      "BIENESTAR ALIMENTARIO": 276,
+      "COMISARIAS": 4566,
+      "FORTALECIMIENTO GESTION TERRITORIAL": 2270,
+      "HABITANTE DE CALLE": 5464,
+      "INCLUSIÓN SOCIAL": 2523,
+      "INFANCIA": 1398,
+      "INGRESO MINIMO GARANTIZADO": 5686,
+      "JÓVENES": 813,
+      "VEJEZ": 1814
+    },
+    "discapacidad": 2041,
+    "victimas": 2041,
+    "lgbti": 928,
+    "migrantes": 3230,
+    "etario": {
+      "0-12": 3512,
+      "13-17": 1438,
+      "18-59": 15955,
+      "60+": 3868
+    }
+  },
+  {
+    "localidad": "PUENTE ARANDA",
+    "total": 19086,
+    "servicios": {
+      "BIENESTAR ALIMENTARIO": 773,
+      "COMISARIAS": 2172,
+      "FORTALECIMIENTO GESTION TERRITORIAL": 1692,
+      "HABITANTE DE CALLE": 2664,
+      "INCLUSIÓN SOCIAL": 853,
+      "INFANCIA": 1099,
+      "INGRESO MINIMO GARANTIZADO": 7633,
+      "JÓVENES": 519,
+      "VEJEZ": 1681
+    },
+    "discapacidad": 1656,
+    "victimas": 1437,
+    "lgbti": 208,
+    "migrantes": 710,
+    "etario": {
+      "0-12": 2975,
+      "13-17": 1125,
+      "18-59": 10625,
+      "60+": 4336
+    }
+  },
+  {
+    "localidad": "CANDELARIA",
+    "total": 15064,
+    "servicios": {
+      "BIENESTAR ALIMENTARIO": 387,
+      "COMISARIAS": 699,
+      "FORTALECIMIENTO GESTION TERRITORIAL": 8666,
+      "HABITANTE DE CALLE": 349,
+      "INCLUSIÓN SOCIAL": 193,
+      "INFANCIA": 114,
+      "INGRESO MINIMO GARANTIZADO": 1315,
+      "JÓVENES": 3062,
+      "VEJEZ": 279
+    },
+    "discapacidad": 714,
+    "victimas": 1822,
+    "lgbti": 351,
+    "migrantes": 747,
+    "etario": {
+      "0-12": 741,
+      "13-17": 639,
+      "18-59": 10552,
+      "60+": 3126
+    }
+  },
+  {
+    "localidad": "BARRIOS UNIDOS",
+    "total": 10572,
+    "servicios": {
+      "BIENESTAR ALIMENTARIO": 281,
+      "COMISARIAS": 1422,
+      "FORTALECIMIENTO GESTION TERRITORIAL": 624,
+      "HABITANTE DE CALLE": 114,
+      "INCLUSIÓN SOCIAL": 684,
+      "INFANCIA": 657,
+      "INGRESO MINIMO GARANTIZADO": 3966,
+      "JÓVENES": 1759,
+      "VEJEZ": 1065
+    },
+    "discapacidad": 824,
+    "victimas": 516,
+    "lgbti": 160,
+    "migrantes": 492,
+    "etario": {
+      "0-12": 1571,
+      "13-17": 1362,
+      "18-59": 5296,
+      "60+": 2326
+    }
+  },
+  {
+    "localidad": "ANTONIO NARIÑO",
+    "total": 10314,
+    "servicios": {
+      "BIENESTAR ALIMENTARIO": 457,
+      "COMISARIAS": 1582,
+      "FORTALECIMIENTO GESTION TERRITORIAL": 522,
+      "HABITANTE DE CALLE": 518,
+      "INCLUSIÓN SOCIAL": 435,
+      "INFANCIA": 550,
+      "INGRESO MINIMO GARANTIZADO": 4253,
+      "JÓVENES": 968,
+      "VEJEZ": 1029
+    },
+    "discapacidad": 732,
+    "victimas": 678,
+    "lgbti": 92,
+    "migrantes": 459,
+    "etario": {
+      "0-12": 1598,
+      "13-17": 884,
+      "18-59": 5594,
+      "60+": 2228
+    }
+  },
+  {
+    "localidad": "CHAPINERO",
+    "total": 10161,
+    "servicios": {
+      "BIENESTAR ALIMENTARIO": 770,
+      "COMISARIAS": 1549,
+      "FORTALECIMIENTO GESTION TERRITORIAL": 706,
+      "HABITANTE DE CALLE": 244,
+      "INCLUSIÓN SOCIAL": 487,
+      "INFANCIA": 858,
+      "INGRESO MINIMO GARANTIZADO": 3821,
+      "JÓVENES": 1054,
+      "VEJEZ": 672
+    },
+    "discapacidad": 613,
+    "victimas": 685,
+    "lgbti": 216,
+    "migrantes": 768,
+    "etario": {
+      "0-12": 1893,
+      "13-17": 1045,
+      "18-59": 5458,
+      "60+": 1742
+    }
+  },
+  {
+    "localidad": "TEUSAQUILLO",
+    "total": 3980,
+    "servicios": {
+      "BIENESTAR ALIMENTARIO": 69,
+      "COMISARIAS": 725,
+      "FORTALECIMIENTO GESTION TERRITORIAL": 389,
+      "HABITANTE DE CALLE": 166,
+      "INCLUSIÓN SOCIAL": 861,
+      "INFANCIA": 178,
+      "INGRESO MINIMO GARANTIZADO": 706,
+      "JÓVENES": 44,
+      "VEJEZ": 842
+    },
+    "discapacidad": 447,
+    "victimas": 193,
+    "lgbti": 384,
+    "migrantes": 167,
+    "etario": {
+      "0-12": 356,
+      "13-17": 145,
+      "18-59": 2146,
+      "60+": 1328
+    }
+  },
+  {
+    "localidad": "SUMAPAZ",
+    "total": 2024,
+    "servicios": {
+      "BIENESTAR ALIMENTARIO": 802,
+      "COMISARIAS": 144,
+      "FORTALECIMIENTO GESTION TERRITORIAL": 47,
+      "INCLUSIÓN SOCIAL": 33,
+      "INFANCIA": 134,
+      "INGRESO MINIMO GARANTIZADO": 579,
+      "JÓVENES": 50,
+      "VEJEZ": 235
+    },
+    "discapacidad": 114,
+    "victimas": 173,
+    "lgbti": 1,
+    "migrantes": 6,
+    "etario": {
+      "0-12": 344,
+      "13-17": 223,
+      "18-59": 950,
+      "60+": 507
+    }
+  }
+]
