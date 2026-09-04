@@ -99,6 +99,7 @@ export default function App() {
       case "contratacion":   return <Contratacion onDataLoad={setContratosData} />;
       case "alertas":        return <AlertasML onDataLoad={setPacData} />;
       case "planeacion":     return <Planeacion onDataLoad={setPlanData} />;
+      case "generador-proposiciones": return <GeneradorProposicion anomaliasData={pacData} localidad="FDL Usme" edil="Edil" />;
       case "historico":      return <HistoricoPagos />;
       case "ciberseguridad": return <Ciberseguridad />;
       case "licencias":      return <GestorLicencias />;
