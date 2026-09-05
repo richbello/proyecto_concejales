@@ -1,38 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { initSessionControl, validateSession } from '../utils/sessionControl';
+import { validarSesionUnica, cerrarSesion } from '../utils/sessionControl';
 
 interface AccessGateProps {
   children?: React.ReactNode;
+  onLicencia?: (licencia: string) => void;
 }
 
-export default function AccessGate({ children }: AccessGateProps) {
+export default function AccessGate({ children, onLicencia }: AccessGateProps) {
   const [licencia, setLicencia] = useState('');
   const [validada, setValidada] = useState(false);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState('');
-  const [sesionActiva, setSesionActiva] = useState(false);
 
-  // Al montar, verifica si hay sesión válida
+  // Al montar, verifica si hay sesión válida en localStorage
   useEffect(() => {
-    const verificarSesion = async () => {
-      const licGuardada = localStorage.getItem('xbog_licencia');
-      if (licGuardada) {
-        try {
-          const sesionOk = await validateSession(licGuardada);
-          if (sesionOk) {
-            setValidada(true);
-            setSesionActiva(true);
-            setLicencia(licGuardada);
-          } else {
-            localStorage.removeItem('xbog_licencia');
-            localStorage.removeItem('xbog_sessionId');
-          }
-        } catch (err) {
-          localStorage.removeItem('xbog_licencia');
-        }
-      }
-    };
-    verificarSesion();
+    const licGuardada = localStorage.getItem('xbog_licencia');
+    if (licGuardada) {
+      setValidada(true);
+      setLicencia(licGuardada);
+      onLicencia?.(licGuardada);
+    }
   }, []);
 
   const handleValidar = async (e: React.FormEvent) => {
@@ -64,21 +51,19 @@ export default function AccessGate({ children }: AccessGateProps) {
         return;
       }
 
-      // 2. Iniciar sesión (obtener sessionId)
-      const respSession = await initSessionControl(licencia.trim());
-      if (!respSession.ok) {
-        setError(respSession.error || 'No se pudo iniciar sesión');
+      // 2. Validar sesión única (solo 1 sesión por licencia)
+      const sesionResult = await validarSesionUnica(licencia.trim());
+      if (!sesionResult.permitido) {
+        setError(sesionResult.mensaje || 'No se pudo iniciar sesión');
         setCargando(false);
         return;
       }
 
       // 3. Guardar en localStorage
       localStorage.setItem('xbog_licencia', licencia.trim());
-      localStorage.setItem('xbog_sessionId', respSession.sessionId || '');
-      localStorage.setItem('xbog_loginTime', Date.now().toString());
 
       setValidada(true);
-      setSesionActiva(true);
+      onLicencia?.(licencia.trim());
       setError('');
     } catch (err) {
       console.error('Error validando licencia:', err);
@@ -88,17 +73,15 @@ export default function AccessGate({ children }: AccessGateProps) {
     }
   };
 
-  const handleCerrarSesion = () => {
+  const handleCerrarSesion = async () => {
+    await cerrarSesion(licencia);
     localStorage.removeItem('xbog_licencia');
-    localStorage.removeItem('xbog_sessionId');
-    localStorage.removeItem('xbog_loginTime');
     setValidada(false);
-    setSesionActiva(false);
     setLicencia('');
   };
 
   // Si la sesión es válida, muestra el contenido
-  if (validada && sesionActiva) {
+  if (validada) {
     return (
       <div className="w-full h-full">
         <div className="flex items-center justify-between p-2 bg-teal-900 text-white text-xs">
@@ -144,4 +127,26 @@ export default function AccessGate({ children }: AccessGateProps) {
           </div>
 
           {error && (
-            <div className="p-3 bg-red-900/30 border border-red-500
+            <div className="p-3 bg-red-900/30 border border-red-500 rounded text-red-300 text-sm">
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={cargando}
+            className="w-full px-4 py-2 bg-teal-600 hover:bg-teal-500 disabled:bg-teal-800 text-white font-semibold rounded transition"
+          >
+            {cargando ? 'Validando...' : 'Ingresar'}
+          </button>
+        </form>
+
+        <div className="mt-6 pt-6 border-t border-teal-500/30">
+          <p className="text-gray-400 text-xs text-center">
+            © 2026 XBOG Technologies | Secretaría Distrital de Gobierno
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
