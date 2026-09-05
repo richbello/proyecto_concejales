@@ -446,7 +446,7 @@ async function handleListar(request, env) {
     })
   );
   return Response.json({ok:true, licencias: licencias.filter(Boolean), total: licencias.length}, {headers:cors()});
-}
+
 
 async function handleRevocar(request, env) {
   if (request.headers.get("X-Admin-Secret") !== ADMIN_SECRET) {

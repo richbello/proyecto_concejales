@@ -39,7 +39,7 @@ export default function AccessGate({ children, onLicencia }: AccessGateProps) {
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ licencia: licencia.trim() })
+          body: JSON.stringify({ clave: licencia.trim() })
         }
       );
 
