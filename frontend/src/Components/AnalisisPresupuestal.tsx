@@ -1169,18 +1169,90 @@ const AnalisisPresupuestal:React.FC<Props> = ({onDataLoad}) => {
 
           </div>
         )}
-        {/* ── CONCENTRACIÓN ── */}
-        {activeTab==='concentracion'&&(
-          <div style={{background:"white",borderRadius:"8px",padding:16}}>
-            <h3 style={{color:C.navy,fontSize:13,fontWeight:600,margin:'0 0 12px 0'}}>Top 15 Beneficiarios (74.4% concentrado)</h3>
-            <table style={{width:'100%',fontSize:11,borderCollapse:'collapse'}}>
-              <tbody>
-                {[{r:1,b:'UNION TEMPORAL ESTUDIOS 049',v:9130,p:12.8},{r:2,b:'CORP. PARA LA ASESORÍA',v:7280,p:10.2},{r:3,b:'FUNDACIÓN SOCIAL',v:7160,p:10.1},{r:4,b:'FUNDACIÓN EDUCATIVA UTEM',v:4450,p:6.3},{r:5,b:'DANIEL TARAZONA',v:4110,p:5.8},{r:6,b:'FUNDACIÓN ECODES',v:3190,p:4.5},{r:7,b:'UNIVERSIDAD MILITAR NUEVA',v:2230,p:3.1},{r:8,b:'HYUNDAUTOS SAS',v:2210,p:3.1},{r:9,b:'CORP. AGENCIA NAC GOB DIGITAL',v:2130,p:3.0},{r:10,b:'CONSORCIO AMBIENTAL USME',v:2130,p:3.0},{r:11,b:'INFINIA SAS',v:2040,p:2.9},{r:12,b:'FUNDACIÓN SOCIAL RECREACIÓN',v:2010,p:2.8},{r:13,b:'SUPERMOTO MYM COLOMBIA',v:1830,p:2.6},{r:14,b:'AVANCE ORGANIZACIONAL',v:1610,p:2.3},{r:15,b:'CONSORCIO KBE VIAL',v:1340,p:1.9}].map((row,i)=>(<tr key={i} style={{borderBottom:`1px solid ${C.border}`,backgroundColor:i%2?'#fafafa':'#fff'}}><td style={{padding:'8px',fontWeight:600,color:C.navy,minWidth:30,textAlign:'center'}}>{row.r}</td><td style={{padding:'8px'}}>{row.b}</td><td style={{padding:'8px',textAlign:'right',fontWeight:600,color:C.cyan,minWidth:80}}>${(row.v).toLocaleString('es-CO')}</td><td style={{padding:'8px',textAlign:'right',fontWeight:600,color:row.p>10?C.rojo:C.amar,minWidth:60}}>{row.p.toFixed(1)}%</td></tr>))}
-              </tbody>
-            </table>
+        {/* ── CONCENTRACIÓN (DINÁMICO) ── */}
+{activeTab==='concentracion'&&(
+  <div style={{background:"white",borderRadius:"8px",padding:16}}>
+    <div>
+      <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:4}}>
+        🏆 Top 15 Beneficiarios — Concentración de Presupuesto
+      </div>
+      <div style={{fontSize:11,color:C.muted,marginBottom:14}}>
+        Variables: Nombre BP Beneficiario · Valor CRP · % del Total
+      </div>
+    </div>
+    
+    <ResponsiveContainer width="99%" height={420}>
+      <BarChart data={byBenef.slice(0,15)} layout="vertical" margin={{top:4,right:70,left:200,bottom:4}}>
+        <Gradients/>
+        <CartesianGrid strokeDasharray="3 3" stroke={C.border} horizontal={false}/>
+        <XAxis type="number" tickFormatter={fmtCOP} tick={{fontSize:11,fill:C.navy}}/>
+        <YAxis type="category" dataKey="nombre" width={200} tick={{fontSize:10,fill:C.navy,fontWeight:600}}/>
+        <Tooltip content={<TT/>}/>
+        <Bar dataKey="valorCRP" name="Valor CRP" fill="url(#gCyan)" radius={[0,4,4,0]}>
+          <LabelList dataKey="valorCRP" position="right" formatter={(v:number)=>fmtCOP(v)} style={{fontSize:9,fill:C.muted,fontWeight:600}}/>
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
+
+    <div style={{marginTop:20}}>
+      <h4 style={{color:C.navy,fontSize:12,fontWeight:700,margin:'0 0 12px 0'}}>Ranking Detallado</h4>
+      <table style={{width:'100%',fontSize:11,borderCollapse:'collapse'}}>
+        <thead>
+          <tr style={{backgroundColor:C.navy,color:'#fff'}}>
+            <th style={{padding:'10px 8px',textAlign:'center',fontWeight:700}}>#</th>
+            <th style={{padding:'10px 8px',textAlign:'left',fontWeight:700}}>Beneficiario</th>
+            <th style={{padding:'10px 8px',textAlign:'right',fontWeight:700}}>Valor CRP</th>
+            <th style={{padding:'10px 8px',textAlign:'right',fontWeight:700}}>% del Total</th>
+            <th style={{padding:'10px 8px',textAlign:'center',fontWeight:700}}>Riesgo</th>
+          </tr>
+        </thead>
+        <tbody>
+          {byBenef.slice(0,15).map((row,i)=>{
+            const pctTotal = kpis.valorCRP>0?(row.valorCRP/kpis.valorCRP)*100:0;
+            const riesgo = pctTotal>10?'🔴 ALTO':pctTotal>5?'🟡 MEDIO':'🟢 BAJO';
+            return(
+              <tr key={i} style={{borderBottom:`1px solid ${C.border}`,backgroundColor:i%2?'#fafafa':'#fff'}}>
+                <td style={{padding:'8px',fontWeight:600,textAlign:'center',color:C.navy}}>{i+1}</td>
+                <td style={{padding:'8px',fontSize:10}}>{row.nombre}</td>
+                <td style={{padding:'8px',textAlign:'right',fontWeight:600,color:C.cyan}}>
+                  {fmtCOP(row.valorCRP)}
+                </td>
+                <td style={{padding:'8px',textAlign:'right',fontWeight:600,color:pctTotal>10?C.rojo:pctTotal>5?C.amar:C.verde}}>
+                  {pctTotal.toFixed(2)}%
+                </td>
+                <td style={{padding:'8px',textAlign:'center',fontSize:10}}>{riesgo}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+
+    <div style={{marginTop:16,padding:12,background:'#f0f7ff',borderRadius:8,border:`1px solid ${C.cyanSoft}`}}>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:16,fontSize:11}}>
+        <div>
+          <div style={{color:C.muted,fontWeight:600}}>Top 15 Concentra:</div>
+          <div style={{fontSize:14,fontWeight:800,color:C.cyan}}>
+            {byBenef.length>0?((byBenef.slice(0,15).reduce((s,b)=>s+b.valorCRP,0)/kpis.valorCRP)*100).toFixed(1):'0'}%
           </div>
-        )}
-        {/* ── CALIDAD ── */}
+        </div>
+        <div>
+          <div style={{color:C.muted,fontWeight:600}}>Total Top 15:</div>
+          <div style={{fontSize:14,fontWeight:800,color:C.verde}}>
+            {fmtCOP(byBenef.slice(0,15).reduce((s,b)=>s+b.valorCRP,0))}
+          </div>
+        </div>
+        <div>
+          <div style={{color:C.muted,fontWeight:600}}>Beneficiarios Únicos:</div>
+          <div style={{fontSize:14,fontWeight:800,color:C.navy}}>
+            {fmtNum(byBenef.length)}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+{/* ── CALIDAD ── */}{/* ── CALIDAD ── */}
         {activeTab==='calidad'&&(
           <div style={{background:"white",borderRadius:"8px",padding:16}}>
             <h3 style={{color:C.navy,fontSize:13,fontWeight:600,margin:'0 0 12px 0'}}>Hallazgos de Calidad de Datos</h3>
