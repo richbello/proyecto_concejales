@@ -869,15 +869,17 @@ li{margin:4px 0}
         if (window.Chart) { Chart.defaults.font.family = "'IBM Plex Sans', system-ui, sans-serif"; Chart.defaults.color = "#64748b"; Chart.defaults.borderColor = "#e2e8f0"; }
         // Tab Navigation
         function switchTab(event, tabName) {
-            const panes = document.querySelectorAll('.tab-pane');
-            panes.forEach(pane => pane.classList.remove('active'));
-            
-            const tabs = document.querySelectorAll('.nav-tab');
-            tabs.forEach(tab => tab.classList.remove('active'));
-            
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
             document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
+            event.currentTarget.classList.add('active');
+            if (tabName === 'tab-pobreza') requestAnimationFrame(initCharts);
         }
+
+        let chartsListos = false;
+        function initCharts() {
+            if (chartsListos || !window.Chart) return;
+            chartsListos = true;
         
         // Charts
         const chartColorScheme = {
@@ -958,7 +960,7 @@ li{margin:4px 0}
         // Chart 2: Top Municipios
         const ctxMunicipios = document.getElementById('chartMunicipios').getContext('2d');
         new Chart(ctxMunicipios, {
-            type: 'barChart',
+            type: 'bar',
             data: {
                 labels: ['SOACHA', 'FUSAGASUGÁ', 'GIRARDOT', 'ZIPAQUIRÁ', 'CHÍA', 'FACATATIVÁ', 'MADRID', 'MOSQUERA', 'FUNZA', 'CAJICÁ'],
                 datasets: [{
@@ -1001,7 +1003,7 @@ li{margin:4px 0}
         // Chart 3: Indicadores
         const ctxIndicadores = document.getElementById('chartIndicadores').getContext('2d');
         new Chart(ctxIndicadores, {
-            type: 'barChart',
+            type: 'bar',
             data: {
                 labels: ['Trabajo\nInformal', 'Bajo Logro\nEducativo', 'Hacinamiento\nCrítico', 'Rezago\nEscolar', 'Inadecuada\nExcretas', 'Falta Agua\nMejorada', 'Desempleo\nLargo Plazo', 'Barrera\nPrimera Infancia', 'Sin\nAseguramiento', 'Material\nPisos'],
                 datasets: [{
@@ -1039,6 +1041,7 @@ li{margin:4px 0}
                 }
             }
         });
+            }
     </script>
 </body>
 </html>
