@@ -1,81 +1,99 @@
-// ══════════════════════════════════════════════════════════════════════════════
-// Integración con SECOP II (datos.gov.co) - Dataset jbjy-vk9h
-// Soporta: Bogotá (20 localidades) + municipios (Soacha, Mosquera, Funza, etc)
-// ══════════════════════════════════════════════════════════════════════════════
+// ==============================================================================
+// Integracion con SECOP II (datos.gov.co) - Dataset jbjy-vk9h
+// Soporta: Bogota (20 localidades) + municipios (Soacha, Mosquera, Funza, etc)
+// ==============================================================================
 
 const DATASET_ID = "jbjy-vk9h";
 const BASE_URL = `https://www.datos.gov.co/resource/${DATASET_ID}.json`;
 
-// Configuración por municipio y sus palabras clave en SECOP II
+const LOCALIDADES_BOGOTA: Record<string, string[]> = {
+  "Usaquen": ["USAQUEN", "ALCALDIA LOCAL"],
+  "Chapinero": ["CHAPINERO", "ALCALDIA LOCAL"],
+  "Santa Fe": ["SANTA FE", "ALCALDIA LOCAL"],
+  "San Cristobal": ["SAN CRISTOBAL", "ALCALDIA LOCAL"],
+  "Usme": ["USME", "ALCALDIA LOCAL"],
+  "Tunjuelito": ["TUNJUELITO", "ALCALDIA LOCAL"],
+  "Bosa": ["BOSA", "ALCALDIA LOCAL"],
+  "Kennedy": ["KENNEDY", "ALCALDIA LOCAL"],
+  "Fontibon": ["FONTIBON", "ALCALDIA LOCAL"],
+  "Engativa": ["ENGATIV", "ALCALDIA LOCAL"],
+  "Suba": ["SUBA", "ALCALDIA LOCAL"],
+  "Barrios Unidos": ["BARRIOS UNIDOS", "ALCALDIA LOCAL"],
+  "Teusaquillo": ["TEUSAQUILLO", "ALCALDIA LOCAL"],
+  "Los Martires": ["MARTIRES", "ALCALDIA LOCAL"],
+  "Antonio Narino": ["ANTONIO NARI", "ALCALDIA LOCAL"],
+  "Puente Aranda": ["PUENTE ARANDA", "ALCALDIA LOCAL"],
+  "La Candelaria": ["CANDELARIA", "ALCALDIA LOCAL"],
+  "Rafael Uribe": ["RAFAEL URIBE", "ALCALDIA LOCAL"],
+  "Ciudad Bolivar": ["CIUDAD BOLIVAR", "ALCALDIA LOCAL"],
+  "Sumapaz": ["SUMAPAZ", "ALCALDIA LOCAL"],
+};
+
 interface MunicipioConfig {
-  nombre: string;
   ciudad: string;
   keywords: string[];
 }
 
-const MUNICIPIOS_SECOP: Record<string, MunicipioConfig> = {
-  "Usaquén": { nombre: "Usaquén", ciudad: "Bogotá", keywords: ["USAQUEN", "ALCALDIA LOCAL"] },
-  "Chapinero": { nombre: "Chapinero", ciudad: "Bogotá", keywords: ["CHAPINERO", "ALCALDIA LOCAL"] },
-  "Santa Fe": { nombre: "Santa Fe", ciudad: "Bogotá", keywords: ["SANTA FE", "ALCALDIA LOCAL"] },
-  "San Cristóbal": { nombre: "San Cristóbal", ciudad: "Bogotá", keywords: ["SAN CRISTOBAL", "ALCALDIA LOCAL"] },
-  "Usme": { nombre: "Usme", ciudad: "Bogotá", keywords: ["USME", "ALCALDIA LOCAL"] },
-  "Tunjuelito": { nombre: "Tunjuelito", ciudad: "Bogotá", keywords: ["TUNJUELITO", "ALCALDIA LOCAL"] },
-  "Bosa": { nombre: "Bosa", ciudad: "Bogotá", keywords: ["BOSA", "ALCALDIA LOCAL"] },
-  "Kennedy": { nombre: "Kennedy", ciudad: "Bogotá", keywords: ["KENNEDY", "ALCALDIA LOCAL"] },
-  "Fontibón": { nombre: "Fontibón", ciudad: "Bogotá", keywords: ["FONTIBON", "ALCALDIA LOCAL"] },
-  "Engativá": { nombre: "Engativá", ciudad: "Bogotá", keywords: ["ENGATIV", "ALCALDIA LOCAL"] },
-  "Suba": { nombre: "Suba", ciudad: "Bogotá", keywords: ["SUBA", "ALCALDIA LOCAL"] },
-  "Barrios Unidos": { nombre: "Barrios Unidos", ciudad: "Bogotá", keywords: ["BARRIOS UNIDOS", "ALCALDIA LOCAL"] },
-  "Teusaquillo": { nombre: "Teusaquillo", ciudad: "Bogotá", keywords: ["TEUSAQUILLO", "ALCALDIA LOCAL"] },
-  "Los Mártires": { nombre: "Los Mártires", ciudad: "Bogotá", keywords: ["MARTIRES", "ALCALDIA LOCAL"] },
-  "Antonio Nariño": { nombre: "Antonio Nariño", ciudad: "Bogotá", keywords: ["ANTONIO NARI", "ALCALDIA LOCAL"] },
-  "Puente Aranda": { nombre: "Puente Aranda", ciudad: "Bogotá", keywords: ["PUENTE ARANDA", "ALCALDIA LOCAL"] },
-  "La Candelaria": { nombre: "La Candelaria", ciudad: "Bogotá", keywords: ["CANDELARIA", "ALCALDIA LOCAL"] },
-  "Rafael Uribe": { nombre: "Rafael Uribe", ciudad: "Bogotá", keywords: ["RAFAEL URIBE", "ALCALDIA LOCAL"] },
-  "Ciudad Bolívar": { nombre: "Ciudad Bolívar", ciudad: "Bogotá", keywords: ["CIUDAD BOLIVAR", "ALCALDIA LOCAL"] },
-  "Sumapaz": { nombre: "Sumapaz", ciudad: "Bogotá", keywords: ["SUMAPAZ", "ALCALDIA LOCAL"] },
-  
-  "Soacha": { nombre: "Soacha", ciudad: "Soacha", keywords: ["MUNICIPIO DE SOACHA", "SOACHA"] },
-  "Mosquera": { nombre: "Mosquera", ciudad: "Mosquera", keywords: ["MUNICIPIO DE MOSQUERA", "MOSQUERA"] },
-  "Funza": { nombre: "Funza", ciudad: "Funza", keywords: ["MUNICIPIO DE FUNZA", "FUNZA"] },
-  "Tocancipá": { nombre: "Tocancipá", ciudad: "Tocancipá", keywords: ["MUNICIPIO DE TOCANCIPA", "TOCANCIPA"] },
-  "Zipaquirá": { nombre: "Zipaquirá", ciudad: "Zipaquirá", keywords: ["MUNICIPIO DE ZIPAQUIRA", "ZIPAQUIRA"] },
+const MUNICIPIOS: Record<string, MunicipioConfig> = {
+  "Soacha": { ciudad: "Soacha", keywords: ["MUNICIPIO DE SOACHA", "SOACHA"] },
+  "Mosquera": { ciudad: "Mosquera", keywords: ["MUNICIPIO DE MOSQUERA", "MOSQUERA"] },
+  "Funza": { ciudad: "Funza", keywords: ["MUNICIPIO DE FUNZA", "FUNZA"] },
+  "Tocancipa": { ciudad: "Tocancipa", keywords: ["MUNICIPIO DE TOCANCIPA", "TOCANCIPA"] },
+  "Zipaquira": { ciudad: "Zipaquira", keywords: ["MUNICIPIO DE ZIPAQUIRA", "ZIPAQUIRA"] },
 };
 
-export const cargarSecopII = async (localidad: string): Promise<any[]> => {
+export const obtenerMunicipios = (): string[] => {
+  return ["Bogota", ...Object.keys(MUNICIPIOS)];
+};
+
+export const obtenerLocalidades = (municipio?: string): string[] => {
+  if (!municipio || municipio === "Bogota") {
+    return Object.keys(LOCALIDADES_BOGOTA);
+  }
+  return ["General"];
+};
+
+export const cargarSecopII = async (
+  municipio: string,
+  localidad?: string
+): Promise<any[]> => {
   try {
-    const config = MUNICIPIOS_SECOP[localidad];
-    if (!config) {
-      throw new Error(`Localidad/Municipio "${localidad}" no configurado`);
+    let keywords: string[];
+    let ciudad: string;
+
+    if (!municipio || municipio === "Bogota") {
+      ciudad = "Bogot\u00e1";
+      const loc = localidad && LOCALIDADES_BOGOTA[localidad] ? localidad : "Usme";
+      keywords = LOCALIDADES_BOGOTA[loc];
+    } else {
+      const config = MUNICIPIOS[municipio];
+      if (!config) {
+        throw new Error(`Municipio "${municipio}" no configurado`);
+      }
+      ciudad = config.ciudad;
+      keywords = config.keywords;
     }
 
-    const whereCondiciones = config.keywords
+    const whereCondiciones = keywords
       .map(kw => `upper(nombre_entidad) like '%${kw}%'`)
       .join(" OR ");
 
     const whereClause = encodeURIComponent(
-      `(${whereCondiciones}) AND ciudad='${config.ciudad}'`
+      `(${whereCondiciones}) AND ciudad='${ciudad}'`
     );
 
     const url = `${BASE_URL}?$where=${whereClause}&$limit=5000`;
 
-    console.log(`[SECOP II] Buscando "${localidad}" (ciudad: ${config.ciudad})...`);
+    console.log(`[SECOP II] Buscando municipio="${municipio}" localidad="${localidad}" (ciudad: ${ciudad})...`);
     console.log(`[SECOP II] URL: ${url}`);
 
     const response = await fetch(url);
-
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
     const data = await response.json();
-
-    if (!Array.isArray(data)) {
-      console.warn("[SECOP II] Respuesta no es array:", data);
-      return [];
-    }
-
-    console.log(`[SECOP II] ✅ ${data.length} contratos cargados de ${localidad}`);
+    console.log(`[SECOP II] ${data.length} contratos encontrados`);
     return data;
   } catch (error) {
     console.error("[SECOP II] Error:", error);
@@ -127,20 +145,3 @@ function formatFecha(fecha: any): string {
     return "";
   }
 }
-
-export const obtenerMunicipios = (): string[] => {
-  return Object.keys(MUNICIPIOS_SECOP).sort((a, b) => {
-    const configA = MUNICIPIOS_SECOP[a];
-    const configB = MUNICIPIOS_SECOP[b];
-    if (configA.ciudad === "Bogotá" && configB.ciudad !== "Bogotá") return -1;
-    if (configA.ciudad !== "Bogotá" && configB.ciudad === "Bogotá") return 1;
-    return a.localeCompare(b);
-  });
-};
-
-export const obtenerLocalidades = (municipio?: string): string[] => {
-  if (!municipio) {
-    return Object.keys(MUNICIPIOS_SECOP);
-  }
-  return MUNICIPIOS_SECOP[municipio] ? [municipio] : [];
-};

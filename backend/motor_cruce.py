@@ -292,6 +292,6 @@ if __name__ == "__main__":
     import sys as _sys
     args = [a for a in _sys.argv[1:] if not a.startswith("-")]
     entidad = args[0] if len(args) > 0 else "USME"
-    maxr = int(args[1]) if len(args) > 1 else 5000
+    maxr = int(args[1]) if len(args) > 1 else 40000
     resumen = procesar(entidad, maxr)
     print(json.dumps(resumen, ensure_ascii=False))

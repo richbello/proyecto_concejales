@@ -1,0 +1,52 @@
+{
+  "entidad": "SOACHA",
+  "fecha_analisis": "2026-09-29 18:54",
+  "total_contratos": 3000,
+  "registros_siri": 14611,
+  "registros_boletin": 6441,
+  "total_alertas": 2,
+  "criticas": 1,
+  "altas": 0,
+  "medias": 0,
+  "info": 1,
+  "alertas": [
+    {
+      "fuente": "SIRI (Procuraduría)",
+      "nivel": "CRITICA",
+      "motivo": "Contrato firmado DESPUÉS de la inhabilidad",
+      "documento": "1024499804",
+      "proveedor_secop": "LUIS FERNANDO HERRERA MOSQUERA",
+      "nombre_fuente": "LUIS FERNANDO HERRERA MOSQUERA",
+      "tipo": "DISCIPLINARIO",
+      "sancion": "INHABILIDAD GENERAL ART.39 NUM.1",
+      "fecha_sancion": "30/08/2025",
+      "fin_inhabilidad": "28/08/2035",
+      "vigente": "SÍ",
+      "entidad": "MUNICIPIO DE SOACHA.",
+      "valor": "9720000",
+      "estado": "terminado",
+      "fecha_firma": "2025-09-16",
+      "objeto": "PRESTAR SERVICIOS DE APOYO A LA GESTIÓN COMO AGENTE DE TRÁNSITO Y TRANSPORTE; EN CUMPLIMIENTO DE LA ESTRATEGIA DE  SEGURIDAD VIAL DE LA CIUDAD DE SOACHA No23 SM0132",
+      "autoridad": "OFICINA DE CONTROL INTERNO DISCIPLINARIO DE JUZGAMIENTO N.22 POLICIA METROPOLITANA DE LA SABANA"
+    },
+    {
+      "fuente": "SIRI (Procuraduría)",
+      "nivel": "INFO",
+      "motivo": "Antecedente sin inhabilidad (multa/amonestación)",
+      "documento": "1024499804",
+      "proveedor_secop": "LUIS FERNANDO HERRERA MOSQUERA",
+      "nombre_fuente": "LUIS FERNANDO HERRERA MOSQUERA",
+      "tipo": "DISCIPLINARIO",
+      "sancion": "DESTITUCION ART.39 NUM.1",
+      "fecha_sancion": "30/08/2025",
+      "fin_inhabilidad": "",
+      "vigente": "NO",
+      "entidad": "MUNICIPIO DE SOACHA.",
+      "valor": "9720000",
+      "estado": "terminado",
+      "fecha_firma": "2025-09-16",
+      "objeto": "PRESTAR SERVICIOS DE APOYO A LA GESTIÓN COMO AGENTE DE TRÁNSITO Y TRANSPORTE; EN CUMPLIMIENTO DE LA ESTRATEGIA DE  SEGURIDAD VIAL DE LA CIUDAD DE SOACHA No23 SM0132",
+      "autoridad": "OFICINA DE CONTROL INTERNO DISCIPLINARIO DE JUZGAMIENTO N.22 POLICIA METROPOLITANA DE LA SABANA"
+    }
+  ]
+}

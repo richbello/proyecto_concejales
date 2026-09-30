@@ -8,7 +8,7 @@ import { generarTotdasAlertas, Alerta } from "../../utils/alertas";
 import { cargarSecopII, convertirSecopAFormato, obtenerLocalidades, obtenerMunicipios } from "../../utils/secopIntegracion";
 import { consultarPolitiko, analizarContratista, analizarAlertas } from "../../utils/politikoIA";
 
-// â”€â”€â”€ Paleta â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Paleta ───────────────────────────────────────────────────────────────────
 const C = {
   navy: "#1a2742", navyLt: "#1e3a5f", cyan: "#5dade2", cyanLt: "#85c1e9",
   verde: "#27ae60", verdeLt: "#a9dfbf", amar: "#f39c12", amarLt: "#fdebd0",
@@ -17,11 +17,10 @@ const C = {
 };
 const PAL = [C.cyan,C.verde,C.amar,C.rojo,C.violet,C.teal,"#e67e22","#d63031","#0984e3","#e84393"];
 
-const fmtCOP = (v:number) =>
-  v>=1e9?`$${(v/1e9).toFixed(2)}MM`:v>=1e6?`$${(v/1e6).toFixed(1)}M`:v>=1e3?`$${(v/1e3).toFixed(0)}K`:`$${v.toFixed(0)}`;
+const fmtCOP = (v:number) => `$${Math.round(v).toLocaleString("es-CO")}`;
 const fmtNum = (v:number) => v.toLocaleString("es-CO");
 
-// â”€â”€â”€ Tipos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Tipos ────────────────────────────────────────────────────────────────────
 interface Contrato {
   contrato: string;
   contratista: string;
@@ -52,7 +51,7 @@ interface Resumen {
   porMes: {mes:string; valor:number; count:number}[];
 }
 
-// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function gc(headers:string[], terms:string[]) {
   return headers.findIndex(h => terms.some(t => h.toUpperCase().includes(t.toUpperCase())));
 }
@@ -181,7 +180,7 @@ function procesarContratos(raw:any[][]):Resumen {
   };
 }
 
-// â”€â”€â”€ Sub-componentes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Sub-componentes ──────────────────────────────────────────────────────────
 const KpiCard=({emoji,label,valor,color,sub}:{emoji:string;label:string;valor:string|number;color:string;sub?:string})=>(
   <div style={{background:"white",borderRadius:10,padding:"14px 18px",borderLeft:`3px solid ${color}`,flex:1,minWidth:120,boxShadow:"0 2px 8px rgba(0,0,0,.06)"}}>
     <div style={{fontSize:22}}>{emoji}</div>
@@ -204,7 +203,7 @@ const TT=({active,payload,label}:any)=>{
 };
 
 const ESTADO_COLOR:Record<string,string>={
-  "LIQUIDADO":C.verde,"TERMINADO":C.teal,"EN EJECUCIÃ“N":C.cyan,"EN EJECUCION":C.cyan,
+  "LIQUIDADO":C.verde,"TERMINADO":C.teal,"EN EJECUCIÓN":C.cyan,"EN EJECUCION":C.cyan,
   "SUSPENDIDO":C.amar,"RESCINDIDO":C.rojo,"SIN ESTADO":C.muted,
 };
 const estadoColor=(e:string)=>ESTADO_COLOR[e]??C.violet;
@@ -215,7 +214,7 @@ const BadgeEstado=({estado}:{estado:string})=>(
   </span>
 );
 
-// â”€â”€â”€ Componente principal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Componente principal ─────────────────────────────────────────────────────
 interface Props { onDataLoad?: (data: Resumen) => void; }
 
 export default function Contratacion({ onDataLoad }: Props) {
@@ -233,6 +232,31 @@ export default function Contratacion({ onDataLoad }: Props) {
   const [cargandoIA,  setCargandoIA]  = useState(false);
   const [localidades, setLocalidades] = useState<string[]>([]);
   const [localidadSeleccionada, setLocalidadSeleccionada] = useState("Usme");
+  const [municipios, setMunicipios] = useState<string[]>([]);
+  const [municipioSeleccionado, setMunicipioSeleccionado] = useState("Bogota");
+  const [origenDatos, setOrigenDatos] = useState<string>("");
+
+  useEffect(() => {
+    try {
+      const munis = obtenerMunicipios();
+      setMunicipios(munis);
+      if (munis.length > 0) {
+        setMunicipioSeleccionado(munis[0]);
+        const locs = obtenerLocalidades(munis[0]);
+        setLocalidades(locs);
+        setLocalidadSeleccionada(locs[0] || "");
+      }
+    } catch (err) {
+      console.error("Error cargando municipios:", err);
+    }
+  }, []);
+
+  const handleMunicipioChange = (nuevoMunicipio: string) => {
+    setMunicipioSeleccionado(nuevoMunicipio);
+    const locs = obtenerLocalidades(nuevoMunicipio);
+    setLocalidades(locs);
+    setLocalidadSeleccionada(locs[0] || "");
+  };
   const inputRef = useRef<HTMLInputElement>(null);
   const FILAS_PAG = 25;
 
@@ -255,11 +279,13 @@ export default function Contratacion({ onDataLoad }: Props) {
     reader.readAsArrayBuffer(file);
   },[]);
 
-  // â”€â”€ Cargar desde SECOP II â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  const cargarSecopDirecto = useCallback(async (localidad: string) => {
+  // ── Cargar desde SECOP II ─────────────────────────────────────────────────
+  const cargarSecopDirecto = useCallback(async (municipio: string, localidad: string) => {
     setCargando(true);
     try {
-      const secopData = await cargarSecopII(localidad);
+      const secopData = await cargarSecopII(municipio, localidad);
+      const etiqueta = municipio === "Bogota" ? `Bogota - ${localidad}` : municipio;
+      setOrigenDatos(etiqueta);
       if (secopData.length === 0) {
         alert(`No se encontraron contratos de ${localidad} en SECOP II`);
         setCargando(false);
@@ -278,13 +304,13 @@ export default function Contratacion({ onDataLoad }: Props) {
       setFechaDesde(""); setFechaHasta(""); setPagina(0);
     } catch (err) {
       console.error(err);
-      alert("Error cargando SECOP II. Verifica conexiÃ³n.");
+      alert("Error cargando SECOP II. Verifica conexión.");
     } finally {
       setCargando(false);
     }
   }, []);
 
-  // â”€â”€ Generar Alertas cuando datos cambien â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Generar Alertas cuando datos cambien ──────────────────────────────────
   const actualizarAlertas = useCallback(() => {
     if (datos) {
       const alertasDetectadas = generarTotdasAlertas(datos.contratos);
@@ -292,19 +318,19 @@ export default function Contratacion({ onDataLoad }: Props) {
     }
   }, [datos]);
 
-  // â”€â”€ Pantalla carga â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Pantalla carga ───────────────────────────────────────────────────────────
   if(!datos){
     return(
       <div style={{display:"flex",flexDirection:"column" as const,alignItems:"center",justifyContent:"center",minHeight:420,padding:24}}>
         <div style={{background:`linear-gradient(135deg,${C.navy} 0%,#1e3a6e 100%)`,borderRadius:16,padding:"36px 44px",textAlign:"center" as const,color:"white",maxWidth:560,width:"100%"}}>
-          <div style={{fontSize:52,marginBottom:16}}>ðŸ“‹</div>
-          <h3 style={{margin:"0 0 8px",fontSize:22,fontWeight:800}}>ContrataciÃ³n â€” AnÃ¡lisis Integral</h3>
+          <div style={{fontSize:52,marginBottom:16}}>📋</div>
+          <h3 style={{margin:"0 0 8px",fontSize:22,fontWeight:800}}>Contratación — Análisis Integral</h3>
           <p style={{margin:"0 0 12px",fontSize:13,color:"rgba(255,255,255,.65)",lineHeight:1.7}}>
             Carga el archivo consolidado de contratos.<br/>
-            <strong style={{color:"#85c1e9"}}>9 campos Â· filtros combinados Â· 5 grÃ¡ficas</strong>
+            <strong style={{color:"#85c1e9"}}>9 campos · filtros combinados · 5 gráficas</strong>
           </p>
           <div style={{display:"flex",flexWrap:"wrap" as const,gap:6,justifyContent:"center",marginBottom:28}}>
-            {["Contrato","Nombre Contratista","Tipo IdentificaciÃ³n","Fecha Inicial","Fecha Term. Inicial","Valor Inicial","Valor Final","Fecha Term. Final","Estado Actual"].map(v=>(
+            {["Contrato","Nombre Contratista","Tipo Identificación","Fecha Inicial","Fecha Term. Inicial","Valor Inicial","Valor Final","Fecha Term. Final","Estado Actual"].map(v=>(
               <span key={v} style={{background:"rgba(93,173,226,.25)",border:"1px solid rgba(93,173,226,.4)",borderRadius:20,padding:"3px 10px",fontSize:10,color:"#85c1e9",fontWeight:600}}>{v}</span>
             ))}
           </div>
@@ -313,17 +339,17 @@ export default function Contratacion({ onDataLoad }: Props) {
             onDrop={e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(f)procesar(f);}}
             style={{border:"2px dashed rgba(93,173,226,.45)",borderRadius:12,padding:"26px 20px",cursor:"pointer",background:"rgba(93,173,226,.07)"}}>
             {cargando
-              ?<div style={{fontSize:13,color:"#85c1e9"}}>â³ Procesando contratos...</div>
-              :<><div style={{fontSize:30,marginBottom:8}}>ðŸ“‚</div>
-                <div style={{fontSize:13,color:"#85c1e9",fontWeight:600}}>Arrastra el Excel aquÃ o haz clic</div>
-                <div style={{fontSize:11,color:"rgba(255,255,255,.35)",marginTop:5}}>.xlsx Â· .xls</div></>}
+              ?<div style={{fontSize:13,color:"#85c1e9"}}>⏳ Procesando contratos...</div>
+              :<><div style={{fontSize:30,marginBottom:8}}>📂</div>
+                <div style={{fontSize:13,color:"#85c1e9",fontWeight:600}}>Arrastra el Excel aqu� o haz clic</div>
+                <div style={{fontSize:11,color:"rgba(255,255,255,.35)",marginTop:5}}>.xlsx · .xls</div></>}
           </div>
           <input ref={inputRef} type="file" accept=".xlsx,.xls" style={{display:"none"}} onChange={e=>{if(e.target.files?.[0])procesar(e.target.files[0]);}}/>
 
           {/* SEPARADOR */}
           <div style={{display:"flex",alignItems:"center",gap:12,margin:"20px 0"}}>
             <div style={{flex:1,height:1,background:"rgba(255,255,255,.2)"}}/>
-            <span style={{fontSize:11,color:"rgba(255,255,255,.5)"}}>O CARGA AUTOMÃTICA</span>
+            <span style={{fontSize:11,color:"rgba(255,255,255,.5)"}}>O CARGA AUTOMÁTICA</span>
             <div style={{flex:1,height:1,background:"rgba(255,255,255,.2)"}}/>
           </div>
 
@@ -345,12 +371,12 @@ export default function Contratacion({ onDataLoad }: Props) {
                 <option key={l} value={l} style={{color:"#333"}}>{l}</option>
               ))}
             </select>
-            <button onClick={() => cargarSecopDirecto(localidadSeleccionada)} disabled={!localidadSeleccionada||cargando}
+            <button onClick={() => cargarSecopDirecto(municipioSeleccionado, localidadSeleccionada)} disabled={!municipioSeleccionado||cargando}
               style={{padding:"12px 20px",background:localidadSeleccionada?"#5dade2":"rgba(93,173,226,.3)",color:"white",border:"none",borderRadius:8,fontWeight:700,fontSize:13,cursor:localidadSeleccionada?"pointer":"default"}}>
-              ðŸ“¥ {cargando?"Cargando de SECOP II...":"Cargar desde SECOP II (datos.gov.co)"}
+              📥 {cargando?"Cargando de SECOP II...":"Cargar desde SECOP II (datos.gov.co)"}
             </button>
             <div style={{fontSize:10,color:"rgba(255,255,255,.4)",textAlign:"center" as const}}>
-              Datos oficiales en tiempo real Â· Sin necesidad de Excel
+              Datos oficiales en tiempo real · Sin necesidad de Excel
             </div>
           </div>
         </div>
@@ -358,7 +384,7 @@ export default function Contratacion({ onDataLoad }: Props) {
     );
   }
 
-  // â”€â”€ Filtrado â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Filtrado ─────────────────────────────────────────────────────────────────
   const q=busqueda.toLowerCase().trim();
   const contratosFiltrados=datos.contratos.filter(c=>{
     const okQ   =!q||c.contrato.toLowerCase().includes(q)||c.contratista.toLowerCase().includes(q)||c.tipoId.toLowerCase().includes(q);
@@ -375,7 +401,7 @@ export default function Contratacion({ onDataLoad }: Props) {
   const paginas=Math.ceil(contratosFiltrados.length/FILAS_PAG);
   const filasPag=contratosFiltrados.slice(pagina*FILAS_PAG,(pagina+1)*FILAS_PAG);
 
-  // Datos para grÃ¡ficas filtradas
+  // Datos para gráficas filtradas
   const porEstadoFilt=()=>{
     const m:Record<string,{count:number;valor:number}>={};
     for(const c of contratosFiltrados){
@@ -409,20 +435,20 @@ export default function Contratacion({ onDataLoad }: Props) {
       <div style={{background:`linear-gradient(135deg,${C.navy} 0%,#1e3a6e 100%)`,borderRadius:12,padding:"20px 24px",marginBottom:18,color:"white"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap" as const,gap:12,marginBottom:16}}>
           <div>
-            <div style={{fontSize:10,color:C.cyan,letterSpacing:2,textTransform:"uppercase" as const,fontWeight:700}}>ðŸ“‹ ContrataciÃ³n PÃºblica Â· Codespage</div>
-            <h2 style={{margin:"6px 0 4px",fontSize:20,fontWeight:800}}>AnÃ¡lisis Integral de Contratos</h2>
-            <div style={{fontSize:11,color:"rgba(255,255,255,.5)"}}>9 campos Â· {fmtNum(datos.totalContratos)} contratos cargados</div>
+            <div style={{fontSize:10,color:C.cyan,letterSpacing:2,textTransform:"uppercase" as const,fontWeight:700}}>📋 Contratación Pública · Codespage</div>
+            <h2 style={{margin:"6px 0 4px",fontSize:20,fontWeight:800}}>Análisis Integral de Contratos{origenDatos ? ` · ${origenDatos}` : ""}</h2>
+            <div style={{fontSize:11,color:"rgba(255,255,255,.5)"}}>9 campos · {fmtNum(datos.totalContratos)} contratos cargados</div>
           </div>
           <button onClick={()=>setDatos(null)} style={{background:"rgba(255,255,255,.1)",border:"1px solid rgba(255,255,255,.2)",borderRadius:8,padding:"6px 14px",color:"white",cursor:"pointer",fontSize:12}}>
-            ðŸ“‚ Cambiar archivo
+            📂 Cambiar archivo
           </button>
         </div>
         <div style={{display:"flex",gap:12,flexWrap:"wrap" as const}}>
-          <KpiCard emoji="ðŸ“Š" label="Total contratos"   valor={fmtNum(datos.totalContratos)}   color={C.cyan}/>
-          <KpiCard emoji="ðŸ’°" label="Valor Final Total"  valor={fmtCOP(datos.valorFinalTotal)}   color={C.verde}/>
-          <KpiCard emoji="ðŸ“ˆ" label="Valor Inicial Total"valor={fmtCOP(datos.valorInicialTotal)} color={C.amar}/>
-          <KpiCard emoji="âš ï¸" label="Con sobrecosto"    valor={fmtNum(datos.contratosSobrecosto)} color={C.rojo} sub={`${datos.pctVariacionGlobal.toFixed(1)}% variaciÃ³n`}/>
-          <KpiCard emoji="ðŸ·ï¸" label="Estados distintos" valor={datos.estadosUnicos.length}       color={C.violet}/>
+          <KpiCard emoji="📊" label="Total contratos"   valor={fmtNum(datos.totalContratos)}   color={C.cyan}/>
+          <KpiCard emoji="💰" label="Valor Final Total"  valor={fmtCOP(datos.valorFinalTotal)}   color={C.verde}/>
+          <KpiCard emoji="📈" label="Valor Inicial Total"valor={fmtCOP(datos.valorInicialTotal)} color={C.amar}/>
+          <KpiCard emoji="⚠️" label="Con sobrecosto"    valor={fmtNum(datos.contratosSobrecosto)} color={C.rojo} sub={`${datos.pctVariacionGlobal.toFixed(1)}% variación`}/>
+          <KpiCard emoji="🏷️" label="Estados distintos" valor={datos.estadosUnicos.length}       color={C.violet}/>
         </div>
       </div>
 
@@ -430,15 +456,15 @@ export default function Contratacion({ onDataLoad }: Props) {
       {alertas.length > 0 && (
         <div style={{background:"#fff5f5",borderRadius:12,padding:"16px 20px",marginBottom:16,borderLeft:`4px solid #e74c3c`,boxShadow:"0 2px 10px rgba(0,0,0,.06)"}}>
           <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
-            <span style={{fontSize:18}}>ðŸš¨</span>
-            <div style={{fontWeight:700,fontSize:13,color:"#c0392b"}}>ALERTAS CRÃTICAS ({alertas.length})</div>
-            <button onClick={() => setAlertas([])} style={{marginLeft:"auto",background:"transparent",border:"none",color:"#c0392b",cursor:"pointer",fontWeight:600}}>âœ•</button>
+            <span style={{fontSize:18}}>🚨</span>
+            <div style={{fontWeight:700,fontSize:13,color:"#c0392b"}}>ALERTAS CRÍTICAS ({alertas.length})</div>
+            <button onClick={() => setAlertas([])} style={{marginLeft:"auto",background:"transparent",border:"none",color:"#c0392b",cursor:"pointer",fontWeight:600}}>✕</button>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(320px, 1fr))",gap:10}}>
             {alertas.slice(0, 6).map(a => (
-              <div key={a.id} style={{background:"white",borderRadius:8,padding:"10px 12px",borderLeft:`3px solid ${a.severidad==="CRÃTICO"?"#e74c3c":a.severidad==="ALTO"?"#f39c12":"#3498db"}`,fontSize:11}}>
-                <div style={{fontWeight:700,color:"#2c3e50",marginBottom:4}}>{a.título}</div>
-                <div style={{color:"#7f8c8d",fontSize:10,lineHeight:1.4}}>{a.descripción.slice(0,120)}...</div>
+              <div key={a.id} style={{background:"white",borderRadius:8,padding:"10px 12px",borderLeft:`3px solid ${a.severidad==="CRÍTICO"?"#e74c3c":a.severidad==="ALTO"?"#f39c12":"#3498db"}`,fontSize:11}}>
+                <div style={{fontWeight:700,color:"#2c3e50",marginBottom:4}}>{a.titulo}</div>
+                <div style={{color:"#7f8c8d",fontSize:10,lineHeight:1.4}}>{a.descripcion.slice(0,120)}...</div>
                 {a.valor && <div style={{fontSize:9,color:"#e74c3c",fontWeight:600,marginTop:4}}>Valor: ${a.valor.toLocaleString("es-CO")}</div>}
               </div>
             ))}
@@ -449,7 +475,7 @@ export default function Contratacion({ onDataLoad }: Props) {
       {/* BOTONES SECOP II + IA */}
       {datos && (
         <div style={{background:"white",borderRadius:12,padding:"16px 20px",marginBottom:16,boxShadow:"0 2px 10px rgba(0,0,0,.06)"}}>
-          <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:12}}>âš™ï¸ Herramientas Avanzadas</div>
+          <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:12}}>⚙️ Herramientas Avanzadas</div>
           <div style={{display:"flex",gap:8,flexWrap:"wrap" as const,alignItems:"center"}}>
             <label style={{fontSize:11,color:"rgba(255,255,255,.7)",fontWeight:600}}>Municipio</label>
             <select value={municipioSeleccionado} onChange={e => handleMunicipioChange(e.target.value)}
@@ -464,20 +490,20 @@ export default function Contratacion({ onDataLoad }: Props) {
               style={{flex:1,minWidth:160,fontSize:12,padding:"8px 12px",borderRadius:8,border:`1.5px solid ${C.cyan}`,background:"white"}}>
               <option value="">-- Seleccionar localidad --</option>
               {localidades.map(l => (
-                <option key={l} value={l}>{m}</option>
+                <option key={l} value={l} style={{color:"#333"}}>{l}</option>
               ))}
             </select>
-            <button onClick={() => cargarSecopDirecto(localidadSeleccionada)} disabled={!localidadSeleccionada||cargando}
+            <button onClick={() => cargarSecopDirecto(municipioSeleccionado, localidadSeleccionada)} disabled={!municipioSeleccionado||cargando}
               style={{padding:"8px 16px",background:C.cyan,color:"white",border:"none",borderRadius:8,fontWeight:600,fontSize:12,cursor:"pointer",opacity:cargando?.5:1}}>
-              ðŸ“¥ {cargando?"Cargando...":"Cargar SECOP II"}
+              📥 {cargando?"Cargando...":"Cargar SECOP II"}
             </button>
             <button onClick={actualizarAlertas} 
               style={{padding:"8px 16px",background:C.rojo,color:"white",border:"none",borderRadius:8,fontWeight:600,fontSize:12,cursor:"pointer"}}>
-              ðŸš¨ Detectar Alertas
+              🚨 Detectar Alertas
             </button>
-            <button onClick={async () => {setCargandoIA(true);const res=await analizarAlertas(alertas.slice(0,3).map(a=>a.título).join("; "));alert(res);setCargandoIA(false);}} disabled={alertas.length===0||cargandoIA}
+            <button onClick={async () => {setCargandoIA(true);const res=await analizarAlertas(alertas.slice(0,3).map(a=>a.titulo).join("; "));alert(res);setCargandoIA(false);}} disabled={alertas.length===0||cargandoIA}
               style={{padding:"8px 16px",background:C.violet,color:"white",border:"none",borderRadius:8,fontWeight:600,fontSize:12,cursor:"pointer",opacity:alertas.length===0?.5:1}}>
-              ðŸ¤– {cargandoIA?"Analizando...":"Consultar IA"}
+              🤖 {cargandoIA?"Analizando...":"Consultar IA"}
             </button>
           </div>
         </div>
@@ -486,27 +512,27 @@ export default function Contratacion({ onDataLoad }: Props) {
 
       {/* Filtros */}
       <div style={{background:"white",borderRadius:12,padding:"16px 20px",marginBottom:16,boxShadow:"0 2px 10px rgba(0,0,0,.06)"}}>
-        <div style={{fontSize:13,fontWeight:700,color:C.navy,marginBottom:10}}>ðŸ” Filtros</div>
+        <div style={{fontSize:13,fontWeight:700,color:C.navy,marginBottom:10}}>🔍 Filtros</div>
 
         <div style={{display:"flex",gap:10,flexWrap:"wrap" as const,marginBottom:10}}>
           <input value={busqueda} onChange={e=>{setBusqueda(e.target.value);setPagina(0);}}
-            placeholder="ðŸ”Ž Contrato, contratista o tipo ID..."
+            placeholder="🔎 Contrato, contratista o tipo ID..."
             style={{flex:2,minWidth:220,fontSize:12,padding:"8px 12px",borderRadius:8,border:`1.5px solid ${q?C.cyan:C.border}`,outline:"none"}}/>
           <select value={filtroEst} onChange={e=>{setFiltroEst(e.target.value);setPagina(0);}}
             style={{flex:1,minWidth:160,fontSize:12,padding:"8px 12px",borderRadius:8,border:`1.5px solid ${filtroEst!=="TODOS"?C.verde:C.border}`,background:"white"}}>
-            <option value="TODOS">ðŸ“‹ Todos los estados</option>
+            <option value="TODOS">📋 Todos los estados</option>
             {datos.estadosUnicos.map(e=><option key={e} value={e}>{e}</option>)}
           </select>
           <select value={filtroTipoId} onChange={e=>{setFiltroTipoId(e.target.value);setPagina(0);}}
             style={{flex:1,minWidth:160,fontSize:12,padding:"8px 12px",borderRadius:8,border:`1.5px solid ${filtroTipoId!=="TODOS"?C.amar:C.border}`,background:"white"}}>
-            <option value="TODOS">ðŸªª Todos los tipos ID</option>
+            <option value="TODOS">🪪 Todos los tipos ID</option>
             {datos.tiposIdUnicos.map(t=><option key={t} value={t}>{t}</option>)}
           </select>
         </div>
 
         <div style={{display:"flex",gap:10,flexWrap:"wrap" as const,alignItems:"center"}}>
           <div style={{display:"flex",alignItems:"center",gap:6}}>
-            <span style={{fontSize:11,color:C.muted}}>ðŸ“… Fecha inicio desde</span>
+            <span style={{fontSize:11,color:C.muted}}>📅 Fecha inicio desde</span>
             <input type="date" value={fechaDesde} onChange={e=>{setFechaDesde(e.target.value);setPagina(0);}}
               style={{fontSize:12,padding:"7px 10px",borderRadius:8,border:`1.5px solid ${fechaDesde?C.verde:C.border}`,outline:"none"}}/>
           </div>
@@ -518,33 +544,33 @@ export default function Contratacion({ onDataLoad }: Props) {
           {hayFiltros&&(
             <button onClick={()=>{setBusqueda("");setFiltroEst("TODOS");setFiltroTipoId("TODOS");setFechaDesde("");setFechaHasta("");setPagina(0);}}
               style={{padding:"7px 14px",borderRadius:8,border:`1px solid ${C.border}`,background:C.rojoLt,color:C.rojo,fontWeight:700,fontSize:12,cursor:"pointer"}}>
-              âœ• Limpiar
+              ✕ Limpiar
             </button>
           )}
           <div style={{marginLeft:"auto",fontSize:11,color:C.muted}}>
-            <strong style={{color:C.navy}}>{fmtNum(contratosFiltrados.length)}</strong> contratos Â· <strong style={{color:C.cyan}}>{fmtCOP(totalFiltrado)}</strong>
+            <strong style={{color:C.navy}}>{fmtNum(contratosFiltrados.length)}</strong> contratos · <strong style={{color:C.cyan}}>{fmtCOP(totalFiltrado)}</strong>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
       <div style={{background:"white",borderRadius:"10px 10px 0 0",borderBottom:`2px solid ${C.border}`,display:"flex",padding:"0 12px",overflowX:"auto" as const}}>
-        <TabBtn id="resumen"      label="ðŸ“Š Resumen"/>
-        <TabBtn id="contratos"    label="ðŸ“ˆ Valor Inicial vs Final"/>
-        <TabBtn id="contratistas" label="ðŸ‘¥ Contratistas"/>
-        <TabBtn id="estado"       label="ðŸ·ï¸ Por Estado"/>
-        <TabBtn id="tabla"        label="ðŸ“‹ Tabla completa"/>
+        <TabBtn id="resumen"      label="📊 Resumen"/>
+        <TabBtn id="contratos"    label="📈 Valor Inicial vs Final"/>
+        <TabBtn id="contratistas" label="👥 Contratistas"/>
+        <TabBtn id="estado"       label="🏷️ Por Estado"/>
+        <TabBtn id="tabla"        label="📋 Tabla completa"/>
       </div>
 
       <div style={{background:"white",borderRadius:"0 0 10px 10px",padding:"20px",boxShadow:"0 2px 8px rgba(0,0,0,.06)"}}>
 
-        {/* â”€â”€ RESUMEN â”€â”€ */}
+        {/* ── RESUMEN ── */}
         {tab==="resumen"&&(
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
 
             {/* Dona por estado */}
             <div>
-              <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:4}}>DistribuciÃ³n por Estado Actual</div>
+              <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:4}}>Distribución por Estado Actual</div>
               <div style={{fontSize:11,color:C.muted,marginBottom:12}}>Por valor final del contrato</div>
               <ResponsiveContainer width="99%" height={260}>
                 <PieChart>
@@ -573,7 +599,7 @@ export default function Contratacion({ onDataLoad }: Props) {
             {/* Barras top contratistas */}
             <div>
               <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:4}}>Top 10 Contratistas por Valor Final</div>
-              <div style={{fontSize:11,color:C.muted,marginBottom:12}}>Variable: Nombre del Contratista Â· Valor Final</div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:12}}>Variable: Nombre del Contratista · Valor Final</div>
               <ResponsiveContainer width="99%" height={320}>
                 <BarChart data={topContFilt()} layout="vertical" margin={{top:4,right:60,left:4,bottom:4}}>
                   <CartesianGrid strokeDasharray="3 3" stroke={C.border} horizontal={false}/>
@@ -590,11 +616,11 @@ export default function Contratacion({ onDataLoad }: Props) {
           </div>
         )}
 
-        {/* â”€â”€ VALOR INICIAL vs FINAL â”€â”€ */}
+        {/* ── VALOR INICIAL vs FINAL ── */}
         {tab==="contratos"&&(
           <div>
-            <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:4}}>Valor Inicial vs Valor Final â€” Top 15 contratos</div>
-            <div style={{fontSize:11,color:C.muted,marginBottom:16}}>Variables: Contrato Â· Valor Inicial del Contrato Â· Valor Final del Contrato</div>
+            <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:4}}>Valor Inicial vs Valor Final — Top 15 contratos</div>
+            <div style={{fontSize:11,color:C.muted,marginBottom:16}}>Variables: Contrato · Valor Inicial del Contrato · Valor Final del Contrato</div>
             <ResponsiveContainer width="99%" height={340}>
               <BarChart data={contratosFiltrados.slice(0,15).map(c=>({
                 contrato:c.contrato.slice(0,14),
@@ -615,7 +641,7 @@ export default function Contratacion({ onDataLoad }: Props) {
             {/* Timeline por fecha inicial */}
             <div style={{marginTop:24}}>
               <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:4}}>Contratos por Fecha Inicial de Contrato</div>
-              <div style={{fontSize:11,color:C.muted,marginBottom:12}}>Variables: Fecha Inicial Â· Valor Final Â· NÂ° Contratos</div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:12}}>Variables: Fecha Inicial · Valor Final · N° Contratos</div>
               <ResponsiveContainer width="99%" height={200}>
                 <ComposedChart data={datos.porMes} margin={{top:4,right:16,left:4,bottom:30}}>
                   <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
@@ -624,18 +650,18 @@ export default function Contratacion({ onDataLoad }: Props) {
                   <YAxis yAxisId="der" orientation="right" tick={{fontSize:9}} width={30}/>
                   <Tooltip content={<TT/>}/>
                   <Area yAxisId="izq" type="monotone" dataKey="valor" name="Valor Final" fill={C.cyan+"33"} stroke={C.cyan} strokeWidth={2}/>
-                  <Line yAxisId="der" type="monotone" dataKey="count" name="NÂ° Contratos" stroke={C.amar} strokeWidth={2} dot={{r:3,fill:C.amar}}/>
+                  <Line yAxisId="der" type="monotone" dataKey="count" name="N° Contratos" stroke={C.amar} strokeWidth={2} dot={{r:3,fill:C.amar}}/>
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
           </div>
         )}
 
-        {/* â”€â”€ CONTRATISTAS â”€â”€ */}
+        {/* ── CONTRATISTAS ── */}
         {tab==="contratistas"&&(
           <div>
-            <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:4}}>AnÃ¡lisis de Contratistas</div>
-            <div style={{fontSize:11,color:C.muted,marginBottom:16}}>Variables: Nombre Contratista Â· Tipo de IdentificaciÃ³n Â· Valor Inicial Â· Valor Final</div>
+            <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:4}}>Análisis de Contratistas</div>
+            <div style={{fontSize:11,color:C.muted,marginBottom:16}}>Variables: Nombre Contratista · Tipo de Identificación · Valor Inicial · Valor Final</div>
             <ResponsiveContainer width="99%" height={320}>
               <BarChart data={topContFilt()} margin={{top:4,right:16,left:4,bottom:80}}>
                 <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
@@ -652,7 +678,7 @@ export default function Contratacion({ onDataLoad }: Props) {
               <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
                 <thead>
                   <tr style={{background:C.navy,color:"white"}}>
-                    {["#","Contratista","NÂ° Contratos","Valor Final","VariaciÃ³n"].map(h=>(
+                    {["#","Contratista","N° Contratos","Valor Final","Variación"].map(h=>(
                       <th key={h} style={{padding:"9px 12px",textAlign:"left" as const,fontWeight:600}}>{h}</th>
                     ))}
                   </tr>
@@ -675,11 +701,11 @@ export default function Contratacion({ onDataLoad }: Props) {
           </div>
         )}
 
-        {/* â”€â”€ POR ESTADO â”€â”€ */}
+        {/* ── POR ESTADO ── */}
         {tab==="estado"&&(
           <div>
             <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:4}}>Contratos por Estado Actual</div>
-            <div style={{fontSize:11,color:C.muted,marginBottom:16}}>Variables: Estado Actual del Contrato Â· Valor Final Â· NÂ° Contratos</div>
+            <div style={{fontSize:11,color:C.muted,marginBottom:16}}>Variables: Estado Actual del Contrato · Valor Final · N° Contratos</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
               <div>
                 <ResponsiveContainer width="99%" height={300}>
@@ -702,7 +728,7 @@ export default function Contratacion({ onDataLoad }: Props) {
                     <XAxis type="number" tick={{fontSize:9}}/>
                     <YAxis type="category" dataKey="estado" width={140} tick={{fontSize:10}}/>
                     <Tooltip formatter={(v:any)=>[fmtNum(v)+" contratos","Cantidad"]}/>
-                    <Bar dataKey="count" name="NÂ° Contratos" radius={[0,4,4,0]}
+                    <Bar dataKey="count" name="N° Contratos" radius={[0,4,4,0]}
                       label={{position:"right",formatter:(v:number)=>v,fontSize:9,fill:C.muted}}>
                       {porEstadoFilt().map((_,i)=><Cell key={i} fill={PAL[i%PAL.length]+"bb"}/>)}
                     </Bar>
@@ -716,7 +742,7 @@ export default function Contratacion({ onDataLoad }: Props) {
               <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
                 <thead>
                   <tr style={{background:C.navy,color:"white"}}>
-                    {["Estado Actual","NÂ° Contratos","Valor Final Total","% del total"].map(h=>(
+                    {["Estado Actual","N° Contratos","Valor Final Total","% del total"].map(h=>(
                       <th key={h} style={{padding:"9px 12px",textAlign:"left" as const,fontWeight:600}}>{h}</th>
                     ))}
                   </tr>
@@ -743,14 +769,14 @@ export default function Contratacion({ onDataLoad }: Props) {
           </div>
         )}
 
-        {/* â”€â”€ TABLA COMPLETA â”€â”€ */}
+        {/* ── TABLA COMPLETA ── */}
         {tab==="tabla"&&(
           <div>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
               <div style={{fontWeight:700,fontSize:13,color:C.navy}}>
-                {fmtNum(contratosFiltrados.length)} contratos Â· {fmtCOP(totalFiltrado)}
+                {fmtNum(contratosFiltrados.length)} contratos · {fmtCOP(totalFiltrado)}
               </div>
-              <div style={{fontSize:11,color:C.muted}}>PÃ¡gina {pagina+1} de {paginas||1}</div>
+              <div style={{fontSize:11,color:C.muted}}>Página {pagina+1} de {paginas||1}</div>
             </div>
 
             <div style={{overflowX:"auto" as const,border:`1px solid ${C.border}`,borderRadius:10}}>
@@ -768,11 +794,11 @@ export default function Contratacion({ onDataLoad }: Props) {
                       <td style={{padding:"7px 10px",fontWeight:700,color:C.navy,whiteSpace:"nowrap" as const}}>{c.contrato}</td>
                       <td style={{padding:"7px 10px",maxWidth:160,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" as const}} title={c.contratista}>{c.contratista}</td>
                       <td style={{padding:"7px 10px",color:C.muted,whiteSpace:"nowrap" as const}}>{c.tipoId}</td>
-                      <td style={{padding:"7px 10px",whiteSpace:"nowrap" as const,color:C.verde}}>{c.fechaInicial||"â€”"}</td>
-                      <td style={{padding:"7px 10px",whiteSpace:"nowrap" as const,color:C.muted}}>{c.fechaTermInicial||"â€”"}</td>
+                      <td style={{padding:"7px 10px",whiteSpace:"nowrap" as const,color:C.verde}}>{c.fechaInicial||"—"}</td>
+                      <td style={{padding:"7px 10px",whiteSpace:"nowrap" as const,color:C.muted}}>{c.fechaTermInicial||"—"}</td>
                       <td style={{padding:"7px 10px",textAlign:"right" as const,fontWeight:600,color:C.texto,whiteSpace:"nowrap" as const}}>{fmtCOP(c.valorInicial)}</td>
                       <td style={{padding:"7px 10px",textAlign:"right" as const,fontWeight:700,color:C.cyan,whiteSpace:"nowrap" as const}}>{fmtCOP(c.valorFinal)}</td>
-                      <td style={{padding:"7px 10px",whiteSpace:"nowrap" as const,color:c.variacion>0?C.rojo:C.muted}}>{c.fechaTermFinal||"â€”"}</td>
+                      <td style={{padding:"7px 10px",whiteSpace:"nowrap" as const,color:c.variacion>0?C.rojo:C.muted}}>{c.fechaTermFinal||"—"}</td>
                       <td style={{padding:"7px 10px"}}><BadgeEstado estado={c.estado}/></td>
                     </tr>
                   ))}
@@ -780,17 +806,17 @@ export default function Contratacion({ onDataLoad }: Props) {
               </table>
             </div>
 
-            {/* PaginaciÃ³n */}
+            {/* Paginación */}
             {paginas>1&&(
               <div style={{display:"flex",justifyContent:"center",alignItems:"center",gap:6,marginTop:14}}>
-                <button onClick={()=>setPagina(0)} disabled={pagina===0} style={{padding:"5px 10px",borderRadius:6,border:`1px solid ${C.border}`,cursor:pagina===0?"default":"pointer",opacity:pagina===0?.4:1,background:"white",fontSize:12}}>Â«</button>
-                <button onClick={()=>setPagina(p=>p-1)} disabled={pagina===0} style={{padding:"5px 10px",borderRadius:6,border:`1px solid ${C.border}`,cursor:pagina===0?"default":"pointer",opacity:pagina===0?.4:1,background:"white",fontSize:12}}>â€¹</button>
+                <button onClick={()=>setPagina(0)} disabled={pagina===0} style={{padding:"5px 10px",borderRadius:6,border:`1px solid ${C.border}`,cursor:pagina===0?"default":"pointer",opacity:pagina===0?.4:1,background:"white",fontSize:12}}>«</button>
+                <button onClick={()=>setPagina(p=>p-1)} disabled={pagina===0} style={{padding:"5px 10px",borderRadius:6,border:`1px solid ${C.border}`,cursor:pagina===0?"default":"pointer",opacity:pagina===0?.4:1,background:"white",fontSize:12}}>‹</button>
                 {Array.from({length:Math.min(paginas,7)},(_,i)=>{
                   const p=paginas<=7?i:Math.max(0,Math.min(pagina-3,paginas-7))+i;
                   return<button key={p} onClick={()=>setPagina(p)} style={{padding:"5px 10px",borderRadius:6,border:`1px solid ${p===pagina?C.cyan:C.border}`,background:p===pagina?C.cyan:"white",color:p===pagina?"white":C.texto,cursor:"pointer",fontWeight:p===pagina?700:400,fontSize:12}}>{p+1}</button>;
                 })}
-                <button onClick={()=>setPagina(p=>p+1)} disabled={pagina>=paginas-1} style={{padding:"5px 10px",borderRadius:6,border:`1px solid ${C.border}`,cursor:pagina>=paginas-1?"default":"pointer",opacity:pagina>=paginas-1?.4:1,background:"white",fontSize:12}}>â€º</button>
-                <button onClick={()=>setPagina(paginas-1)} disabled={pagina>=paginas-1} style={{padding:"5px 10px",borderRadius:6,border:`1px solid ${C.border}`,cursor:pagina>=paginas-1?"default":"pointer",opacity:pagina>=paginas-1?.4:1,background:"white",fontSize:12}}>Â»</button>
+                <button onClick={()=>setPagina(p=>p+1)} disabled={pagina>=paginas-1} style={{padding:"5px 10px",borderRadius:6,border:`1px solid ${C.border}`,cursor:pagina>=paginas-1?"default":"pointer",opacity:pagina>=paginas-1?.4:1,background:"white",fontSize:12}}>›</button>
+                <button onClick={()=>setPagina(paginas-1)} disabled={pagina>=paginas-1} style={{padding:"5px 10px",borderRadius:6,border:`1px solid ${C.border}`,cursor:pagina>=paginas-1?"default":"pointer",opacity:pagina>=paginas-1?.4:1,background:"white",fontSize:12}}>»</button>
               </div>
             )}
           </div>

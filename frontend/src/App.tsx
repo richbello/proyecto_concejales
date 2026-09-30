@@ -17,6 +17,8 @@ import GeneradorProposicion from "./Components/GeneradorProposicion";
 import AlertasAutomaticas from "./Components/AlertasAutomaticas";
 import VigilanciaFiscal from "./pages/VigilanciaFiscal";
 import AnalisisSocialModule from "./Components/AnalisisSocialModule";
+import SubsidiosMunicipiosModule from './Components/SubsidiosMunicipiosModule'; 
+
 
 interface DataRow { [key: string]: string | number; }
 
@@ -37,6 +39,12 @@ const TODOS_MODULOS: ModuloItem[] = [
   { key:"ciberseguridad", label:"8. Ciberseguridad", icon:"🔐" },
   { key:"licencias", label:"9. Gestor de Licencias", icon:"🔑" },
   { key:"analisis-social", label:"10. Análisis Social por Localidad", icon:"👥" },
+  {
+  key: "subsidios-municipios",
+  label: "11. Subsidios por Municipio",
+  icon: "🏘️",
+  isGroup: false
+},
 ];
 
 
@@ -106,6 +114,7 @@ export default function App() {
       case "hallazgos":      return <Hallazgos data={crpData}/>
       case "ciberseguridad": return <Ciberseguridad />;
       case "licencias":      return <GestorLicencias />;
+      case "subsidios-municipios": return <SubsidiosMunicipiosModule />;
       case "analisis-social": return <AnalisisSocialModule />;
       case "alertas-automaticas": return <AlertasAutomaticas pacData={pacData} contratosData={contratosData} presupuestoData={crpData} />;
       case "vigilancia-fiscal":
