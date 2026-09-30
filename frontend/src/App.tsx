@@ -49,8 +49,9 @@ const TODOS_MODULOS: ModuloItem[] = [
   {
   key: "modulo-12",
   label: "12. Pobreza, Salud y Seguridad",
-  icon: BarChart3,
-  },
+  icon: "📊",
+  isGroup: false
+},
 ];
 
 
