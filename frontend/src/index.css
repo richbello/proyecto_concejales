@@ -82,7 +82,6 @@ body {
     height: 280px !important;
   }
 }
-cat >> /workspaces/proyecto_concejales/frontend/src/index.css << 'EOF'
 
 /* ── FIX RECHARTS EN MÓVIL ─────────────────────────── */
 .recharts-wrapper {
