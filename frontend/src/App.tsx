@@ -1,4 +1,4 @@
-﻿import Hallazgos from './Components/Hallazgos';
+import Hallazgos from './Components/Hallazgos';
 import React, { useState, useEffect } from "react";
 import AnalisisPresupuestal from "./Components/AnalisisPresupuestal";
 import MapaProyectos from "./Components/MapaProyectos";
@@ -24,25 +24,25 @@ interface DataRow { [key: string]: string | number; }
 
 interface ModuloItem { key: string; label: string; icon: string; isGroup?: boolean; children?: ModuloItem[] }
 const TODOS_MODULOS: ModuloItem[] = [
-  { key:"grupo-presupuesto", label:"1. Presupuesto FDL", icon:"ðŸ“Š", isGroup:true, children:[
-    { key:"presupuesto", label:"1.1 Analisis Presupuestal", icon:"ðŸ“ˆ" },
-    { key:"simulador", label:"1.2 Simulador Presupuesto", icon:"ðŸ§®" },
-    { key:"historico", label:"1.3 Reportes de Pagos", icon:"âœ…" },
-    { key:"hallazgos", label:"1.4 Hallazgos", icon:"ðŸ“" },
+  { key:"grupo-presupuesto", label:"1. Presupuesto FDL", icon:"📊", isGroup:true, children:[
+    { key:"presupuesto", label:"1.1 Analisis Presupuestal", icon:"📈" },
+    { key:"simulador", label:"1.2 Simulador Presupuesto", icon:"🧮" },
+    { key:"historico", label:"1.3 Reportes de Pagos", icon:"✅" },
+    { key:"hallazgos", label:"1.4 Hallazgos", icon:"📍" },
   ]},
-  { key:"alertas", label:"2. Analisis PAC", icon:"ðŸŽ¯" },
-  { key:"contratacion", label:"3. Contratacion", icon:"ðŸ“‹" },
-  { key:"planeacion", label:"4. Planeacion Local", icon:"ðŸ“" },
-  { key:"generador-proposiciones", label:"5. Generador de Proposiciones", icon:"ðŸ“" },
-  { key:"alertas-automaticas", label:"6. Alertas Automaticas", icon:"âš ï¸" },
-  { key:"vigilancia-fiscal", label:"7. Vigilancia Fiscal IA", icon:"âš–ï¸" },
-  { key:"ciberseguridad", label:"8. Ciberseguridad", icon:"ðŸ”" },
-  { key:"licencias", label:"9. Gestor de Licencias", icon:"ðŸ”‘" },
-  { key:"analisis-social", label:"10. AnÃ¡lisis Social por Localidad", icon:"ðŸ‘¥" },
+  { key:"alertas", label:"2. Analisis PAC", icon:"🎯" },
+  { key:"contratacion", label:"3. Contratacion", icon:"📋" },
+  { key:"planeacion", label:"4. Planeacion Local", icon:"📐" },
+  { key:"generador-proposiciones", label:"5. Generador de Proposiciones", icon:"📝" },
+  { key:"alertas-automaticas", label:"6. Alertas Automaticas", icon:"⚠️" },
+  { key:"vigilancia-fiscal", label:"7. Vigilancia Fiscal IA", icon:"⚖️" },
+  { key:"ciberseguridad", label:"8. Ciberseguridad", icon:"🔐" },
+  { key:"licencias", label:"9. Gestor de Licencias", icon:"🔑" },
+  { key:"analisis-social", label:"10. Análisis Social por Localidad", icon:"👥" },
   {
   key: "subsidios-municipios",
   label: "11. Subsidios por Municipio",
-  icon: "ðŸ˜ï¸",
+  icon: "🏘️",
   isGroup: false
 },
 ];
@@ -72,7 +72,7 @@ export default function App() {
     const newModulos = data.modulos || TODOS_MODULOS.map(m => m.key);
     setModulos([...new Set([...newModulos, "licencias", "generador-proposiciones", "alertas-automaticas"])]);
     setPlanActual(data.plan || "");
-    // Si el tab actual no estÃ¡ disponible, ir al primero disponible
+    // Si el tab actual no está disponible, ir al primero disponible
     if (data.modulos && !data.modulos.includes(tab)) {
       setTab(data.modulos.includes("presupuesto") ? "presupuesto" : data.modulos[0]);
     }
@@ -140,7 +140,7 @@ export default function App() {
                       <li onClick={() => toggleGroup(n.key)} style={{ padding:"12px 14px", cursor:"pointer", display:"flex", alignItems:"center", gap:9, fontSize:13, fontWeight:700, color:"#FFE082", letterSpacing:"0.3px" }}>
                         <span>{n.icon}</span>
                         <span>{n.label}</span>
-                        <span style={{marginLeft:"auto"}}>{expandedGroups.has(n.key) ? "â–¼" : "â–¶"}</span>
+                        <span style={{marginLeft:"auto"}}>{expandedGroups.has(n.key) ? "▼" : "▶"}</span>
                       </li>
                       {expandedGroups.has(n.key) && n.children?.map(child => (
                         <li key={child.key} onClick={() => handleTabChange(child.key)} style={{ paddingLeft:"30px", cursor:"pointer", display:"flex", alignItems:"center", gap:9, fontSize:12, background:tab===child.key?"rgba(255,209,0,.2)":"transparent", borderLeft:tab===child.key?"4px solid #FFE082":"4px solid transparent", color:tab===child.key?"#FFE082":"rgba(255,255,255,.75)", transition:"all 0.2s" }}>
@@ -189,7 +189,7 @@ export default function App() {
               </div>
             </div>
             <div style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
-              {!isMobile && <span style={{ fontSize:10, background:"rgba(255,255,255,.1)", padding:"3px 8px", borderRadius:6 }}>ðŸ“… {new Date().toLocaleDateString("es-CO")}</span>}
+              {!isMobile && <span style={{ fontSize:10, background:"rgba(255,255,255,.1)", padding:"3px 8px", borderRadius:6 }}>📅 {new Date().toLocaleDateString("es-CO")}</span>}
               <div style={{ width:30, height:30, borderRadius:"50%", background:"#FFE082", display:"flex", alignItems:"center", justifyContent:"center", fontWeight:700, fontSize:12 }}>RB</div>
             </div>
           </div>
@@ -202,7 +202,7 @@ export default function App() {
                     <div onClick={() => toggleGroup(n.key)} style={{ padding:"13px 18px", cursor:"pointer", display:"flex", alignItems:"center", gap:12, fontSize:14, fontWeight:700, color:"#FFE082", borderBottom:"1px solid rgba(255,255,255,.06)" }}>
                       <span style={{ fontSize:18 }}>{n.icon}</span>
                       <span>{n.label}</span>
-                      <span style={{ marginLeft:"auto", fontSize:11 }}>{expandedGroups.has(n.key) ? "â–¼" : "â–¶"}</span>
+                      <span style={{ marginLeft:"auto", fontSize:11 }}>{expandedGroups.has(n.key) ? "▼" : "▶"}</span>
                     </div>
                     {expandedGroups.has(n.key) && n.children?.map(child => (
                       <div key={child.key} onClick={() => handleTabChange(child.key)} style={{ padding:"11px 18px 11px 44px", cursor:"pointer", display:"flex", alignItems:"center", gap:10, fontSize:13, background:tab===child.key?"#FFE082":"transparent", borderLeft:tab===child.key?"4px solid #5dade2":"4px solid transparent", color:tab===child.key?"#7A1414":"rgba(255,255,255,.75)", borderBottom:"1px solid rgba(255,255,255,.04)" }}>
@@ -215,7 +215,7 @@ export default function App() {
                 <div key={n.key} onClick={() => handleTabChange(n.key)} style={{ padding:"13px 18px", cursor:"pointer", display:"flex", alignItems:"center", gap:12, fontSize:14, background:tab===n.key?"#FFE082":"transparent", borderLeft:tab===n.key?"4px solid #5dade2":"4px solid transparent", color:tab===n.key?"#7A1414":"rgba(255,255,255,.8)", borderBottom:"1px solid rgba(255,255,255,.06)" }}>
                   <span style={{ fontSize:18 }}>{n.icon}</span>
                   <span>{n.label}</span>
-                  {tab===n.key && <span style={{ marginLeft:"auto", fontSize:10 }}>â—</span>}
+                  {tab===n.key && <span style={{ marginLeft:"auto", fontSize:10 }}>●</span>}
                 </div>
                 )
               ))}
@@ -239,5 +239,3 @@ export default function App() {
 }// Privatized at Fri Aug 14 16:13:40 UTC 2026
 // Deploy v1
 // Rebuild trigger
-
-
