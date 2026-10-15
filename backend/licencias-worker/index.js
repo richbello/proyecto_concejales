@@ -446,7 +446,7 @@ async function handleListar(request, env) {
     })
   );
   return Response.json({ok:true, licencias: licencias.filter(Boolean), total: licencias.length}, {headers:cors()});
-
+}
 
 async function handleRevocar(request, env) {
   if (request.headers.get("X-Admin-Secret") !== ADMIN_SECRET) {
@@ -461,6 +461,30 @@ async function handleRevocar(request, env) {
   return Response.json({ok:true, mensaje: lic.activa ? "Licencia activada" : "Licencia suspendida"}, {headers:cors()});
 }
 
+async function handleRenovar(request, env) {
+  if (request.headers.get("X-Admin-Secret") !== ADMIN_SECRET) {
+    return Response.json({ok:false, error:"No autorizado"}, {status:401, headers:cors()});
+  }
+  const body = await request.json();
+  const { clave, dias } = body;
+  if (!clave) return Response.json({ok:false, error:"Clave requerida"}, {headers:cors()});
+  const data = await env.LICENCIAS.get(clave);
+  if (!data) return Response.json({ok:false, error:"Licencia no encontrada"}, {headers:cors()});
+  const lic = JSON.parse(data);
+  const diasRenovar = dias || 365;
+  lic.expira = Date.now() + (diasRenovar * 86400000);
+  lic.activa = true;
+  await env.LICENCIAS.put(clave, JSON.stringify(lic));
+  return Response.json({
+    ok: true,
+    mensaje: `Licencia renovada por ${diasRenovar} dias`,
+    clave: lic.clave,
+    cliente: lic.cliente,
+    expira: new Date(lic.expira).toLocaleDateString("es-CO"),
+    diasRestantes: diasRenovar,
+  }, {headers:cors()});
+}
+
 export default {
   async fetch(request, env) {
     if (request.method === "OPTIONS") return new Response(null, {headers:cors()});
@@ -473,6 +497,7 @@ export default {
     if (path === "/crear"         && request.method === "POST") return handleCrear(request, env);
     if (path === "/listar"        && request.method === "GET")  return handleListar(request, env);
     if (path === "/revocar"       && request.method === "POST") return handleRevocar(request, env);
+    if (path === "/renovar"       && request.method === "POST") return handleRenovar(request, env);
     return Response.json({ok:true, servicio:"XBOG CONTROL v1.5 (CACHE KV + APIs REALES)", dataSource: "datos.gov.co (SIRI + Boletín + SECOP II)"}, {headers:cors()});
   }
 };
