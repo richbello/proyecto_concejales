@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 const WORKER_URL = "https://controlia-licencias.richbello.workers.dev";
-const ADMIN_SECRET = "xbog-admin-2026-controlia";
-const PASSWORD_ADMIN = "Bogota.2026";
+let ADMIN_SECRET = "";
 const C = { navy:"#152A4E", card:"#1F3A63", cyan:"#FFD100", verde:"#00ff88", amar:"#ffd60a", rojo:"#D10D0D", muted:"#4a5568", border:"#2C4B7C", texto:"#e2e8f0", sub:"#94a3b8" };
 const fmtCOP = (v:number) => v>=1e6?`$${(v/1e6).toFixed(1)}M`:v>=1e3?`$${(v/1e3).toFixed(0)}K`:`$${v}`;
 const PLANES_INFO: Record<string, {label:string; precio:number; color:string; modulos:number}> = {
@@ -45,9 +44,14 @@ export default function GestorLicencias() {
 
   useEffect(() => { if (autenticado) cargar(); }, [autenticado, cargar]);
 
-  const login = () => {
-    if (passwordInput === PASSWORD_ADMIN) { setAutenticado(true); setPasswordInput(""); }
-    else { alert("Contrasena incorrecta"); setPasswordInput(""); }
+  const login = async () => {
+    ADMIN_SECRET = passwordInput.trim();
+    setPasswordInput("");
+    try {
+      const r = await fetch(WORKER_URL + "/listar", { headers:{ "X-Admin-Secret": ADMIN_SECRET } });
+      if (r.status === 401) { ADMIN_SECRET = ""; alert("Clave de administrador incorrecta"); return; }
+      setAutenticado(true);
+    } catch { ADMIN_SECRET = ""; alert("Error conectando con el servidor."); }
   };
 
   const crear = async () => {

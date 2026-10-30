@@ -1,4 +1,3 @@
-const ADMIN_SECRET = "xbog-admin-2026-controlia";
 const CACHE_EXPIRY = 86400000; // 24 horas
 
 const PLANES = {
@@ -407,7 +406,7 @@ async function handleSessionClose(request, env) {
 }
 
 async function handleCrear(request, env) {
-  if (request.headers.get("X-Admin-Secret") !== ADMIN_SECRET) {
+  if (!env.ADMIN_SECRET || request.headers.get("X-Admin-Secret") !== env.ADMIN_SECRET) {
     return Response.json({ok:false, error:"No autorizado"}, {status:401, headers:cors()});
   }
   const body = await request.json();
@@ -435,7 +434,7 @@ async function handleCrear(request, env) {
 }
 
 async function handleListar(request, env) {
-  if (request.headers.get("X-Admin-Secret") !== ADMIN_SECRET) {
+  if (!env.ADMIN_SECRET || request.headers.get("X-Admin-Secret") !== env.ADMIN_SECRET) {
     return Response.json({ok:false, error:"No autorizado"}, {status:401, headers:cors()});
   }
   const lista = await env.LICENCIAS.list();
@@ -449,7 +448,7 @@ async function handleListar(request, env) {
 }
 
 async function handleRevocar(request, env) {
-  if (request.headers.get("X-Admin-Secret") !== ADMIN_SECRET) {
+  if (!env.ADMIN_SECRET || request.headers.get("X-Admin-Secret") !== env.ADMIN_SECRET) {
     return Response.json({ok:false, error:"No autorizado"}, {status:401, headers:cors()});
   }
   const { clave, activa } = await request.json();
@@ -462,7 +461,7 @@ async function handleRevocar(request, env) {
 }
 
 async function handleRenovar(request, env) {
-  if (request.headers.get("X-Admin-Secret") !== ADMIN_SECRET) {
+  if (!env.ADMIN_SECRET || request.headers.get("X-Admin-Secret") !== env.ADMIN_SECRET) {
     return Response.json({ok:false, error:"No autorizado"}, {status:401, headers:cors()});
   }
   const body = await request.json();
